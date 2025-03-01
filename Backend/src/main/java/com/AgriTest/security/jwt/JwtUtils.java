@@ -1,4 +1,3 @@
-// File: src/main/java/com/AgriTest/security/jwt/JwtUtils.java
 package com.AgriTest.security.jwt;
 
 import com.AgriTest.security.service.UserDetailsImpl;
@@ -10,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.security.Key;
 import java.util.Date;
@@ -40,26 +41,69 @@ public class JwtUtils {
     }
 
     public String getUserNameFromJwtToken(String token) {
+        // Trim the token to remove any whitespace
+        token = token.trim();
+        
         return Jwts.parserBuilder().setSigningKey(key()).build()
                 .parseClaimsJws(token).getBody().getSubject();
     }
 
     public boolean validateJwtToken(String authToken) {
         try {
-            Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(authToken);
+            // Check if token is null or empty
+            if (authToken == null || authToken.isEmpty()) {
+                logger.error("JWT token is null or empty");
+                return false;
+            }
+            
+            // Trim the token to remove any whitespace
+            authToken = authToken.trim();
+            
+            // Check for spaces within token
+            if (authToken.contains(" ")) {
+                logger.error("JWT token contains spaces which are not allowed");
+                return false;
+            }
+            
+            // Add logging to see the token being validated
+            logger.debug("Validating token: {}", authToken);
+            
+            Jwts.parserBuilder()
+                .setSigningKey(key())
+                .build()
+                .parseClaimsJws(authToken);
             return true;
-        } catch (SecurityException e) {
-            logger.error("Invalid JWT signature: {}", e.getMessage());
+        } catch (SignatureException e) {
+            logger.error("JWT validation error: Invalid JWT signature: {}", e.getMessage());
         } catch (MalformedJwtException e) {
-            logger.error("Invalid JWT token: {}", e.getMessage());
+            logger.error("JWT validation error: Invalid JWT token: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
-            logger.error("JWT token is expired: {}", e.getMessage());
+            logger.error("JWT validation error: JWT token is expired: {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
-            logger.error("JWT token is unsupported: {}", e.getMessage());
+            logger.error("JWT validation error: JWT token is unsupported: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            logger.error("JWT claims string is empty: {}", e.getMessage());
+            logger.error("JWT validation error: JWT claims string is empty: {}", e.getMessage());
+        } catch (Exception e) {
+            logger.error("JWT validation error: {}", e.getMessage());
         }
-
         return false;
+    }
+    
+    public String parseJwt(HttpServletRequest request) {
+        String headerAuth = request.getHeader("Authorization");
+        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer")) {
+            // Extract token and handle potential extra spaces after "Bearer"
+            String token = headerAuth.substring(6).trim();
+            
+            // Additional check for spaces within the actual token (not between Bearer and token)
+            if (token.indexOf(' ') > 0) {
+                logger.error("JWT token contains internal spaces");
+                return null;
+            }
+            
+            logger.debug("Extracted token: [{}]", token);
+            return token;
+        }
+        return null;
     }
 }

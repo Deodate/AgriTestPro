@@ -1,10 +1,10 @@
+// File: src/main/java/com/AgriTest/util/SecurityUtils.java
 package com.AgriTest.util;
 
+import com.AgriTest.security.service.UserDetailsImpl;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import com.AgriTest.service.UserDetailsImpl;
 
 import java.util.Optional;
 
@@ -39,7 +39,7 @@ public class SecurityUtils {
     
     /**
      * Get the user ID of the current user.
-     * Note: This method assumes the Authentication principal contains a User object with an ID field.
+     * Note: This method assumes the Authentication principal contains a UserDetailsImpl object with an ID field.
      * 
      * @return the user ID of the current user, or null if not available
      */
@@ -50,7 +50,7 @@ public class SecurityUtils {
             return null;
         }
         
-        if (authentication.getPrincipal() instanceof UserDetails) {
+        if (authentication.getPrincipal() instanceof UserDetailsImpl) {
             return ((UserDetailsImpl) authentication.getPrincipal()).getId();
         }
         
@@ -88,5 +88,17 @@ public class SecurityUtils {
         
         return authentication.isAuthenticated() && 
                !"anonymousUser".equals(authentication.getPrincipal());
+    }
+    
+    /**
+     * Check if the current user ID matches the given user ID.
+     * Useful for authorization checks when a user should only access their own resources.
+     *
+     * @param id the user ID to check against
+     * @return true if the current user ID matches the given ID
+     */
+    public static boolean isCurrentUserId(Long id) {
+        Long currentUserId = getCurrentUserId();
+        return currentUserId != null && currentUserId.equals(id);
     }
 }
