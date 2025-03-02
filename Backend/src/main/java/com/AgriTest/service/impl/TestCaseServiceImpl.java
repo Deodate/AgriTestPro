@@ -157,6 +157,31 @@ public class TestCaseServiceImpl implements TestCaseService {
         return mapTestResultToTestResultResponse(savedTestResult);
     }
     
+    @Override
+    public List<TestCaseResponse> getTestCasesByIds(List<Long> testCaseIds) {
+        List<TestCase> testCases = testCaseRepository.findAllById(testCaseIds);
+        return testCases.stream()
+                .map(this::mapTestCaseToTestCaseResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TestResultResponse> getTestResultsByTestCase(Long testCaseId) {
+        TestCase testCase = testCaseRepository.findById(testCaseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Test case not found with id: " + testCaseId));
+        
+        List<TestResult> results = new ArrayList<>();
+        
+        // Collect results from all phases of this test case
+        for (TestPhase phase : testCase.getPhases()) {
+            results.addAll(phase.getResults());
+        }
+        
+        return results.stream()
+                .map(this::mapTestResultToTestResultResponse)
+                .collect(Collectors.toList());
+    }
+    
     private ProductResponse mapProductToProductResponse(Product product) {
         return ProductResponse.builder()
                 .id(product.getId())

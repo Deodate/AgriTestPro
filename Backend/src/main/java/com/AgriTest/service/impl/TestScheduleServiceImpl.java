@@ -186,6 +186,17 @@ public class TestScheduleServiceImpl implements TestScheduleService {
         }
     }
     
+    /**
+     * Get test schedules by specific IDs
+     * @param scheduleIds List of schedule IDs to retrieve
+     * @return List of test schedule responses
+     */
+    @Override
+    public List<TestScheduleResponse> getTestSchedulesByIds(List<Long> scheduleIds) {
+        List<TestSchedule> schedules = testScheduleRepository.findAllById(scheduleIds);
+        return testScheduleMapper.toDtoList(schedules);
+    }
+    
     private LocalDate calculateNextExecution(
             LocalDate startDate,
             String frequency,
