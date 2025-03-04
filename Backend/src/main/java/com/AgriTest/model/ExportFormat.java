@@ -2,7 +2,9 @@
 package com.AgriTest.model;
 
 public enum ExportFormat {
-    CSV,
+    PDF,
     EXCEL,
-    PDF
+    CSV,
+    JSON,
+    HTML
 }

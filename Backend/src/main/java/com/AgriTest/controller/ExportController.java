@@ -23,7 +23,7 @@ public class ExportController {
     
     /**
      * Export test cases to various formats
-     * @param format The export format (CSV, EXCEL, PDF)
+     * @param format The export format (CSV, EXCEL, PDF) 
      * @param testCaseIds Optional list of test case IDs to export. If empty, exports all.
      */
     @GetMapping("/testcases")
@@ -43,7 +43,7 @@ public class ExportController {
     }
     
     /**
-     * Export test schedules to various formats
+     * Export test schedules to various formats  ReportScheduleRequest.java
      * @param format The export format (CSV, EXCEL, PDF)
      * @param scheduleIds Optional list of schedule IDs to export. If empty, exports all.
      */
