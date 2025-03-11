@@ -16,8 +16,15 @@ public interface AnalyticsDataRepository extends JpaRepository<AnalyticsData, Lo
     List<AnalyticsData> findByDataSourceAndEntityTypeAndEntityIdOrderByDataDate(
             String dataSource, EntityType entityType, Long entityId);
 
-    // Modified method name to match exactly what is being called in the service
+    List<AnalyticsData> findByDataSourceAndEntityTypeAndEntityIdAndDataDateBetweenOrderByDataDate(
+            String dataSource, EntityType entityType, Long entityId, LocalDate startDate, LocalDate endDate);
+
+    // This method name is used in both ForecastService and DataExportService
     List<AnalyticsData> findByDataSourceAndDataDateBetween(
+            String dataSource, LocalDate startDate, LocalDate endDate);
+    
+    // This method is needed for DataExportService
+    List<AnalyticsData> findByDataSourceAndDataDateBetweenOrderByDataDate(
             String dataSource, LocalDate startDate, LocalDate endDate);
             
     @Query("SELECT a FROM AnalyticsData a WHERE a.dataSource = :dataSource " +
