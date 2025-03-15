@@ -122,14 +122,33 @@ public class StockMonitoringServiceImpl implements StockMonitoringService {
     @Override
     @Transactional(readOnly = true)
     public List<StockMonitoringResponse> getLowStockLevelMonitoring(Integer threshold) {
-        return stockMonitoringRepository.findByCurrentStockLevelLessThan(threshold).stream()
-                .map(stockMonitoringMapper::toDto)
-                .collect(Collectors.toList());
+        // Default threshold to 10 if not provided
+        if (threshold == null) {
+            threshold = 10;
+        }
+        
+        // Retrieve low stock entries with product details
+        List<StockMonitoring> lowStockEntries = stockMonitoringRepository
+            .findLowStockEntriesWithProductDetails(threshold);
+        
+        // Convert to DTOs with additional logging or processing if needed
+        return lowStockEntries.stream()
+            .map(entry -> {
+                StockMonitoringResponse response = stockMonitoringMapper.toDto(entry);
+                // Optional: Add any additional processing or logging
+                return response;
+            })
+            .collect(Collectors.toList());
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<StockMonitoringResponse> getUpcomingExpiryStockMonitoring(LocalDate upcomingDate) {
+        // Use current date if no date provided
+        if (upcomingDate == null) {
+            upcomingDate = LocalDate.now().plusMonths(3); // Default to 3 months from now
+        }
+        
         return stockMonitoringRepository.findByExpiryDateBefore(upcomingDate).stream()
                 .map(stockMonitoringMapper::toDto)
                 .collect(Collectors.toList());

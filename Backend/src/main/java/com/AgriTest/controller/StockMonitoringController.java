@@ -88,8 +88,8 @@ public class StockMonitoringController {
     @GetMapping("/low-stock")
     @PreAuthorize("hasRole('ADMIN') or hasRole('INVENTORY_MANAGER')")
     public ResponseEntity<List<StockMonitoringResponse>> getLowStockLevelMonitoring(
-            @RequestParam(defaultValue = "10") Integer threshold) {
-        logger.info("Fetching stock monitoring entries with stock level below {}", threshold);
+            @RequestParam(required = false, defaultValue = "10") Integer threshold) {
+        logger.info("Fetching stock monitoring entries with stock level at or below {}", threshold);
         List<StockMonitoringResponse> monitoring = stockMonitoringService.getLowStockLevelMonitoring(threshold);
         return new ResponseEntity<>(monitoring, HttpStatus.OK);
     }
@@ -97,8 +97,9 @@ public class StockMonitoringController {
     @GetMapping("/upcoming-expiry")
     @PreAuthorize("hasRole('ADMIN') or hasRole('INVENTORY_MANAGER')")
     public ResponseEntity<List<StockMonitoringResponse>> getUpcomingExpiryStockMonitoring(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate upcomingDate) {
-        logger.info("Fetching stock monitoring entries expiring before {}", upcomingDate);
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate upcomingDate) {
+        logger.info("Fetching stock monitoring entries expiring before {}", 
+            upcomingDate != null ? upcomingDate : "default date");
         List<StockMonitoringResponse> monitoring = stockMonitoringService.getUpcomingExpiryStockMonitoring(upcomingDate);
         return new ResponseEntity<>(monitoring, HttpStatus.OK);
     }
