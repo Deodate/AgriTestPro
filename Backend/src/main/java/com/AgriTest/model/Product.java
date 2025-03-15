@@ -25,6 +25,9 @@ public class Product {
     private String category;
 
     private String manufacturer;
+    
+    @Column(name = "stock_quantity", nullable = false)
+    private Integer stockQuantity = 0; // Initialize with default value of 0
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
