@@ -1,26 +1,25 @@
 package com.AgriTest.util;
 
 import com.AgriTest.model.ComplianceChecklist;
-import com.AgriTest.model.ChecklistItem;
-
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ComplianceChecklistUtils {
 
     /**
      * Determines the overall compliance status based on checklist items
-     * @param items List of checklist items
+     * @param checklistItems Map of checklist items
      * @return Compliance status
      */
-    public static ComplianceChecklist.ComplianceStatus determineOverallStatus(List<ChecklistItem> items) {
-        if (items == null || items.isEmpty()) {
+    public static ComplianceChecklist.ComplianceStatus determineOverallStatus(Map<String, Boolean> checklistItems) {
+        if (checklistItems == null || checklistItems.isEmpty()) {
             return ComplianceChecklist.ComplianceStatus.NON_COMPLIANT;
         }
 
-        long totalItems = items.size();
-        long passedItems = items.stream()
-            .filter(ChecklistItem::getPassed)
+        long totalItems = checklistItems.size();
+        long passedItems = checklistItems.values().stream()
+            .filter(value -> Boolean.TRUE.equals(value))
             .count();
 
         if (passedItems == totalItems) {
@@ -48,17 +47,17 @@ public class ComplianceChecklistUtils {
 
     /**
      * Calculates compliance percentage
-     * @param items List of checklist items
+     * @param checklistItems Map of checklist items
      * @return Percentage of passed items
      */
-    public static double calculateCompliancePercentage(List<ChecklistItem> items) {
-        if (items == null || items.isEmpty()) {
+    public static double calculateCompliancePercentage(Map<String, Boolean> checklistItems) {
+        if (checklistItems == null || checklistItems.isEmpty()) {
             return 0.0;
         }
 
-        long totalItems = items.size();
-        long passedItems = items.stream()
-            .filter(ChecklistItem::getPassed)
+        long totalItems = checklistItems.size();
+        long passedItems = checklistItems.values().stream()
+            .filter(value -> Boolean.TRUE.equals(value))
             .count();
 
         return (double) passedItems / totalItems * 100;

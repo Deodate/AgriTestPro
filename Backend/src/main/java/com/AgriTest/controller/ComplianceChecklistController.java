@@ -1,137 +1,107 @@
 package com.AgriTest.controller;
 
-import com.AgriTest.dto.ComplianceChecklistDTO;
-import com.AgriTest.dto.ChecklistItemDTO;
-import com.AgriTest.model.ComplianceChecklist;
-import com.AgriTest.service.ComplianceChecklistServiceInterface;
-
+import com.AgriTest.dto.ComplianceChecklistRequest;
+import com.AgriTest.dto.ComplianceChecklistResponse;
+import com.AgriTest.service.ComplianceChecklistService;
+import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
 @RestController
-@RequestMapping("/api/compliance")
+@RequestMapping("/api/compliance-checklist")
 public class ComplianceChecklistController {
-
-    private final ComplianceChecklistServiceInterface complianceChecklistService;
-
+    
+    private static final Logger logger = LoggerFactory.getLogger(ComplianceChecklistController.class);
+    
     @Autowired
-    public ComplianceChecklistController(ComplianceChecklistServiceInterface complianceChecklistService) {
-        this.complianceChecklistService = complianceChecklistService;
-    }
-
-    // Existing endpoints
+    private ComplianceChecklistService complianceChecklistService;
+    
     @PostMapping
-    public ResponseEntity<ComplianceChecklistDTO> createChecklist(@Valid @RequestBody ComplianceChecklistDTO checklistDTO) {
-        ComplianceChecklistDTO createdChecklist = complianceChecklistService.createChecklist(checklistDTO);
-        return new ResponseEntity<>(createdChecklist, HttpStatus.CREATED);
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RESEARCH_MANAGER')")
+    public ResponseEntity<ComplianceChecklistResponse> createComplianceChecklist(
+            @Valid @RequestBody ComplianceChecklistRequest request) {
+        logger.info("Creating new compliance checklist for product ID: {}", request.getProductId());
+        ComplianceChecklistResponse response = complianceChecklistService.createComplianceChecklist(request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ComplianceChecklistDTO> getChecklistById(@PathVariable Long id) {
-        ComplianceChecklistDTO checklist = complianceChecklistService.getChecklistById(id);
-        return ResponseEntity.ok(checklist);
-    }
-
+    
     @GetMapping
-    public ResponseEntity<List<ComplianceChecklistDTO>> getAllChecklists() {
-        List<ComplianceChecklistDTO> checklists = complianceChecklistService.getAllChecklists();
-        return ResponseEntity.ok(checklists);
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RESEARCH_MANAGER') or hasRole('USER')")
+    public ResponseEntity<List<ComplianceChecklistResponse>> getAllComplianceChecklists() {
+        logger.info("Fetching all compliance checklists");
+        List<ComplianceChecklistResponse> checklists = complianceChecklistService.getAllComplianceChecklists();
+        return new ResponseEntity<>(checklists, HttpStatus.OK);
     }
-
+    
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RESEARCH_MANAGER') or hasRole('USER')")
+    public ResponseEntity<ComplianceChecklistResponse> getComplianceChecklistById(@PathVariable Long id) {
+        logger.info("Fetching compliance checklist with ID: {}", id);
+        ComplianceChecklistResponse checklist = complianceChecklistService.getComplianceChecklistById(id);
+        return new ResponseEntity<>(checklist, HttpStatus.OK);
+    }
+    
     @GetMapping("/product/{productId}")
-    public ResponseEntity<List<ComplianceChecklistDTO>> getChecklistsByProductId(@PathVariable Long productId) {
-        List<ComplianceChecklistDTO> checklists = complianceChecklistService.getChecklistsByProductId(productId);
-        return ResponseEntity.ok(checklists);
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RESEARCH_MANAGER') or hasRole('USER')")
+    public ResponseEntity<List<ComplianceChecklistResponse>> getComplianceChecklistsByProductId(
+            @PathVariable Long productId) {
+        logger.info("Fetching compliance checklists for product ID: {}", productId);
+        List<ComplianceChecklistResponse> checklists = complianceChecklistService.getComplianceChecklistsByProductId(productId);
+        return new ResponseEntity<>(checklists, HttpStatus.OK);
     }
-
-    @GetMapping("/date-range")
-    public ResponseEntity<List<ComplianceChecklistDTO>> getChecklistsByDateRange(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        List<ComplianceChecklistDTO> checklists = complianceChecklistService.getChecklistsByDateRange(startDate, endDate);
-        return ResponseEntity.ok(checklists);
-    }
-
+    
     @GetMapping("/reviewer/{reviewerName}")
-    public ResponseEntity<List<ComplianceChecklistDTO>> getChecklistsByReviewer(@PathVariable String reviewerName) {
-        List<ComplianceChecklistDTO> checklists = complianceChecklistService.getChecklistsByReviewer(reviewerName);
-        return ResponseEntity.ok(checklists);
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RESEARCH_MANAGER')")
+    public ResponseEntity<List<ComplianceChecklistResponse>> getComplianceChecklistsByReviewerName(
+            @PathVariable String reviewerName) {
+        logger.info("Fetching compliance checklists by reviewer name: {}", reviewerName);
+        List<ComplianceChecklistResponse> checklists = complianceChecklistService.getComplianceChecklistsByReviewerName(reviewerName);
+        return new ResponseEntity<>(checklists, HttpStatus.OK);
     }
-
+    
+    @GetMapping("/date-range")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RESEARCH_MANAGER')")
+    public ResponseEntity<List<ComplianceChecklistResponse>> getComplianceChecklistsByDateRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        logger.info("Fetching compliance checklists between {} and {}", startDate, endDate);
+        List<ComplianceChecklistResponse> checklists = complianceChecklistService.getComplianceChecklistsByDateRange(startDate, endDate);
+        return new ResponseEntity<>(checklists, HttpStatus.OK);
+    }
+    
+    @GetMapping("/recent")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RESEARCH_MANAGER')")
+    public ResponseEntity<List<ComplianceChecklistResponse>> getMostRecentChecklists(
+            @RequestParam(defaultValue = "5") int limit) {
+        logger.info("Fetching {} most recent compliance checklists", limit);
+        List<ComplianceChecklistResponse> checklists = complianceChecklistService.getMostRecentChecklists(limit);
+        return new ResponseEntity<>(checklists, HttpStatus.OK);
+    }
+    
     @PutMapping("/{id}")
-    public ResponseEntity<ComplianceChecklistDTO> updateChecklist(
-            @PathVariable Long id,
-            @Valid @RequestBody ComplianceChecklistDTO checklistDTO) {
-        ComplianceChecklistDTO updatedChecklist = complianceChecklistService.updateChecklist(id, checklistDTO);
-        return ResponseEntity.ok(updatedChecklist);
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RESEARCH_MANAGER')")
+    public ResponseEntity<ComplianceChecklistResponse> updateComplianceChecklist(
+            @PathVariable Long id, 
+            @Valid @RequestBody ComplianceChecklistRequest request) {
+        logger.info("Updating compliance checklist with ID: {}", id);
+        ComplianceChecklistResponse response = complianceChecklistService.updateComplianceChecklist(id, request);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
+    
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteChecklist(@PathVariable Long id) {
-        complianceChecklistService.deleteChecklist(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    // New endpoints for additional service methods
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<ComplianceChecklistDTO>> getChecklistsByComplianceStatus(
-            @PathVariable ComplianceChecklist.ComplianceStatus status) {
-        List<ComplianceChecklistDTO> checklists = complianceChecklistService.getChecklistsByComplianceStatus(status);
-        return ResponseEntity.ok(checklists);
-    }
-
-    @GetMapping("/low-compliance")
-    public ResponseEntity<List<ComplianceChecklistDTO>> getChecklistsWithLowComplianceScore(
-            @RequestParam(defaultValue = "70.0") double thresholdPercentage) {
-        List<ComplianceChecklistDTO> checklists = 
-            complianceChecklistService.getChecklistsWithLowComplianceScore(thresholdPercentage);
-        return ResponseEntity.ok(checklists);
-    }
-
-    @PostMapping("/{checklistId}/items")
-    public ResponseEntity<ComplianceChecklistDTO> addChecklistItem(
-            @PathVariable Long checklistId,
-            @Valid @RequestBody ChecklistItemDTO itemDTO) {
-        ComplianceChecklistDTO updatedChecklist = 
-            complianceChecklistService.addChecklistItem(checklistId, itemDTO);
-        return ResponseEntity.ok(updatedChecklist);
-    }
-
-    @DeleteMapping("/{checklistId}/items/{itemId}")
-    public ResponseEntity<ComplianceChecklistDTO> removeChecklistItem(
-            @PathVariable Long checklistId,
-            @PathVariable Long itemId) {
-        ComplianceChecklistDTO updatedChecklist = 
-            complianceChecklistService.removeChecklistItem(checklistId, itemId);
-        return ResponseEntity.ok(updatedChecklist);
-    }
-
-    @GetMapping("/count/date-range")
-    public ResponseEntity<Map<String, Long>> countChecklistsByDateRange(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        long count = complianceChecklistService.countChecklistsByDateRange(startDate, endDate);
-        Map<String, Long> response = new HashMap<>();
-        response.put("count", count);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/average-compliance/date-range")
-    public ResponseEntity<Map<String, Double>> calculateAverageComplianceScore(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        double averageScore = complianceChecklistService.calculateAverageComplianceScore(startDate, endDate);
-        Map<String, Double> response = new HashMap<>();
-        response.put("averageComplianceScore", averageScore);
-        return ResponseEntity.ok(response);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteComplianceChecklist(@PathVariable Long id) {
+        logger.info("Deleting compliance checklist with ID: {}", id);
+        complianceChecklistService.deleteComplianceChecklist(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

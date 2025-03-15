@@ -1,15 +1,14 @@
 package com.AgriTest.service.impl;
 
-import com.AgriTest.dto.ComplianceChecklistDTO;
-import com.AgriTest.dto.ChecklistItemDTO;
-import com.AgriTest.model.ComplianceChecklist;
-import com.AgriTest.model.ChecklistItem;
-import com.AgriTest.repository.ComplianceChecklistRepository;
-import com.AgriTest.service.ComplianceChecklistServiceInterface;
+import com.AgriTest.dto.ComplianceChecklistRequest;
+import com.AgriTest.dto.ComplianceChecklistResponse;
 import com.AgriTest.exception.ResourceNotFoundException;
 import com.AgriTest.mapper.ComplianceChecklistMapper;
-import com.AgriTest.util.ComplianceChecklistUtils;
-
+import com.AgriTest.model.ComplianceChecklist;
+import com.AgriTest.model.Product;
+import com.AgriTest.repository.ComplianceChecklistRepository;
+import com.AgriTest.repository.ProductRepository;
+import com.AgriTest.service.ComplianceChecklistService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,186 +18,134 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ComplianceChecklistServiceImpl implements ComplianceChecklistServiceInterface {
-
-    private final ComplianceChecklistRepository complianceChecklistRepository;
-    private final ComplianceChecklistMapper checklistMapper;
-
+public class ComplianceChecklistServiceImpl implements ComplianceChecklistService {
+    
     @Autowired
-    public ComplianceChecklistServiceImpl(
-        ComplianceChecklistRepository complianceChecklistRepository,
-        ComplianceChecklistMapper checklistMapper
-    ) {
-        this.complianceChecklistRepository = complianceChecklistRepository;
-        this.checklistMapper = checklistMapper;
-    }
-
-    // Existing methods from the previous implementation
+    private ComplianceChecklistRepository complianceChecklistRepository;
+    
+    @Autowired
+    private ProductRepository productRepository;
+    
+    @Autowired
+    private ComplianceChecklistMapper complianceChecklistMapper;
+    
     @Override
     @Transactional
-    public ComplianceChecklistDTO createChecklist(ComplianceChecklistDTO checklistDTO) {
-        ComplianceChecklist checklist = checklistMapper.toEntity(checklistDTO);
-        updateOverallStatus(checklist);
+    public ComplianceChecklistResponse createComplianceChecklist(ComplianceChecklistRequest request) {
+        // Find the product
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + request.getProductId()));
+        
+        // Create checklist entity
+        ComplianceChecklist checklist = complianceChecklistMapper.toEntity(request, product);
+        
+        // Save the checklist
         ComplianceChecklist savedChecklist = complianceChecklistRepository.save(checklist);
-        return checklistMapper.toDTO(savedChecklist);
+        
+        // Return the DTO
+        return complianceChecklistMapper.toDto(savedChecklist);
     }
-
+    
     @Override
     @Transactional(readOnly = true)
-    public ComplianceChecklistDTO getChecklistById(Long id) {
-        ComplianceChecklist checklist = complianceChecklistRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Compliance checklist not found with id: " + id));
-        return checklistMapper.toDTO(checklist);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ComplianceChecklistDTO> getAllChecklists() {
+    public List<ComplianceChecklistResponse> getAllComplianceChecklists() {
         return complianceChecklistRepository.findAll().stream()
-            .map(checklistMapper::toDTO)
-            .collect(Collectors.toList());
+                .map(complianceChecklistMapper::toDto)
+                .collect(Collectors.toList());
     }
-
+    
     @Override
     @Transactional(readOnly = true)
-    public List<ComplianceChecklistDTO> getChecklistsByProductId(Long productId) {
+    public ComplianceChecklistResponse getComplianceChecklistById(Long id) {
+        ComplianceChecklist checklist = complianceChecklistRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Compliance checklist not found with id: " + id));
+        
+        return complianceChecklistMapper.toDto(checklist);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<ComplianceChecklistResponse> getComplianceChecklistsByProductId(Long productId) {
+        // Verify the product exists
+        if (!productRepository.existsById(productId)) {
+            throw new ResourceNotFoundException("Product not found with id: " + productId);
+        }
+        
         return complianceChecklistRepository.findByProductId(productId).stream()
-            .map(checklistMapper::toDTO)
-            .collect(Collectors.toList());
+                .map(complianceChecklistMapper::toDto)
+                .collect(Collectors.toList());
     }
-
+    
     @Override
     @Transactional(readOnly = true)
-    public List<ComplianceChecklistDTO> getChecklistsByDateRange(LocalDate startDate, LocalDate endDate) {
+    public List<ComplianceChecklistResponse> getComplianceChecklistsByReviewerName(String reviewerName) {
+        return complianceChecklistRepository.findByReviewerNameContainingIgnoreCase(reviewerName).stream()
+                .map(complianceChecklistMapper::toDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<ComplianceChecklistResponse> getComplianceChecklistsByDateRange(LocalDate startDate, LocalDate endDate) {
+        // Validate input dates
+        if (startDate == null || endDate == null) {
+            throw new IllegalArgumentException("Both start and end dates must be provided");
+        }
+        
+        // Ensure start date is before or equal to end date
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("Start date must be before or equal to end date");
+        }
+        
+        // Retrieve checklists within the date range
         return complianceChecklistRepository.findByReviewDateBetween(startDate, endDate).stream()
-            .map(checklistMapper::toDTO)
-            .collect(Collectors.toList());
+                .map(complianceChecklistMapper::toDto)
+                .collect(Collectors.toList());
     }
-
+    
     @Override
     @Transactional(readOnly = true)
-    public List<ComplianceChecklistDTO> getChecklistsByReviewer(String reviewerName) {
-        return complianceChecklistRepository.findByReviewerName(reviewerName).stream()
-            .map(checklistMapper::toDTO)
-            .collect(Collectors.toList());
+    public List<ComplianceChecklistResponse> getMostRecentChecklists(int limit) {
+        // Validate limit
+        if (limit <= 0) {
+            throw new IllegalArgumentException("Limit must be a positive number");
+        }
+        
+        // Retrieve most recent checklists
+        return complianceChecklistRepository.findMostRecentChecklists(limit).stream()
+                .map(complianceChecklistMapper::toDto)
+                .collect(Collectors.toList());
     }
-
+    
     @Override
     @Transactional
-    public ComplianceChecklistDTO updateChecklist(Long id, ComplianceChecklistDTO checklistDTO) {
+    public ComplianceChecklistResponse updateComplianceChecklist(Long id, ComplianceChecklistRequest request) {
+        // Find the existing checklist
         ComplianceChecklist existingChecklist = complianceChecklistRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Compliance checklist not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Compliance checklist not found with id: " + id));
         
-        // Update fields
-        existingChecklist.setProductId(checklistDTO.getProductId());
-        existingChecklist.setReviewerName(checklistDTO.getReviewerName());
-        existingChecklist.setReviewDate(checklistDTO.getReviewDate());
-        existingChecklist.setOverallComments(checklistDTO.getOverallComments());
+        // Find the product
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + request.getProductId()));
         
-        // Clear and update checklist items
-        existingChecklist.getChecklistItems().clear();
-        List<ChecklistItem> newItems = checklistDTO.getChecklistItems().stream()
-            .map(checklistMapper::toChecklistItemEntity)
-            .collect(Collectors.toList());
-        existingChecklist.getChecklistItems().addAll(newItems);
+        // Update the existing checklist
+        complianceChecklistMapper.updateEntityFromRequest(existingChecklist, request, product);
         
-        // Automatically determine overall status based on checklist items
-        updateOverallStatus(existingChecklist);
-        
+        // Save the updated checklist
         ComplianceChecklist updatedChecklist = complianceChecklistRepository.save(existingChecklist);
-        return checklistMapper.toDTO(updatedChecklist);
+        
+        // Return the updated DTO
+        return complianceChecklistMapper.toDto(updatedChecklist);
     }
-
+    
     @Override
     @Transactional
-    public void deleteChecklist(Long id) {
+    public void deleteComplianceChecklist(Long id) {
+        // Find the checklist
         ComplianceChecklist checklist = complianceChecklistRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Compliance checklist not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Compliance checklist not found with id: " + id));
+        
+        // Delete the checklist
         complianceChecklistRepository.delete(checklist);
-    }
-
-    // New methods from the service interface
-    @Override
-    @Transactional(readOnly = true)
-    public List<ComplianceChecklistDTO> getChecklistsByComplianceStatus(ComplianceChecklist.ComplianceStatus status) {
-        return complianceChecklistRepository.findByOverallStatus(status).stream()
-            .map(checklistMapper::toDTO)
-            .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ComplianceChecklistDTO> getChecklistsWithLowComplianceScore(double thresholdPercentage) {
-        return complianceChecklistRepository.findAll().stream()
-            .filter(checklist -> ComplianceChecklistUtils.calculateCompliancePercentage(checklist.getChecklistItems()) < thresholdPercentage)
-            .map(checklistMapper::toDTO)
-            .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional
-    public ComplianceChecklistDTO addChecklistItem(Long checklistId, ChecklistItemDTO newItemDTO) {
-        ComplianceChecklist checklist = complianceChecklistRepository.findById(checklistId)
-            .orElseThrow(() -> new ResourceNotFoundException("Compliance checklist not found with id: " + checklistId));
-        
-        ChecklistItem newItem = checklistMapper.toChecklistItemEntity(newItemDTO);
-        checklist.getChecklistItems().add(newItem);
-        
-        updateOverallStatus(checklist);
-        
-        ComplianceChecklist updatedChecklist = complianceChecklistRepository.save(checklist);
-        return checklistMapper.toDTO(updatedChecklist);
-    }
-
-    @Override
-    @Transactional
-    public ComplianceChecklistDTO removeChecklistItem(Long checklistId, Long itemId) {
-        ComplianceChecklist checklist = complianceChecklistRepository.findById(checklistId)
-            .orElseThrow(() -> new ResourceNotFoundException("Compliance checklist not found with id: " + checklistId));
-        
-        checklist.getChecklistItems().removeIf(item -> item.getId().equals(itemId));
-        
-        updateOverallStatus(checklist);
-        
-        ComplianceChecklist updatedChecklist = complianceChecklistRepository.save(checklist);
-        return checklistMapper.toDTO(updatedChecklist);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public long countChecklistsByDateRange(LocalDate startDate, LocalDate endDate) {
-        return complianceChecklistRepository.findByReviewDateBetween(startDate, endDate).size();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public double calculateAverageComplianceScore(LocalDate startDate, LocalDate endDate) {
-        List<ComplianceChecklist> checklists = complianceChecklistRepository.findByReviewDateBetween(startDate, endDate);
-        
-        return checklists.stream()
-            .mapToDouble(checklist -> ComplianceChecklistUtils.calculateCompliancePercentage(checklist.getChecklistItems()))
-            .average()
-            .orElse(0.0);
-    }
-
-    // Helper method to update overall status
-    private void updateOverallStatus(ComplianceChecklist checklist) {
-        if (checklist.getChecklistItems() == null || checklist.getChecklistItems().isEmpty()) {
-            checklist.setOverallStatus(ComplianceChecklist.ComplianceStatus.NON_COMPLIANT);
-            return;
-        }
-
-        long totalItems = checklist.getChecklistItems().size();
-        long passedItems = checklist.getChecklistItems().stream()
-            .filter(ChecklistItem::getPassed)
-            .count();
-
-        if (passedItems == totalItems) {
-            checklist.setOverallStatus(ComplianceChecklist.ComplianceStatus.COMPLIANT);
-        } else if (passedItems > 0) {
-            checklist.setOverallStatus(ComplianceChecklist.ComplianceStatus.PARTIALLY_COMPLIANT);
-        } else {
-            checklist.setOverallStatus(ComplianceChecklist.ComplianceStatus.NON_COMPLIANT);
-        }
     }
 }
