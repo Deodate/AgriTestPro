@@ -8,20 +8,24 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "media_files")
+@Table(name = "media_attachments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MediaFile {
+public class MediaAttachment {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @ManyToOne
+    @JoinColumn(name = "incident_report_id", nullable = false)
+    private QualityIncidentReport incidentReport;
+    
     @Column(name = "file_name", nullable = false)
     private String fileName;
     
-    @Column(name = "file_type")
+    @Column(name = "file_type", nullable = false)
     private String fileType;
     
     @Column(name = "file_path", nullable = false)
@@ -35,17 +39,6 @@ public class MediaFile {
     
     @Column(name = "uploaded_at", nullable = false)
     private LocalDateTime uploadedAt;
-    
-    @ManyToOne(optional = true)
-    @JoinColumn(name = "test_result_id", nullable = true)
-    private TestResult testResult;
-    
-    @ManyToOne(optional = true)
-    @JoinColumn(name = "incident_report_id", nullable = true)
-    private QualityIncidentReport incidentReport;
-    
-    @Column(name = "uploaded_by")
-    private Long uploadedBy;
     
     @PrePersist
     protected void onCreate() {

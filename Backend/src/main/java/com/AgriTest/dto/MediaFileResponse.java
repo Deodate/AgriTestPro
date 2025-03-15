@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class MediaFileResponse {
     private Long id;
     private Long testResultId;
+    private Long incidentReportId;
     private String fileName;
     private String fileType;
     private String filePath;

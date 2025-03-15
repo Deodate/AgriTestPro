@@ -1,4 +1,3 @@
-// File: src/main/java/com/AgriTest/service/impl/FileStorageServiceImpl.java
 package com.AgriTest.service.impl;
 
 import com.AgriTest.dto.MediaFileResponse;
@@ -7,8 +6,10 @@ import com.AgriTest.exception.FileStorageException;
 import com.AgriTest.exception.ResourceNotFoundException;
 import com.AgriTest.mapper.MediaFileMapper;
 import com.AgriTest.model.MediaFile;
+import com.AgriTest.model.QualityIncidentReport;
 import com.AgriTest.model.TestResult;
 import com.AgriTest.repository.MediaFileRepository;
+import com.AgriTest.repository.QualityIncidentReportRepository;
 import com.AgriTest.repository.TestResultRepository;
 import com.AgriTest.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ public class FileStorageServiceImpl implements FileStorageService {
     private final Path fileStorageLocation;
     private final MediaFileRepository mediaFileRepository;
     private final TestResultRepository testResultRepository;
+    private final QualityIncidentReportRepository qualityIncidentReportRepository;
     private final MediaFileMapper mediaFileMapper;
 
     @Autowired
@@ -40,10 +42,12 @@ public class FileStorageServiceImpl implements FileStorageService {
             @Value("${file.upload-dir}") String uploadDir,
             MediaFileRepository mediaFileRepository,
             TestResultRepository testResultRepository,
+            QualityIncidentReportRepository qualityIncidentReportRepository,
             MediaFileMapper mediaFileMapper) {
         
         this.mediaFileRepository = mediaFileRepository;
         this.testResultRepository = testResultRepository;
+        this.qualityIncidentReportRepository = qualityIncidentReportRepository;
         this.mediaFileMapper = mediaFileMapper;
         
         this.fileStorageLocation = Paths.get(uploadDir)
@@ -57,7 +61,12 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public MediaFileResponse storeFile(MultipartFile file, Long testResultId, Long userId) {
+    public MediaFileResponse storeFile(MultipartFile file, Long associatedId, Long userId) {
+        return storeFile(file, associatedId, userId, "TEST_RESULT");
+    }
+    
+    @Override
+    public MediaFileResponse storeFile(MultipartFile file, Long associatedId, Long userId, String associationType) {
         // Check if the file is empty
         if (file.isEmpty()) {
             throw new FileStorageException("Failed to store empty file.");
@@ -82,12 +91,28 @@ public class FileStorageServiceImpl implements FileStorageService {
             Path targetLocation = this.fileStorageLocation.resolve(uniqueFilename);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
             
-            // Get the TestResult entity
-            TestResult testResult = testResultRepository.findById(testResultId)
-                    .orElseThrow(() -> new ResourceNotFoundException("TestResult not found with id: " + testResultId));
+            MediaFile mediaFile = new MediaFile();
+            mediaFile.setFileName(originalFilename);
+            mediaFile.setFileType(file.getContentType());
+            mediaFile.setFilePath(filePath);
+            mediaFile.setFileSize(file.getSize());
+            mediaFile.setUploadedBy(userId);
             
-            // Create and save the MediaFile entity
-            MediaFile mediaFile = mediaFileMapper.toEntity(file, filePath, testResult, userId);
+            // Associate with either test result or incident report based on type
+            if ("TEST_RESULT".equals(associationType)) {
+                TestResult testResult = testResultRepository.findById(associatedId)
+                        .orElseThrow(() -> new ResourceNotFoundException("TestResult not found with id: " + associatedId));
+                mediaFile.setTestResult(testResult);
+                mediaFile.setIncidentReport(null);
+            } else if ("INCIDENT_REPORT".equals(associationType)) {
+                QualityIncidentReport incidentReport = qualityIncidentReportRepository.findById(associatedId)
+                        .orElseThrow(() -> new ResourceNotFoundException("QualityIncidentReport not found with id: " + associatedId));
+                mediaFile.setIncidentReport(incidentReport);
+                mediaFile.setTestResult(null);
+            } else {
+                throw new IllegalArgumentException("Invalid association type: " + associationType);
+            }
+            
             MediaFile savedMediaFile = mediaFileRepository.save(mediaFile);
             
             // Convert and return the DTO
