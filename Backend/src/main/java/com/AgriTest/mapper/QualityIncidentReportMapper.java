@@ -9,6 +9,8 @@ import com.AgriTest.model.QualityIncidentReport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,7 +24,11 @@ public class QualityIncidentReportMapper {
         QualityIncidentReport report = new QualityIncidentReport();
         report.setIncidentId(request.getIncidentId());
         report.setProduct(product);
-        report.setIncidentDate(request.getIncidentDate());
+        
+        // Convert LocalDate to LocalDateTime at start of day
+        LocalDateTime incidentDateTime = convertToLocalDateTime(request.getIncidentDate());
+        report.setIncidentDate(incidentDateTime);
+        
         report.setDescription(request.getDescription());
         report.setCorrectiveActions(request.getCorrectiveActions());
         report.setStatus(request.getStatus());
@@ -35,7 +41,12 @@ public class QualityIncidentReportMapper {
         response.setIncidentId(report.getIncidentId());
         response.setProductId(report.getProduct().getId());
         response.setProductName(report.getProduct().getName());
-        response.setIncidentDate(report.getIncidentDate());
+        
+        // Convert LocalDateTime to LocalDate
+        if (report.getIncidentDate() != null) {
+            response.setIncidentDate(report.getIncidentDate().toLocalDate());
+        }
+        
         response.setDescription(report.getDescription());
         response.setMediaFiles(mapMediaFiles(report.getMediaFiles()));
         response.setCorrectiveActions(report.getCorrectiveActions());
@@ -48,15 +59,30 @@ public class QualityIncidentReportMapper {
     public void updateEntityFromRequest(QualityIncidentReport report, QualityIncidentReportRequest request, Product product) {
         report.setIncidentId(request.getIncidentId());
         report.setProduct(product);
-        report.setIncidentDate(request.getIncidentDate());
+        
+        // Convert LocalDate to LocalDateTime at start of day
+        LocalDateTime incidentDateTime = convertToLocalDateTime(request.getIncidentDate());
+        report.setIncidentDate(incidentDateTime);
+        
         report.setDescription(request.getDescription());
         report.setCorrectiveActions(request.getCorrectiveActions());
         report.setStatus(request.getStatus());
     }
     
     private List<MediaFileResponse> mapMediaFiles(List<MediaFile> mediaFiles) {
+        if (mediaFiles == null) {
+            return List.of();
+        }
         return mediaFiles.stream()
                 .map(mediaFileMapper::toDto)
                 .collect(Collectors.toList());
+    }
+    
+    // Helper method to convert LocalDate to LocalDateTime
+    private LocalDateTime convertToLocalDateTime(LocalDate localDate) {
+        if (localDate == null) {
+            return null;
+        }
+        return localDate.atStartOfDay();
     }
 }

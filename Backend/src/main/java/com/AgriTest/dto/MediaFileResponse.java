@@ -5,19 +5,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class MediaFileResponse {
-    private Long id;
-    private Long testResultId;
-    private Long incidentReportId;
+     private Long id;
     private String fileName;
     private String fileType;
-    private String filePath;
+    private String fileDownloadUri;  // This is what we need to match in our code
+    private long size;
     private Long uploadedBy;
-    private LocalDateTime uploadedAt;
+    private Long testResultId;
+    private Long incidentReportId;
 }

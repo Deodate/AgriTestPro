@@ -1,4 +1,3 @@
-// File: src/main/java/com/AgriTest/mapper/MediaFileMapper.java
 package com.AgriTest.mapper;
 
 import com.AgriTest.dto.MediaFileResponse;
@@ -7,7 +6,6 @@ import com.AgriTest.model.QualityIncidentReport;
 import com.AgriTest.model.TestResult;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,25 +18,15 @@ public class MediaFileMapper {
             return null;
         }
         
-        MediaFileResponse.MediaFileResponseBuilder builder = MediaFileResponse.builder()
-                .id(mediaFile.getId())
+        return MediaFileResponse.builder()
                 .fileName(mediaFile.getFileName())
                 .fileType(mediaFile.getFileType())
-                .filePath(mediaFile.getFilePath())
+                .fileDownloadUri(mediaFile.getFilePath())
+                .size(mediaFile.getFileSize() != null ? mediaFile.getFileSize() : 0L)
                 .uploadedBy(mediaFile.getUploadedBy())
-                .uploadedAt(mediaFile.getUploadedAt());
-        
-        // Set testResultId if present
-        if (mediaFile.getTestResult() != null) {
-            builder.testResultId(mediaFile.getTestResult().getId());
-        }
-        
-        // Set incidentReportId if present
-        if (mediaFile.getIncidentReport() != null) {
-            builder.incidentReportId(mediaFile.getIncidentReport().getId());
-        }
-        
-        return builder.build();
+                .testResultId(mediaFile.getTestResult() != null ? mediaFile.getTestResult().getId() : null)
+                .incidentReportId(mediaFile.getIncidentReport() != null ? mediaFile.getIncidentReport().getId() : null)
+                .build();
     }
     
     public List<MediaFileResponse> toDtoList(List<MediaFile> mediaFiles) {
@@ -60,6 +48,7 @@ public class MediaFileMapper {
         mediaFile.setFileName(file.getOriginalFilename());
         mediaFile.setFileType(file.getContentType());
         mediaFile.setFilePath(filePath);
+        mediaFile.setFileSize(file.getSize());
         mediaFile.setUploadedBy(userId);
         mediaFile.setUploadedAt(LocalDateTime.now());
         
@@ -76,6 +65,7 @@ public class MediaFileMapper {
         mediaFile.setFileName(file.getOriginalFilename());
         mediaFile.setFileType(file.getContentType());
         mediaFile.setFilePath(filePath);
+        mediaFile.setFileSize(file.getSize());
         mediaFile.setUploadedBy(userId);
         mediaFile.setUploadedAt(LocalDateTime.now());
         
