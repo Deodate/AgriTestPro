@@ -5,13 +5,18 @@ import com.AgriTest.exception.FileNotFoundException;
 import com.AgriTest.exception.FileStorageException;
 import com.AgriTest.exception.ResourceNotFoundException;
 import com.AgriTest.mapper.MediaFileMapper;
+import com.AgriTest.model.Announcement;
 import com.AgriTest.model.MediaFile;
 import com.AgriTest.model.QualityIncidentReport;
 import com.AgriTest.model.TestResult;
+import com.AgriTest.repository.AnnouncementRepository;
 import com.AgriTest.repository.MediaFileRepository;
 import com.AgriTest.repository.QualityIncidentReportRepository;
 import com.AgriTest.repository.TestResultRepository;
 import com.AgriTest.service.FileStorageService;
+import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -26,15 +31,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 public class FileStorageServiceImpl implements FileStorageService {
+    private static final Logger log = LoggerFactory.getLogger(FileStorageServiceImpl.class);
 
     private final Path fileStorageLocation;
     private final MediaFileRepository mediaFileRepository;
     private final TestResultRepository testResultRepository;
     private final QualityIncidentReportRepository qualityIncidentReportRepository;
+    private final AnnouncementRepository announcementRepository;
     private final MediaFileMapper mediaFileMapper;
 
     @Autowired
@@ -43,11 +51,13 @@ public class FileStorageServiceImpl implements FileStorageService {
             MediaFileRepository mediaFileRepository,
             TestResultRepository testResultRepository,
             QualityIncidentReportRepository qualityIncidentReportRepository,
+            AnnouncementRepository announcementRepository,
             MediaFileMapper mediaFileMapper) {
         
         this.mediaFileRepository = mediaFileRepository;
         this.testResultRepository = testResultRepository;
         this.qualityIncidentReportRepository = qualityIncidentReportRepository;
+        this.announcementRepository = announcementRepository;
         this.mediaFileMapper = mediaFileMapper;
         
         this.fileStorageLocation = Paths.get(uploadDir)
@@ -98,19 +108,31 @@ public class FileStorageServiceImpl implements FileStorageService {
             mediaFile.setFileSize(file.getSize());
             mediaFile.setUploadedBy(userId);
             
-            // Associate with either test result or incident report based on type
-            if ("TEST_RESULT".equals(associationType)) {
-                TestResult testResult = testResultRepository.findById(associatedId)
-                        .orElseThrow(() -> new ResourceNotFoundException("TestResult not found with id: " + associatedId));
-                mediaFile.setTestResult(testResult);
-                mediaFile.setIncidentReport(null);
-            } else if ("INCIDENT_REPORT".equals(associationType)) {
-                QualityIncidentReport incidentReport = qualityIncidentReportRepository.findById(associatedId)
-                        .orElseThrow(() -> new ResourceNotFoundException("QualityIncidentReport not found with id: " + associatedId));
-                mediaFile.setIncidentReport(incidentReport);
-                mediaFile.setTestResult(null);
-            } else {
-                throw new IllegalArgumentException("Invalid association type: " + associationType);
+            // Associate with different types based on association type
+            switch (associationType) {
+                case "TEST_RESULT":
+                    TestResult testResult = testResultRepository.findById(associatedId)
+                            .orElseThrow(() -> new ResourceNotFoundException("TestResult not found with id: " + associatedId));
+                    mediaFile.setTestResult(testResult);
+                    mediaFile.setIncidentReport(null);
+                    mediaFile.setAnnouncement(null);
+                    break;
+                case "INCIDENT_REPORT":
+                    QualityIncidentReport incidentReport = qualityIncidentReportRepository.findById(associatedId)
+                            .orElseThrow(() -> new ResourceNotFoundException("QualityIncidentReport not found with id: " + associatedId));
+                    mediaFile.setIncidentReport(incidentReport);
+                    mediaFile.setTestResult(null);
+                    mediaFile.setAnnouncement(null);
+                    break;
+                case "ANNOUNCEMENT":
+                    Announcement announcement = announcementRepository.findById(associatedId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Announcement not found with id: " + associatedId));
+                    mediaFile.setAnnouncement(announcement);
+                    mediaFile.setTestResult(null);
+                    mediaFile.setIncidentReport(null);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid association type: " + associationType);
             }
             
             MediaFile savedMediaFile = mediaFileRepository.save(mediaFile);
@@ -154,5 +176,53 @@ public class FileStorageServiceImpl implements FileStorageService {
         } catch (IOException ex) {
             throw new FileStorageException("Could not delete file: " + mediaFile.getFileName(), ex);
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteFilesByEntityIdAndType(Long entityId, String entityType) {
+        log.info("Executing deleteFilesByEntityIdAndType for {} with ID: {}", entityType, entityId);
+        
+        List<MediaFile> mediaFiles;
+        
+        switch (entityType) {
+            case "ANNOUNCEMENT":
+                Announcement announcement = announcementRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Announcement not found with id: " + entityId));
+                mediaFiles = mediaFileRepository.findByAnnouncement(announcement);
+                log.info("Found {} media files for announcement with ID: {}", mediaFiles.size(), entityId);
+                break;
+            case "TEST_RESULT":
+                TestResult testResult = testResultRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException("TestResult not found with id: " + entityId));
+                mediaFiles = mediaFileRepository.findByTestResult(testResult);
+                break;
+            case "INCIDENT_REPORT":
+                QualityIncidentReport incidentReport = qualityIncidentReportRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException("QualityIncidentReport not found with id: " + entityId));
+                mediaFiles = mediaFileRepository.findByIncidentReport(incidentReport);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid entity type: " + entityType);
+        }
+        
+        for (MediaFile mediaFile : mediaFiles) {
+            log.info("Processing media file: {} (ID: {})", mediaFile.getFileName(), mediaFile.getId());
+            
+            // Set entity reference to null based on type to break the foreign key constraint
+            if ("ANNOUNCEMENT".equals(entityType)) {
+                mediaFile.setAnnouncement(null);
+            } else if ("TEST_RESULT".equals(entityType)) {
+                mediaFile.setTestResult(null);
+            } else if ("INCIDENT_REPORT".equals(entityType)) {
+                mediaFile.setIncidentReport(null);
+            }
+            
+            // Update the media file to remove association
+            mediaFileRepository.save(mediaFile);
+            log.info("Updated media file to remove association: {}", mediaFile.getId());
+        }
+        
+        log.info("Finished processing media files for {} with ID: {}", entityType, entityId);
     }
 }

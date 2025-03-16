@@ -43,6 +43,10 @@ public class MediaFile {
     @ManyToOne(optional = true)
     @JoinColumn(name = "incident_report_id", nullable = true)
     private QualityIncidentReport incidentReport;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "announcement_id", nullable = true)
+    private Announcement announcement;
     
     @Column(name = "uploaded_by")
     private Long uploadedBy;
