@@ -52,10 +52,14 @@ public class MediaFile {
     @JoinColumn(name = "expense_id", nullable = true)
     private Expense expense;
     
+    // Add this new relationship for Field Activity
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "field_activity_id", nullable = true)
+    private FieldActivity fieldActivity;
+    
     @Column(name = "uploaded_by")
     private Long uploadedBy;
     
-    // Store the association type to easily identify the purpose of the file
     @Column(name = "association_type")
     private String associationType;
     

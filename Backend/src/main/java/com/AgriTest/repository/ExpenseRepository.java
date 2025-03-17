@@ -36,19 +36,20 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.date BETWEEN ?1 AND ?2")
     BigDecimal sumAmountByDateRange(LocalDate startDate, LocalDate endDate);
     
-    // Alternative approach using explicit type checks to avoid PostgreSQL null parameter type issues
-    @Query(value = "SELECT e FROM Expense e WHERE " +
-           "(:expenseType IS NULL OR e.expenseType = cast(:expenseType as com.AgriTest.model.Expense$ExpenseType)) AND " +
-           "(:startDate IS NULL OR e.date >= cast(:startDate as java.time.LocalDate)) AND " +
-           "(:endDate IS NULL OR e.date <= cast(:endDate as java.time.LocalDate)) AND " +
-           "(:paidById IS NULL OR e.paidBy.id = cast(:paidById as long)) AND " +
-           "(:approvalStatus IS NULL OR e.approvalStatus = cast(:approvalStatus as com.AgriTest.model.Expense$ApprovalStatus)) AND " +
-           "(:isReimbursed IS NULL OR e.isReimbursed = cast(:isReimbursed as boolean))")
+    // Native SQL query to avoid parameter type determination issues
+    @Query(value = "SELECT * FROM expenses e WHERE " +
+           "(:expenseType IS NULL OR e.expense_type = CAST(:expenseType AS VARCHAR)) AND " +
+           "(:startDate IS NULL OR e.date >= CAST(:startDate AS DATE)) AND " +
+           "(:endDate IS NULL OR e.date <= CAST(:endDate AS DATE)) AND " +
+           "(:paidById IS NULL OR e.paid_by = CAST(:paidById AS BIGINT)) AND " +
+           "(:approvalStatus IS NULL OR e.approval_status = CAST(:approvalStatus AS VARCHAR)) AND " +
+           "(:isReimbursed IS NULL OR e.is_reimbursed = CAST(:isReimbursed AS BOOLEAN))", 
+           nativeQuery = true)
     List<Expense> findByFilters(
-            @Param("expenseType") Expense.ExpenseType expenseType,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate,
+            @Param("expenseType") String expenseType,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate,
             @Param("paidById") Long paidById,
-            @Param("approvalStatus") Expense.ApprovalStatus approvalStatus,
+            @Param("approvalStatus") String approvalStatus,
             @Param("isReimbursed") Boolean isReimbursed);
 }

@@ -237,10 +237,24 @@ public class ExpenseServiceImpl implements ExpenseService {
         log.info("Fetching expenses with filters - expenseType: {}, dateRange: {} to {}, paidById: {}, status: {}, reimbursed: {}", 
                 expenseType, startDate, endDate, paidById, approvalStatus, isReimbursed);
         
-        return expenseRepository.findByFilters(expenseType, startDate, endDate, paidById, approvalStatus, isReimbursed)
-                .stream()
-                .map(this::mapToExpenseResponse)
-                .collect(Collectors.toList());
+        // Convert enum values to strings for the native query
+        String expenseTypeStr = expenseType != null ? expenseType.name() : null;
+        String approvalStatusStr = approvalStatus != null ? approvalStatus.name() : null;
+        
+        // Convert dates to strings if needed
+        String startDateStr = startDate != null ? startDate.toString() : null;
+        String endDateStr = endDate != null ? endDate.toString() : null;
+        
+        return expenseRepository.findByFilters(
+                expenseTypeStr,
+                startDateStr,
+                endDateStr,
+                paidById,
+                approvalStatusStr,
+                isReimbursed
+        ).stream()
+         .map(this::mapToExpenseResponse)
+         .collect(Collectors.toList());
     }
 
     @Override
