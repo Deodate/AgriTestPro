@@ -21,6 +21,7 @@ public class ExpenseResponse {
     private UserDto paidBy;
     private String description;
     private String receiptUrl;
+    private String receiptFileName; // New field
     private Expense.ApprovalStatus approvalStatus;
     private UserDto approvedBy;
     

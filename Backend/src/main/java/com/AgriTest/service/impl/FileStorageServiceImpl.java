@@ -6,10 +6,12 @@ import com.AgriTest.exception.FileStorageException;
 import com.AgriTest.exception.ResourceNotFoundException;
 import com.AgriTest.mapper.MediaFileMapper;
 import com.AgriTest.model.Announcement;
+import com.AgriTest.model.Expense;
 import com.AgriTest.model.MediaFile;
 import com.AgriTest.model.QualityIncidentReport;
 import com.AgriTest.model.TestResult;
 import com.AgriTest.repository.AnnouncementRepository;
+import com.AgriTest.repository.ExpenseRepository;
 import com.AgriTest.repository.MediaFileRepository;
 import com.AgriTest.repository.QualityIncidentReportRepository;
 import com.AgriTest.repository.TestResultRepository;
@@ -24,6 +26,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -33,6 +36,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class FileStorageServiceImpl implements FileStorageService {
@@ -43,6 +47,7 @@ public class FileStorageServiceImpl implements FileStorageService {
     private final TestResultRepository testResultRepository;
     private final QualityIncidentReportRepository qualityIncidentReportRepository;
     private final AnnouncementRepository announcementRepository;
+    private final ExpenseRepository expenseRepository;
     private final MediaFileMapper mediaFileMapper;
 
     @Autowired
@@ -52,12 +57,14 @@ public class FileStorageServiceImpl implements FileStorageService {
             TestResultRepository testResultRepository,
             QualityIncidentReportRepository qualityIncidentReportRepository,
             AnnouncementRepository announcementRepository,
+            ExpenseRepository expenseRepository,
             MediaFileMapper mediaFileMapper) {
         
         this.mediaFileRepository = mediaFileRepository;
         this.testResultRepository = testResultRepository;
         this.qualityIncidentReportRepository = qualityIncidentReportRepository;
         this.announcementRepository = announcementRepository;
+        this.expenseRepository = expenseRepository;
         this.mediaFileMapper = mediaFileMapper;
         
         this.fileStorageLocation = Paths.get(uploadDir)
@@ -107,6 +114,7 @@ public class FileStorageServiceImpl implements FileStorageService {
             mediaFile.setFilePath(filePath);
             mediaFile.setFileSize(file.getSize());
             mediaFile.setUploadedBy(userId);
+            mediaFile.setAssociationType(associationType);
             
             // Associate with different types based on association type
             switch (associationType) {
@@ -116,6 +124,7 @@ public class FileStorageServiceImpl implements FileStorageService {
                     mediaFile.setTestResult(testResult);
                     mediaFile.setIncidentReport(null);
                     mediaFile.setAnnouncement(null);
+                    mediaFile.setExpense(null);
                     break;
                 case "INCIDENT_REPORT":
                     QualityIncidentReport incidentReport = qualityIncidentReportRepository.findById(associatedId)
@@ -123,6 +132,7 @@ public class FileStorageServiceImpl implements FileStorageService {
                     mediaFile.setIncidentReport(incidentReport);
                     mediaFile.setTestResult(null);
                     mediaFile.setAnnouncement(null);
+                    mediaFile.setExpense(null);
                     break;
                 case "ANNOUNCEMENT":
                     Announcement announcement = announcementRepository.findById(associatedId)
@@ -130,15 +140,33 @@ public class FileStorageServiceImpl implements FileStorageService {
                     mediaFile.setAnnouncement(announcement);
                     mediaFile.setTestResult(null);
                     mediaFile.setIncidentReport(null);
+                    mediaFile.setExpense(null);
+                    break;
+                case "EXPENSE_RECEIPT":
+                    if (associatedId != 0L) { // For existing expenses
+                        Expense expense = expenseRepository.findById(associatedId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Expense not found with id: " + associatedId));
+                        mediaFile.setExpense(expense);
+                    }
+                    mediaFile.setTestResult(null);
+                    mediaFile.setIncidentReport(null);
+                    mediaFile.setAnnouncement(null);
                     break;
                 default:
                     throw new IllegalArgumentException("Invalid association type: " + associationType);
             }
             
             MediaFile savedMediaFile = mediaFileRepository.save(mediaFile);
+            MediaFileResponse response = mediaFileMapper.toDto(savedMediaFile);
             
-            // Convert and return the DTO
-            return mediaFileMapper.toDto(savedMediaFile);
+            // Add download URI to the response
+            String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/api/files/")
+                    .path(savedMediaFile.getId().toString())
+                    .toUriString();
+            response.setFileDownloadUri(fileDownloadUri);
+            
+            return response;
         } catch (IOException ex) {
             throw new FileStorageException("Could not store file " + originalFilename + ". Please try again!", ex);
         }
@@ -158,6 +186,25 @@ public class FileStorageServiceImpl implements FileStorageService {
         } catch (MalformedURLException ex) {
             throw new FileNotFoundException("File not found: " + fileName, ex);
         }
+    }
+
+    @Override
+    public MediaFileResponse getFileById(Long id) {
+        // Find the MediaFile entity
+        MediaFile mediaFile = mediaFileRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("MediaFile not found with id: " + id));
+        
+        // Convert to DTO
+        MediaFileResponse response = mediaFileMapper.toDto(mediaFile);
+        
+        // Add download URI to the response
+        String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/files/download/")
+                .path(mediaFile.getFilePath())
+                .toUriString();
+        response.setFileDownloadUri(fileDownloadUri);
+        
+        return response;
     }
 
     @Override
@@ -202,6 +249,11 @@ public class FileStorageServiceImpl implements FileStorageService {
                         .orElseThrow(() -> new ResourceNotFoundException("QualityIncidentReport not found with id: " + entityId));
                 mediaFiles = mediaFileRepository.findByIncidentReport(incidentReport);
                 break;
+            case "EXPENSE_RECEIPT":
+                Expense expense = expenseRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Expense not found with id: " + entityId));
+                mediaFiles = mediaFileRepository.findByExpenseAndAssociationType(expense, "EXPENSE_RECEIPT");
+                break;
             default:
                 throw new IllegalArgumentException("Invalid entity type: " + entityType);
         }
@@ -216,6 +268,8 @@ public class FileStorageServiceImpl implements FileStorageService {
                 mediaFile.setTestResult(null);
             } else if ("INCIDENT_REPORT".equals(entityType)) {
                 mediaFile.setIncidentReport(null);
+            } else if ("EXPENSE_RECEIPT".equals(entityType)) {
+                mediaFile.setExpense(null);
             }
             
             // Update the media file to remove association
@@ -224,5 +278,95 @@ public class FileStorageServiceImpl implements FileStorageService {
         }
         
         log.info("Finished processing media files for {} with ID: {}", entityType, entityId);
+    }
+    
+    @Override
+    public List<MediaFileResponse> getFilesByEntityIdAndType(Long entityId, String entityType) {
+        List<MediaFile> mediaFiles;
+        
+        switch (entityType) {
+            case "TEST_RESULT":
+                mediaFiles = mediaFileRepository.findByTestResultId(entityId);
+                break;
+            case "INCIDENT_REPORT":
+                mediaFiles = mediaFileRepository.findByIncidentReport(
+                    qualityIncidentReportRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException("QualityIncidentReport not found with id: " + entityId))
+                );
+                break;
+            case "ANNOUNCEMENT":
+                mediaFiles = mediaFileRepository.findByAnnouncement(
+                    announcementRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Announcement not found with id: " + entityId))
+                );
+                break;
+            case "EXPENSE_RECEIPT":
+                mediaFiles = mediaFileRepository.findByExpenseIdAndAssociationType(entityId, "EXPENSE_RECEIPT");
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid entity type: " + entityType);
+        }
+        
+        return mediaFiles.stream()
+                .map(mediaFile -> {
+                    MediaFileResponse response = mediaFileMapper.toDto(mediaFile);
+                    String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                            .path("/api/files/")
+                            .path(mediaFile.getId().toString())
+                            .toUriString();
+                    response.setFileDownloadUri(fileDownloadUri);
+                    return response;
+                })
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public MediaFileResponse storeExpenseReceipt(MultipartFile file, Long expenseId, Long userId) {
+        return storeFile(file, expenseId, userId, "EXPENSE_RECEIPT");
+    }
+    
+    @Override
+    public MediaFileResponse getExpenseReceipt(Long expenseId) {
+        List<MediaFile> receipts = mediaFileRepository.findByExpenseIdAndAssociationType(expenseId, "EXPENSE_RECEIPT");
+        
+        if (receipts.isEmpty()) {
+            throw new ResourceNotFoundException("Receipt not found for expense with id: " + expenseId);
+        }
+        
+        // Get the most recent receipt
+        MediaFile receipt = receipts.stream()
+                .sorted((a, b) -> b.getUploadedAt().compareTo(a.getUploadedAt()))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Receipt not found for expense with id: " + expenseId));
+        
+        MediaFileResponse response = mediaFileMapper.toDto(receipt);
+        
+        // Add download URI to the response
+        String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/files/")
+                .path(receipt.getId().toString())
+                .toUriString();
+        response.setFileDownloadUri(fileDownloadUri);
+        
+        return response;
+    }
+    
+    @Override
+    @Transactional
+    public void deleteExpenseReceipt(Long expenseId) {
+        List<MediaFile> receipts = mediaFileRepository.findByExpenseIdAndAssociationType(expenseId, "EXPENSE_RECEIPT");
+        
+        for (MediaFile receipt : receipts) {
+            try {
+                // Delete the file from the filesystem
+                Path filePath = this.fileStorageLocation.resolve(receipt.getFilePath()).normalize();
+                Files.deleteIfExists(filePath);
+                
+                // Delete the database record
+                mediaFileRepository.delete(receipt);
+            } catch (IOException ex) {
+                throw new FileStorageException("Could not delete receipt: " + receipt.getFileName(), ex);
+            }
+        }
     }
 }

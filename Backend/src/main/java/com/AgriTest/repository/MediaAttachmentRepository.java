@@ -12,4 +12,13 @@ public interface MediaAttachmentRepository extends JpaRepository<MediaAttachment
     List<MediaAttachment> findByIncidentReportId(Long incidentReportId);
     
     void deleteByIncidentReportId(Long incidentReportId);
+
+    // Add expense-related methods
+    List<MediaAttachment> findByExpenseId(Long expenseId);
+    
+    void deleteByExpenseId(Long expenseId);
+    
+    List<MediaAttachment> findByAttachmentType(String attachmentType);
+    
+    List<MediaAttachment> findByExpenseIdAndAttachmentType(Long expenseId, String attachmentType);
 }

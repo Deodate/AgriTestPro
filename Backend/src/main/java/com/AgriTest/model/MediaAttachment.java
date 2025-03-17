@@ -19,8 +19,12 @@ public class MediaAttachment {
     private Long id;
     
     @ManyToOne
-    @JoinColumn(name = "incident_report_id", nullable = false)
+    @JoinColumn(name = "incident_report_id", nullable = true)
     private QualityIncidentReport incidentReport;
+    
+    @ManyToOne
+    @JoinColumn(name = "expense_id", nullable = true)
+    private Expense expense;
     
     @Column(name = "file_name", nullable = false)
     private String fileName;
@@ -39,6 +43,9 @@ public class MediaAttachment {
     
     @Column(name = "uploaded_at", nullable = false)
     private LocalDateTime uploadedAt;
+    
+    @Column(name = "attachment_type")
+    private String attachmentType;
     
     @PrePersist
     protected void onCreate() {

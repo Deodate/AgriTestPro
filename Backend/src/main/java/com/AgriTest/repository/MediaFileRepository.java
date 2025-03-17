@@ -1,6 +1,7 @@
 package com.AgriTest.repository;
 
 import com.AgriTest.model.Announcement;
+import com.AgriTest.model.Expense;
 import com.AgriTest.model.MediaFile;
 import com.AgriTest.model.QualityIncidentReport;
 import com.AgriTest.model.TestResult;
@@ -20,9 +21,19 @@ public interface MediaFileRepository extends JpaRepository<MediaFile, Long> {
      
     List<MediaFile> findByIncidentReport(QualityIncidentReport incidentReport);
     
-    // Add this method to find by Announcement
     List<MediaFile> findByAnnouncement(Announcement announcement);
     
-    // Add this method if needed
     List<MediaFile> findByTestResult(TestResult testResult);
+    
+    // Expense-related methods
+    List<MediaFile> findByExpense(Expense expense);
+    
+    List<MediaFile> findByExpenseId(Long expenseId);
+    
+    List<MediaFile> findByAssociationType(String associationType);
+    
+    List<MediaFile> findByExpenseIdAndAssociationType(Long expenseId, String associationType);
+    
+    // This is the missing method
+    List<MediaFile> findByExpenseAndAssociationType(Expense expense, String associationType);
 }
