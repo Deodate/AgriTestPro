@@ -5,12 +5,14 @@ import com.AgriTest.security.service.UserDetailsImpl;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 /**
  * Utility class for Spring Security.
  */
+@Component("securityUtils")  // Add this annotation to make it a Spring bean with name "securityUtils"
 public class SecurityUtils {
 
     /**
@@ -97,7 +99,7 @@ public class SecurityUtils {
      * @param id the user ID to check against
      * @return true if the current user ID matches the given ID
      */
-    public static boolean isCurrentUserId(Long id) {
+    public boolean isCurrentUserId(Long id) {  // Remove static modifier for Spring to manage this method
         Long currentUserId = getCurrentUserId();
         return currentUserId != null && currentUserId.equals(id);
     }

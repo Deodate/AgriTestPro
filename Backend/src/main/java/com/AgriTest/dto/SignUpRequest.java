@@ -2,6 +2,7 @@ package com.AgriTest.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +28,9 @@ public class SignUpRequest {
     
     @NotBlank(message = "Full name is required")
     private String fullName;
+    
+    @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number format is invalid")
+    private String phoneNumber;
     
     @NotBlank(message = "Role is required")
     private String role;

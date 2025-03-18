@@ -16,8 +16,10 @@ public class UserResponse {
     private String username;
     private String email;
     private String fullName;
+    private String phoneNumber;
     private String role;
     private Boolean enabled;
+    private Boolean twoFactorEnabled;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

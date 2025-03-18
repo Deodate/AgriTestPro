@@ -34,14 +34,11 @@ public class SecurityConfig {
         return new AuthTokenFilter();
     }
     
-
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
-        
         return authProvider;
     }
 
@@ -55,7 +52,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
     
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())

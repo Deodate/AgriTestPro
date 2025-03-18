@@ -20,4 +20,11 @@ public interface UserService {
     void deleteUser(Long id);
     
     List<UserResponse> getUsersByRole(String role);
+    
+    /**
+     * Maps a User entity to a UserResponse DTO
+     * @param user The user entity to map
+     * @return The corresponding UserResponse DTO
+     */
+    UserResponse mapUserToUserResponse(User user);
 }
