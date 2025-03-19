@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -65,4 +69,17 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+/* Add Tailwind's custom styles */
+@layer base {
+  /* You can add custom base styles here */
+}
+
+@layer components {
+  /* You can add custom component styles here */
+}
+
+@layer utilities {
+  /* You can add custom utility classes here */
 }
