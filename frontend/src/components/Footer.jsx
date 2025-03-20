@@ -42,9 +42,9 @@ const Footer = () => {
                 
                 <div className="absolute inset-0 flex flex-col justify-center items-center pl-6 pt-2">
                   <div className="text-blue-700 font-bold text-xs">
-                    <span className="block">RAB, Rwanda</span>
-                    <span className="block">AGRI TEST PRODUCTS</span>
-                    <span className="block text-gray-600 text-xs font-normal">RAB</span>
+                    <span className="block">AGRI</span>
+                    <span className="block">TEST</span>
+                    <span className="block text-gray-600 text-xs font-normal">PRO</span>
                   </div>
                 </div>
               </div>
