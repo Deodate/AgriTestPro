@@ -1,16 +1,17 @@
 // src/constants/menuItems.js
 
 const MENU_ITEMS = [
+  { 
+    label: 'HOME', 
+    subItems: [],
+    hasDropdown: false
+  },
     { 
       label: 'ABOUT', 
       subItems: ['Company', 'Team', 'Mission'],
       hasDropdown: true
     },
-    { 
-      label: 'PRODUCTS', 
-      subItems: [],
-      hasDropdown: false
-    },
+   
     { 
       label: 'MARKETS', 
       subItems: [],
@@ -25,12 +26,6 @@ const MENU_ITEMS = [
       label: 'WEATHER', 
       subItems: [],
       hasDropdown: false
-    },
-    { 
-      label: 'Signin', 
-      subItems: [],
-      hasDropdown: false,
-      isHighlighted: true
     }
   ];
   
