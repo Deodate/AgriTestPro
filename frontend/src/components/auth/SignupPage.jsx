@@ -18,10 +18,12 @@ class SignupPage extends Component {
             password: '',
             role: "ROLE_USER",
             confirmPassword: '',
+            twoFactorPhoneNumber: '',
 
             // Login modal fields
-            loginEmail: "",
+            loginUsername: "",
             loginPassword: "",
+            loginEmail: "", // Keep this for compatibility if needed
 
             // Two-factor fields
             twoFactorCode: "",
@@ -61,9 +63,15 @@ class SignupPage extends Component {
         this.changeUsernameHandler = this.changeUsernameHandler.bind(this);
         this.changePasswordHandler = this.changePasswordHandler.bind(this);
         this.changeConfirmPasswordHandler = this.changeConfirmPasswordHandler.bind(this);
+
+        // Login and authentication related handlers
         this.changeLoginEmailHandler = this.changeLoginEmailHandler.bind(this);
         this.changeLoginPasswordHandler = this.changeLoginPasswordHandler.bind(this);
+        this.changeLoginUsernameHandler = this.changeLoginUsernameHandler.bind(this);
         this.changeTwoFactorCodeHandler = this.changeTwoFactorCodeHandler.bind(this);
+
+
+        // Other modal and form submission handlers
         this.validateField = this.validateField.bind(this);
         this.handleDropdownToggle = this.handleDropdownToggle.bind(this);
         this.toggleLoginModal = this.toggleLoginModal.bind(this);
@@ -71,7 +79,28 @@ class SignupPage extends Component {
         this.handleLoginSubmit = this.handleLoginSubmit.bind(this);
         this.handleTwoFactorSubmit = this.handleTwoFactorSubmit.bind(this);
         this.createAccount = this.createAccount.bind(this);
+        this.requestTwoFactorCode = this.requestTwoFactorCode.bind(this);
+        this.changeTwoFactorPhoneNumberHandler = this.changeTwoFactorPhoneNumberHandler.bind(this);
     }
+
+
+    // Define these methods outside of the constructor to avoid duplicate method warnings
+    changeLoginUsernameHandler(event) {
+        this.setState({ loginUsername: event.target.value });
+    }
+
+    changeLoginPasswordHandler(event) {
+        this.setState({ loginPassword: event.target.value });
+    }
+
+    changeTwoFactorPhoneNumberHandler = (event) => {
+        // Allow only numbers
+        const phoneNumber = event.target.value.replace(/\D/g, '');
+        this.setState({
+            twoFactorPhoneNumber: phoneNumber
+        });
+    }
+
 
     createAccount = (e) => {
         e.preventDefault();
@@ -169,12 +198,15 @@ class SignupPage extends Component {
         this.setState({ loginEmail: event.target.value });
     }
 
-    changeLoginPasswordHandler = (event) => {
-        this.setState({ loginPassword: event.target.value });
-    }
-
     changeTwoFactorCodeHandler = (event) => {
         this.setState({ twoFactorCode: event.target.value });
+    }
+
+    validatePhoneNumber = () => {
+        const { twoFactorPhoneNumber } = this.state;
+        // Remove all non-digit characters and check if something remains
+        const cleanedNumber = twoFactorPhoneNumber.replace(/[^\d]/g, '');
+        return cleanedNumber.length > 0;
     }
 
     // Validation
@@ -324,21 +356,131 @@ class SignupPage extends Component {
         }
     }
 
+    // Add this method to your SignupPage class
+    async requestTwoFactorCode(e) {
+        e.preventDefault();
+        this.setState({ isLoading: true, errorMsg: "", successMsg: "" });
+
+        // Use the phone number directly without prepending '+1'
+        const phoneNumber = this.state.twoFactorPhoneNumber.replace(/[^\d]/g, '');
+
+        const payload = {
+            phoneNumber: phoneNumber
+        };
+
+        try {
+            const response = await fetch(`http://localhost:8088/api/auth/2fa/request-code?verificationKey=W23U`, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const responseText = await response.text();
+            let json;
+
+            try {
+                json = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Error parsing response:', parseError);
+                throw new Error(responseText || '2FA code request failed');
+            }
+
+            if (!response.ok) {
+                throw new Error(json.message || '2FA code request failed');
+            }
+
+            console.log(json);
+
+            // Update state with 2FA information
+            this.setState({
+                twoFactorUserId: json.userId,
+                twoFactorCode: json.generatedCode, // Set the generated code
+                successMsg: `This is your Verification code: ${json.generatedCode}`,
+                isLoading: false
+            });
+
+        } catch (error) {
+            this.setState({
+                errorMsg: error.message || "Failed to request verification code.",
+                isLoading: false
+            });
+            console.error("2FA code request error:", error);
+        }
+    }
+
     async handleLoginSubmit(e) {
         e.preventDefault();
         this.setState({ isLoading: true, errorMsg: "" });
 
+        // Trim the username and validate
+        const username = this.state.loginUsername ? this.state.loginUsername.trim() : '';
+        const password = this.state.loginPassword;
+
+        // Validate inputs
+        if (!username) {
+            this.setState({
+                errorMsg: "Username is required",
+                isLoading: false
+            });
+            return;
+        }
+
+        if (!password) {
+            this.setState({
+                errorMsg: "Password is required",
+                isLoading: false
+            });
+            return;
+        }
+
+        const payload = {
+            username: username,
+            password: password
+        };
+
         try {
-            // Call the login function from auth context
-            const response = await this.props.auth.login(
-                this.state.loginEmail,
-                this.state.loginPassword
-            );
+            const response = await fetch('http://localhost:8088/api/auth/signin', {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Parse the response text to get more detailed error information
+            const responseText = await response.text();
+            let json;
+
+            try {
+                json = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Error parsing response:', parseError);
+                throw new Error(responseText || 'Login failed');
+            }
+
+            // Check for error response from server
+            if (!response.ok) {
+                throw new Error(json.message || 'Login failed');
+            }
+
+            console.log(json);
+
+            // Store user information in local storage
+            localStorage.setItem('user', JSON.stringify({
+                token: json.token,
+                type: json.type,
+                id: json.id,
+                username: json.username,
+                email: json.email,
+                roles: json.roles
+            }));
 
             // Handle 2FA if required
-            if (response && response.requiresVerification) {
+            if (json.requiresVerification) {
                 this.setState({
-                    twoFactorUserId: response.userId,
+                    twoFactorUserId: json.userId,
                     twoFactorCode: '',
                     showLoginModal: false,
                     showTwoFactorModal: true
@@ -349,7 +491,9 @@ class SignupPage extends Component {
             // On successful login
             this.setState({
                 successMsg: "Login successful!",
-                showLoginModal: false
+                showLoginModal: false,
+                loginUsername: '',
+                loginPassword: ''
             });
 
             // Redirect to dashboard
@@ -359,23 +503,36 @@ class SignupPage extends Component {
 
         } catch (error) {
             this.setState({
-                errorMsg: error.message || "Login failed. Please check your credentials."
+                errorMsg: error.message || "Login failed. Please check your credentials.",
+                isLoading: false
             });
             console.error("Login error:", error);
-        } finally {
-            this.setState({ isLoading: false });
         }
     }
 
     async handleTwoFactorSubmit(e) {
         e.preventDefault();
+        console.log('Form submitted')
         this.setState({ isLoading: true, errorMsg: "" });
 
+        const payload = {
+            token: this.state.twoFactorCode,
+            userId: this.state.twoFactorUserId
+        }
+
+
         try {
-            await this.props.auth.verifyTwoFactor(
-                this.state.twoFactorUserId,
-                this.state.twoFactorCode
-            );
+            const response = await this.props.auth.verifyTwoFactor(payload);
+
+            // Store user information in local storage or state management
+            localStorage.setItem('user', JSON.stringify({
+                token: response.token,
+                type: response.type,
+                id: response.id,
+                username: response.username,
+                email: response.email,
+                roles: response.roles
+            }));
 
             this.setState({
                 successMsg: "Verification successful!",
@@ -696,15 +853,14 @@ class SignupPage extends Component {
                                 <div>
                                     <label htmlFor="loginEmail" className="block text-sm font-medium text-gray-700">Email address</label>
                                     <input
-                                        value={this.state.loginEmail}
-                                        onChange={this.changeLoginEmailHandler}
-                                        id="loginEmail"
-                                        name="email"
-                                        type="email"
-                                        autoComplete="email"
+                                        value={this.state.loginUsername}
+                                        onChange={this.changeLoginUsernameHandler}
+                                        id="loginUsername"
+                                        name="username"
+                                        type="text"
                                         required
                                         className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-blue-500 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Email address"
+                                        placeholder="Username"
                                         disabled={isLoading}
                                     />
                                 </div>
@@ -777,13 +933,17 @@ class SignupPage extends Component {
 
                 {/* Two-Factor Authentication Modal */}
                 {showTwoFactorModal && (
+
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full relative">
                             <h2 className="text-2xl font-bold text-center mb-6">Two-Factor Authentication</h2>
 
-                            <p className="mb-4 text-center text-gray-600">
-                                Please enter the verification code sent to your device.
-                            </p>
+                            {/* Success Message */}
+                            {successMsg && (
+                                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
+                                    {successMsg}
+                                </div>
+                            )}
 
                             {/* Error Message in 2FA Modal */}
                             {errorMsg && (
@@ -792,31 +952,74 @@ class SignupPage extends Component {
                                 </div>
                             )}
 
-                            <form onSubmit={this.handleTwoFactorSubmit} className="space-y-6">
+                            {/* Phone Number Input for 2FA */}
+                            <form onSubmit={this.requestTwoFactorCode} className="space-y-6">
                                 <div>
-                                    <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700">Verification Code</label>
+                                    <label htmlFor="phoneNumberVerification" className="block text-sm font-medium text-gray-700">
+                                        Phone Number for Verification
+                                    </label>
                                     <input
-                                        value={this.state.twoFactorCode}
-                                        onChange={this.changeTwoFactorCodeHandler}
-                                        id="verificationCode"
-                                        name="code"
-                                        type="text"
+                                        value={this.state.twoFactorPhoneNumber}
+                                        onChange={this.changeTwoFactorPhoneNumberHandler}
+                                        id="phoneNumberVerification"
+                                        name="phoneNumber"
+                                        type="tel"
+                                        maxLength="10"
                                         required
                                         className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Enter code"
-                                        disabled={isLoading}
+                                        placeholder="Enter 10-digit phone number"
                                     />
+                                    {this.state.twoFactorPhoneNumber.length > 0 && this.state.twoFactorPhoneNumber.length < 10 && (
+                                        <p className="mt-1 text-xs text-red-500">
+                                            Phone number must be 10 digits
+                                        </p>
+                                    )}
                                 </div>
                                 <div>
                                     <button
                                         type="submit"
-                                        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                        disabled={isLoading}
+                                        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${this.state.twoFactorPhoneNumber.length === 10
+                                            ? 'bg-blue-600 hover:bg-blue-700'
+                                            : 'bg-gray-400 cursor-not-allowed'
+                                            } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+                                        disabled={this.state.twoFactorPhoneNumber.length !== 10}
                                     >
-                                        {isLoading ? 'Verifying...' : 'Verify'}
+                                        Request Verification Code
                                     </button>
                                 </div>
                             </form>
+
+                            {/* Verification Code Input (shown after code is requested) */}
+                            {this.state.twoFactorCode && (
+                                <form onSubmit={this.handleTwoFactorSubmit} className="space-y-6 mt-6">
+                                    <div>
+                                        <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700">
+                                            Verification Code
+                                        </label>
+                                        <input
+                                            value={this.state.twoFactorPhoneNumber}
+                                            onChange={this.changeTwoFactorPhoneNumberHandler}
+                                            id="phoneNumberVerification"
+                                            name="phoneNumber"
+                                            type="text"
+                                            required
+                                            className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="Enter phone number (with spaces, dashes, etc.)"
+                                        />
+
+                                        <button
+                                            type="submit"
+                                            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${this.validatePhoneNumber()
+                                                ? 'bg-blue-600 hover:bg-blue-700'
+                                                : 'bg-gray-400 cursor-not-allowed'
+                                                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+                                            disabled={!this.validatePhoneNumber()}
+                                        >
+                                            Request Verification Code
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
                         </div>
                     </div>
                 )}

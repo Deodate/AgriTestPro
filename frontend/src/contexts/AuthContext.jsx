@@ -1,124 +1,132 @@
-// src/contexts/AuthContext.jsx
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { userAuth } from '../services/AUTH/userAuth'; // Adjust import path as needed
 
-// Create context
-const AuthContext = createContext();
+// Create the AuthContext
+const AuthContext = createContext({
+  user: null,
+  isLoggedIn: false,
+  login: async () => {},
+  logout: () => {},
+  signup: async () => {},
+});
 
-// Auth provider component
+// AuthProvider component
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Register function
-  const register = async (userData) => {
-    setLoading(true);
-    try {
-      // In a real app, you would call your API here
-      console.log("Registering user:", userData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Success - in a real app you would store the returned user
-      return { success: true };
-    } catch (error) {
-      console.error("Registration error:", error);
-      throw new Error(error.message || "Failed to create account");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Check authentication on initial load
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const storedToken = localStorage.getItem('token');
+        if (storedToken) {
+          // Verify token and get user info
+          const userData = await userAuth.verifyToken(storedToken);
+          if (userData) {
+            setUser(userData);
+            setIsLoggedIn(true);
+          }
+        }
+      } catch (error) {
+        // Token is invalid or expired
+        localStorage.removeItem('token');
+        setUser(null);
+        setIsLoggedIn(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
 
   // Login function
-  const login = async (email, password) => {
-    setLoading(true);
+  const login = async (credentials) => {
     try {
-      // In a real app, you would call your API here
-      console.log("Logging in user:", { email, password });
+      const response = await userAuth.login(credentials);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Assuming the response contains user info and a token
+      const { token, user: userData } = response;
       
-      // For demo purposes, simulate a user response
-      const user = { 
-        id: "user123", 
-        email: email,
-        firstName: "Demo",
-        lastName: "User" 
+      // Store token in localStorage
+      localStorage.setItem('token', token);
+      
+      // Update state
+      setUser(userData);
+      setIsLoggedIn(true);
+      
+      return { success: true, user: userData };
+    } catch (error) {
+      console.error('Login failed:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Login failed. Please try again.'
       };
-      
-      setCurrentUser(user);
-      return { success: true };
-      
-      // Uncomment to simulate 2FA
-      // return { 
-      //   requiresVerification: true,
-      //   userId: "user123"
-      // };
-    } catch (error) {
-      console.error("Login error:", error);
-      throw new Error(error.message || "Invalid email or password");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Two-factor verification
-  const verifyTwoFactor = async (userId, code) => {
-    setLoading(true);
-    try {
-      // In a real app, you would call your API here
-      console.log("Verifying 2FA:", { userId, code });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo, simulate verification success
-      if (code === "123456") {
-        const user = { 
-          id: userId, 
-          email: "user@example.com",
-          firstName: "Demo",
-          lastName: "User" 
-        };
-        
-        setCurrentUser(user);
-        return { success: true };
-      } else {
-        throw new Error("Invalid verification code");
-      }
-    } catch (error) {
-      console.error("2FA error:", error);
-      throw new Error(error.message || "Verification failed");
-    } finally {
-      setLoading(false);
     }
   };
 
   // Logout function
   const logout = () => {
-    setCurrentUser(null);
+    // Clear token from localStorage
+    localStorage.removeItem('token');
+    
+    // Reset state
+    setUser(null);
+    setIsLoggedIn(false);
   };
 
-  const value = {
-    currentUser,
-    loading,
-    register,
-    login,
-    verifyTwoFactor,
-    logout
+  // Signup function
+  const signup = async (signupData) => {
+    try {
+      const response = await userAuth.signup(signupData);
+      
+      // Assuming signup returns token and user info
+      const { token, user: userData } = response;
+      
+      // Store token in localStorage
+      localStorage.setItem('token', token);
+      
+      // Update state
+      setUser(userData);
+      setIsLoggedIn(true);
+      
+      return { success: true, user: userData };
+    } catch (error) {
+      console.error('Signup failed:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Signup failed. Please try again.'
+      };
+    }
   };
+
+  // Prevent rendering children until auth status is determined
+  if (isLoading) {
+    return <div>Loading...</div>; // Or a more sophisticated loading component
+  }
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoggedIn, 
+      login, 
+      logout, 
+      signup 
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Custom hook to use the auth context
+// Custom hook to use the AuthContext
 export const useAuth = () => {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  
+  return context;
 };
-
-export default AuthContext;
