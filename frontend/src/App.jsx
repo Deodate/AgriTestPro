@@ -1,21 +1,19 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import SignupPage from "./components/auth/SignupPage";
-
-const PrivateRoute = ({ element }) => {
-  const { isLoggedIn } = useAuth();
-  return isLoggedIn ? element : <Navigate to="/login" />;
-};
+import Dashboard from "./services/ADMIN/admin_dashboard.jsx";
+import Sidebar from "./services/ADMIN/sidebar";
 
 function App() {
   return (
   
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/login" element={<SignupPage />} />
-      </Routes>
-
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/login" element={<SignupPage />} />
+      <Route path="/dashboard/*" element={<Dashboard />} />
+      <Route path="/sidebar" element={<Sidebar />} />
+    </Routes>
   );
 }
 
