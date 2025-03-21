@@ -25,6 +25,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -211,4 +212,66 @@ public class AuthController {
                     "message", "An error occurred during signout"));
         }
     }
+
+    @GetMapping("/validate-token")
+    public ResponseEntity<?> validateToken(HttpServletRequest request) {
+        try {
+            // Extract token from request
+            String token = jwtUtils.extractTokenFromRequest(request);
+
+            if (token == null) {
+                logger.error("No token provided for validation");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "status", HttpStatus.UNAUTHORIZED.value(),
+                        "valid", false,
+                        "message", "No token provided"));
+            }
+
+            // Check if token is blacklisted
+            if (tokenBlacklistService.isTokenBlacklisted(token)) {
+                logger.error("Token is blacklisted");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "status", HttpStatus.UNAUTHORIZED.value(),
+                        "valid", false,
+                        "message", "Token is invalid or has been revoked"));
+            }
+
+            // Validate the JWT token
+            if (!jwtUtils.validateJwtToken(token)) {
+                logger.error("Token validation failed");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "status", HttpStatus.UNAUTHORIZED.value(),
+                        "valid", false,
+                        "message", "Token is invalid or has expired"));
+            }
+
+            // Extract username from token
+            String username = jwtUtils.getUserNameFromJwtToken(token);
+
+            // Check if the user exists in the database
+            if (!userRepository.existsByUsername(username)) {
+                logger.error("User not found for token");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                        "status", HttpStatus.UNAUTHORIZED.value(),
+                        "valid", false,
+                        "message", "User not found"));
+            }
+
+            // If all checks pass, return success response
+            logger.info("Token validated successfully for user: {}", username);
+            return ResponseEntity.ok(Map.of(
+                    "status", HttpStatus.OK.value(),
+                    "valid", true,
+                    "username", username,
+                    "message", "Token is valid"));
+
+        } catch (Exception e) {
+            logger.error("Token validation error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "status", HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "valid", false,
+                    "message", "Error validating token: " + e.getMessage()));
+        }
+    }
+
 }
