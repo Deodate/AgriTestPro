@@ -512,28 +512,37 @@ class SignupPage extends Component {
 
     async handleTwoFactorSubmit(e) {
         e.preventDefault();
-        console.log('Form submitted')
         this.setState({ isLoading: true, errorMsg: "" });
 
         const payload = {
-            token: this.state.twoFactorCode,
-            userId: this.state.twoFactorUserId
-        }
-
+            code: this.state.twoFactorCode,
+            username: this.state.loginUsername
+        };
 
         try {
-            const response = await this.props.auth.verifyTwoFactor(payload);
+            const response = await fetch('http://localhost:8088/api/auth/2fa/verify', {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-            // Store user information in local storage or state management
-            localStorage.setItem('user', JSON.stringify({
-                token: response.token,
-                type: response.type,
-                id: response.id,
-                username: response.username,
-                email: response.email,
-                roles: response.roles
-            }));
+            const responseText = await response.text();
+            let json;
 
+            try {
+                json = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Error parsing response:', parseError);
+                throw new Error(responseText || '2FA verification failed');
+            }
+
+            if (!response.ok) {
+                throw new Error(json.message || '2FA verification failed');
+            }
+
+            // Handle successful verification
             this.setState({
                 successMsg: "Verification successful!",
                 showTwoFactorModal: false
@@ -546,11 +555,10 @@ class SignupPage extends Component {
 
         } catch (error) {
             this.setState({
-                errorMsg: "Verification failed. Please try again."
+                errorMsg: error.message || "Verification failed. Please try again.",
+                isLoading: false
             });
             console.error("2FA verification error:", error);
-        } finally {
-            this.setState({ isLoading: false });
         }
     }
 
@@ -933,7 +941,6 @@ class SignupPage extends Component {
 
                 {/* Two-Factor Authentication Modal */}
                 {showTwoFactorModal && (
-
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full relative">
                             <h2 className="text-2xl font-bold text-center mb-6">Two-Factor Authentication</h2>
@@ -953,75 +960,93 @@ class SignupPage extends Component {
                             )}
 
                             {/* Phone Number Input for 2FA */}
-                            <form onSubmit={this.requestTwoFactorCode} className="space-y-6">
-                                <div>
-                                    <label htmlFor="phoneNumberVerification" className="block text-sm font-medium text-gray-700">
-                                        Phone Number for Verification
-                                    </label>
-                                    <input
-                                        value={this.state.twoFactorPhoneNumber}
-                                        onChange={this.changeTwoFactorPhoneNumberHandler}
-                                        id="phoneNumberVerification"
-                                        name="phoneNumber"
-                                        type="tel"
-                                        maxLength="10"
-                                        required
-                                        className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Enter 10-digit phone number"
-                                    />
-                                    {this.state.twoFactorPhoneNumber.length > 0 && this.state.twoFactorPhoneNumber.length < 10 && (
-                                        <p className="mt-1 text-xs text-red-500">
-                                            Phone number must be 10 digits
-                                        </p>
-                                    )}
-                                </div>
-                                <div>
-                                    <button
-                                        type="submit"
-                                        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${this.state.twoFactorPhoneNumber.length === 10
-                                            ? 'bg-blue-600 hover:bg-blue-700'
-                                            : 'bg-gray-400 cursor-not-allowed'
-                                            } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
-                                        disabled={this.state.twoFactorPhoneNumber.length !== 10}
-                                    >
-                                        Request Verification Code
-                                    </button>
-                                </div>
-                            </form>
-
-                            {/* Verification Code Input (shown after code is requested) */}
-                            {this.state.twoFactorCode && (
-                                <form onSubmit={this.handleTwoFactorSubmit} className="space-y-6 mt-6">
+                            {!this.state.twoFactorCode && (
+                                <form onSubmit={this.requestTwoFactorCode} className="space-y-6">
                                     <div>
-                                        <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700">
-                                            Verification Code
+                                        <label htmlFor="phoneNumberVerification" className="block text-sm font-medium text-gray-700">
+                                            Phone Number for Verification
                                         </label>
                                         <input
                                             value={this.state.twoFactorPhoneNumber}
                                             onChange={this.changeTwoFactorPhoneNumberHandler}
                                             id="phoneNumberVerification"
                                             name="phoneNumber"
-                                            type="text"
+                                            type="tel"
+                                            maxLength="10"
                                             required
                                             className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                            placeholder="Enter phone number (with spaces, dashes, etc.)"
+                                            placeholder="Enter 10-digit phone number"
                                         />
-
+                                        {this.state.twoFactorPhoneNumber.length > 0 && this.state.twoFactorPhoneNumber.length < 10 && (
+                                            <p className="mt-1 text-xs text-red-500">
+                                                Phone number must be 10 digits
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div>
                                         <button
                                             type="submit"
-                                            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${this.validatePhoneNumber()
+                                            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${this.state.twoFactorPhoneNumber.length === 10
                                                 ? 'bg-blue-600 hover:bg-blue-700'
                                                 : 'bg-gray-400 cursor-not-allowed'
                                                 } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
-                                            disabled={!this.validatePhoneNumber()}
+                                            disabled={this.state.twoFactorPhoneNumber.length !== 10}
                                         >
                                             Request Verification Code
                                         </button>
                                     </div>
                                 </form>
                             )}
+
+                            {/* Verification Code Input (shown after code is requested) */}
+                            {this.state.twoFactorCode && (
+                                <form onSubmit={this.handleTwoFactorSubmit} className="space-y-6 mt-6">
+                                    <div className="mb-4">
+                                        <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700">
+                                            Verification Code
+                                        </label>
+                                        <input
+                                            value={this.state.twoFactorCode}
+                                            onChange={this.changeTwoFactorCodeHandler}
+                                            id="verificationCode"
+                                            name="code"
+                                            type="text"
+                                            required
+                                            className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="Enter verification code"
+                                            disabled={isLoading}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="verificationUsername" className="block text-sm font-medium text-gray-700">
+                                            Username
+                                        </label>
+                                        <input
+                                            value={this.state.loginUsername}
+                                            onChange={this.changeLoginUsernameHandler}
+                                            id="verificationUsername"
+                                            name="username"
+                                            type="text"
+                                            required
+                                            className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="Enter your username"
+                                            disabled={isLoading}
+                                        />
+                                    </div>
+                                    <div className="mt-4">
+                                        <button
+                                            type="submit"
+                                            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                            disabled={isLoading}
+                                        >
+                                            {isLoading ? 'Verifying...' : 'Verify Code'}
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
                         </div>
                     </div>
+
                 )}
 
                 {/* Footer */}

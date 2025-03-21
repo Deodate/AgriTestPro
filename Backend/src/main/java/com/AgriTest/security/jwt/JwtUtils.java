@@ -1,16 +1,19 @@
+// src/main/java/com/AgriTest/security/jwt/JwtUtils.java
 package com.AgriTest.security.jwt;
 
 import com.AgriTest.security.service.UserDetailsImpl;
+import com.AgriTest.service.TokenBlacklistService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.security.Key;
 import java.util.Date;
@@ -24,6 +27,9 @@ public class JwtUtils {
 
     @Value("${app.jwt.expiration}")
     private int jwtExpirationMs;
+
+    @Autowired
+    private TokenBlacklistService tokenBlacklistService;
 
     public String generateJwtToken(Authentication authentication) {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
@@ -65,6 +71,12 @@ public class JwtUtils {
                 return false;
             }
             
+            // Check token blacklist
+            if (tokenBlacklistService.isTokenBlacklisted(authToken)) {
+                logger.error("JWT token is blacklisted");
+                return false;
+            }
+            
             // Add logging to see the token being validated
             logger.debug("Validating token: {}", authToken);
             
@@ -103,6 +115,15 @@ public class JwtUtils {
             
             logger.debug("Extracted token: [{}]", token);
             return token;
+        }
+        return null;
+    }
+
+    // Method to extract token from request
+    public String extractTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7).trim();
         }
         return null;
     }

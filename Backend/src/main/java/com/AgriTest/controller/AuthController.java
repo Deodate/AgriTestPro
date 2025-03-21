@@ -1,4 +1,3 @@
-// File: src/main/java/com/AgriTest/controller/AuthController.java
 package com.AgriTest.controller;
 
 import com.AgriTest.dto.JwtResponse;
@@ -11,7 +10,9 @@ import com.AgriTest.repository.UserRepository;
 import com.AgriTest.security.jwt.JwtUtils;
 import com.AgriTest.security.service.UserDetailsImpl;
 import com.AgriTest.service.AuthService;
+import com.AgriTest.service.TokenBlacklistService;
 import com.AgriTest.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,25 +49,26 @@ public class AuthController {
 
     @Autowired
     private JwtUtils jwtUtils;
-    
+
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private TokenBlacklistService tokenBlacklistService;
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
             logger.info("Login attempt for user: {}", loginRequest.getUsername());
-            
+
             // Direct authentication approach
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getUsername(),
-                            loginRequest.getPassword()
-                    )
-            );
+                            loginRequest.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtils.generateJwtToken(authentication);
@@ -75,11 +77,11 @@ public class AuthController {
             List<String> roles = userDetails.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toList());
-            
+
             // Check if 2FA is enabled
             User user = userRepository.findByUsername(loginRequest.getUsername())
                     .orElseThrow(() -> new RuntimeException("User not found"));
-            
+
             if (user.getTwoFactorEnabled() != null && user.getTwoFactorEnabled()) {
                 return ResponseEntity.ok(TwoFactorResponse.builder()
                         .message("Please verify with 2FA code")
@@ -95,15 +97,14 @@ public class AuthController {
                     userDetails.getId(),
                     userDetails.getUsername(),
                     userDetails.getEmail(),
-                    roles
-            ));
-            
+                    roles));
+
         } catch (Exception e) {
             logger.error("Authentication error: ", e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("status", HttpStatus.UNAUTHORIZED.value());
             errorResponse.put("message", "Authentication failed: " + e.getMessage());
-            
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
     }
@@ -112,27 +113,24 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest) {
         try {
             logger.info("Registration attempt for user: {}", signUpRequest.getUsername());
-            
+
             if (userRepository.existsByUsername(signUpRequest.getUsername())) {
                 return ResponseEntity.badRequest().body(Map.of(
-                    "status", HttpStatus.BAD_REQUEST.value(),
-                    "message", "Error: Username is already taken!"
-                ));
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "message", "Error: Username is already taken!"));
             }
 
             if (userRepository.existsByEmail(signUpRequest.getEmail())) {
                 return ResponseEntity.badRequest().body(Map.of(
-                    "status", HttpStatus.BAD_REQUEST.value(),
-                    "message", "Error: Email is already in use!"
-                ));
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "message", "Error: Email is already in use!"));
             }
-            
-            if (signUpRequest.getPhoneNumber() != null && 
-                userRepository.existsByPhoneNumber(signUpRequest.getPhoneNumber())) {
+
+            if (signUpRequest.getPhoneNumber() != null &&
+                    userRepository.existsByPhoneNumber(signUpRequest.getPhoneNumber())) {
                 return ResponseEntity.badRequest().body(Map.of(
-                    "status", HttpStatus.BAD_REQUEST.value(),
-                    "message", "Error: Phone number is already in use!"
-                ));
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "message", "Error: Phone number is already in use!"));
             }
 
             // Create new user's account
@@ -148,22 +146,22 @@ public class AuthController {
 
             UserResponse savedUser = userService.createUser(user);
             logger.info("User registered successfully: {}", savedUser.getUsername());
-            
+
             return ResponseEntity.ok(savedUser);
         } catch (Exception e) {
             logger.error("Registration error: ", e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
             errorResponse.put("message", e.getMessage());
-            
+
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
-    
+
     @PutMapping("/2fa/{userId}")
     @PreAuthorize("hasRole('ADMIN') or @securityUtils.isCurrentUserId(#userId)")
     public ResponseEntity<?> toggleTwoFactorAuth(
-            @PathVariable Long userId, 
+            @PathVariable Long userId,
             @RequestParam boolean enabled) {
         try {
             UserResponse userResponse = authService.toggleTwoFactorAuth(userId, enabled);
@@ -173,8 +171,44 @@ public class AuthController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
             errorResponse.put("message", e.getMessage());
-            
+
             return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @PostMapping("/signout")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> signoutUser(HttpServletRequest request) {
+        try {
+            // Extract token from request
+            String token = jwtUtils.extractTokenFromRequest(request);
+
+            // Get the current authentication
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            if (authentication != null) {
+                // Log the signout
+                logger.info("User signed out: {}", authentication.getName());
+
+                // Blacklist the token if it exists
+                if (token != null) {
+                    tokenBlacklistService.blacklistToken(token);
+                    logger.info("Token blacklisted for user: {}", authentication.getName());
+                }
+
+                // Clear the security context
+                SecurityContextHolder.clearContext();
+            }
+
+            // Return a success response
+            return ResponseEntity.ok(Map.of(
+                    "status", HttpStatus.OK.value(),
+                    "message", "Signout successful"));
+        } catch (Exception e) {
+            logger.error("Signout error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "status", HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "message", "An error occurred during signout"));
         }
     }
 }
