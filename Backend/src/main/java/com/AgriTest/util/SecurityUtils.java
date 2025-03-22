@@ -1,4 +1,3 @@
-// File: src/main/java/com/AgriTest/util/SecurityUtils.java
 package com.AgriTest.util;
 
 import com.AgriTest.security.service.UserDetailsImpl;
@@ -99,8 +98,28 @@ public class SecurityUtils {
      * @param id the user ID to check against
      * @return true if the current user ID matches the given ID
      */
-    public boolean isCurrentUserId(Long id) {  // Remove static modifier for Spring to manage this method
+    public boolean isCurrentUserId(Long id) {
         Long currentUserId = getCurrentUserId();
         return currentUserId != null && currentUserId.equals(id);
+    }
+    
+    /**
+     * Check if the current user ID matches the given user ID or if the current username matches the given username.
+     * Useful for authorization checks when a user should only access their own resources.
+     *
+     * @param identifier the user ID or username to check against
+     * @return true if the current user matches the given identifier
+     */
+    public boolean isCurrentUserIdentifier(String identifier) {
+        // Check if the identifier is numeric (userId)
+        if (identifier.matches("\\d+")) {
+            Long userId = Long.valueOf(identifier);
+            Long currentUserId = getCurrentUserId();
+            return currentUserId != null && currentUserId.equals(userId);
+        } else {
+            // Assume it's a username
+            Optional<String> currentUsername = getCurrentUsername();
+            return currentUsername.isPresent() && currentUsername.get().equals(identifier);
+        }
     }
 }

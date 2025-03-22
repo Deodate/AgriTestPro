@@ -19,7 +19,12 @@ public interface AuthService {
     UserResponse registerUser(SignUpRequest signUpRequest);
     
     /**
-     * Enable or disable two-factor authentication for a user
+     * Enable or disable two-factor authentication for a user by ID
      */
     UserResponse toggleTwoFactorAuth(Long userId, boolean enabled);
+    
+    /**
+     * Enable or disable two-factor authentication for a user by username
+     */
+    UserResponse toggleTwoFactorAuthByUsername(String username, boolean enabled);
 }

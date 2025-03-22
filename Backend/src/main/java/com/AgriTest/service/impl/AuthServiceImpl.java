@@ -135,4 +135,15 @@ public class AuthServiceImpl implements AuthService {
         
         return userService.mapUserToUserResponse(updatedUser);
     }
+    
+    @Override
+    public UserResponse toggleTwoFactorAuthByUsername(String username, boolean enabled) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
+        
+        user.setTwoFactorEnabled(enabled);
+        User updatedUser = userRepository.save(user);
+        
+        return userService.mapUserToUserResponse(updatedUser);
+    }
 }

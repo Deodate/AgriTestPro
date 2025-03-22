@@ -24,6 +24,7 @@ class SignupPage extends Component {
             loginUsername: "",
             loginPassword: "",
             loginEmail: "", // Keep this for compatibility if needed
+            enableTwoFactor: false,
 
             // Two-factor fields
             twoFactorCode: "",
@@ -54,6 +55,7 @@ class SignupPage extends Component {
                 password: false,
                 confirmPassword: false
             }
+
         };
 
         // Binding all methods to 'this' context
@@ -72,6 +74,7 @@ class SignupPage extends Component {
 
 
         // Other modal and form submission handlers
+        this.handleEnableTwoFactorChange = this.handleEnableTwoFactorChange.bind(this);
         this.validateField = this.validateField.bind(this);
         this.handleDropdownToggle = this.handleDropdownToggle.bind(this);
         this.toggleLoginModal = this.toggleLoginModal.bind(this);
@@ -83,14 +86,75 @@ class SignupPage extends Component {
         this.changeTwoFactorPhoneNumberHandler = this.changeTwoFactorPhoneNumberHandler.bind(this);
     }
 
+    // Define setup2FA as an arrow function
+    setup2FA = async () => {
+        // Validate username
+        if (!this.state.loginUsername.trim()) {
+            this.setState({
+                errorMsg: "Please enter a username to enable 2FA"
+            });
+            return;
+        }
+
+        this.setState({ isLoading: true, errorMsg: "" });
+
+        try {
+            // Get the user token from localStorage (if available)
+            const userJSON = localStorage.getItem('user');
+            const userData = userJSON ? JSON.parse(userJSON) : {};
+            const token = userData.token;
+
+            const response = await fetch(`http://localhost:8088/api/auth/2fa/${this.state.loginUsername}?enabled=true`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Include authorization header if token exists
+                    ...(token && { 'Authorization': `Bearer ${token}` })
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Failed to enable 2FA");
+            }
+
+            // Success! Show success message and return to login form
+            this.setState({
+                successMsg: "2FA has been enabled successfully!",
+                show2FASetupForm: false,
+                showLoginPassword: true,
+                enableTwoFactor: false
+            });
+        } catch (error) {
+            this.setState({
+                errorMsg: error.message || "Error enabling 2FA. Please try again."
+            });
+        } finally {
+            this.setState({ isLoading: false });
+        }
+    }
 
     // Define these methods outside of the constructor to avoid duplicate method warnings
     changeLoginUsernameHandler(event) {
         this.setState({ loginUsername: event.target.value });
     }
 
+
     changeLoginPasswordHandler(event) {
         this.setState({ loginPassword: event.target.value });
+    }
+
+    handleEnableTwoFactorChange = (event) => {
+        const isChecked = event.target.checked;
+        this.setState({
+            enableTwoFactor: isChecked,
+            // Show the 2FA setup form when checked
+            show2FASetupForm: isChecked,
+            // Hide the login password field when showing 2FA setup
+            showLoginPassword: !isChecked,
+            // Clear error message when toggling
+            errorMsg: ""
+        });
     }
 
     changeTwoFactorPhoneNumberHandler = (event) => {
@@ -413,11 +477,11 @@ class SignupPage extends Component {
     async handleLoginSubmit(e) {
         e.preventDefault();
         this.setState({ isLoading: true, errorMsg: "" });
-    
+
         // Trim the username and validate
         const username = this.state.loginUsername ? this.state.loginUsername.trim() : '';
         const password = this.state.loginPassword;
-    
+
         // Validate inputs
         if (!username) {
             this.setState({
@@ -426,7 +490,7 @@ class SignupPage extends Component {
             });
             return;
         }
-    
+
         if (!password) {
             this.setState({
                 errorMsg: "Password is required",
@@ -434,12 +498,12 @@ class SignupPage extends Component {
             });
             return;
         }
-    
+
         const payload = {
             username: username,
             password: password
         };
-    
+
         try {
             const response = await fetch('http://localhost:8088/api/auth/signin', {
                 method: 'POST',
@@ -448,28 +512,28 @@ class SignupPage extends Component {
                     'Content-Type': 'application/json'
                 }
             });
-    
+
             // Parse the response text
             const responseText = await response.text();
             let json;
-    
+
             try {
                 json = JSON.parse(responseText);
             } catch (parseError) {
                 console.error('Error parsing response:', parseError);
                 throw new Error(responseText || 'Login failed');
             }
-    
+
             // Check for error response from server
             if (!response.ok) {
                 throw new Error(json.message || 'Login failed');
             }
-    
+
             console.log('Login successful:', json);
-    
+
             // Clear any existing user data first
             localStorage.removeItem('user');
-    
+
             // Store user information in local storage with complete data
             const userData = {
                 token: json.token,
@@ -479,10 +543,10 @@ class SignupPage extends Component {
                 email: json.email,
                 roles: json.roles
             };
-            
+
             localStorage.setItem('user', JSON.stringify(userData));
             console.log('User data stored in localStorage:', userData);
-    
+
             // Handle 2FA if required
             if (json.requiresVerification) {
                 this.setState({
@@ -494,7 +558,7 @@ class SignupPage extends Component {
                 });
                 return;
             }
-    
+
             // On successful login - update state first
             this.setState({
                 successMsg: "Login successful!",
@@ -507,7 +571,7 @@ class SignupPage extends Component {
                 console.log('Navigating to dashboard...');
                 this.props.navigate('/dashboard');
             });
-    
+
         } catch (error) {
             this.setState({
                 errorMsg: error.message || "Login failed. Please check your credentials.",
@@ -520,12 +584,12 @@ class SignupPage extends Component {
     async handleTwoFactorSubmit(e) {
         e.preventDefault();
         this.setState({ isLoading: true, errorMsg: "" });
-    
+
         const payload = {
             code: this.state.twoFactorCode,
             username: this.state.loginUsername
         };
-    
+
         try {
             const response = await fetch('http://localhost:8088/api/auth/2fa/verify', {
                 method: 'POST',
@@ -534,29 +598,29 @@ class SignupPage extends Component {
                     'Content-Type': 'application/json'
                 }
             });
-    
+
             const responseText = await response.text();
             let json;
-    
+
             try {
                 json = JSON.parse(responseText);
             } catch (parseError) {
                 console.error('Error parsing response:', parseError);
                 throw new Error(responseText || '2FA verification failed');
             }
-    
+
             if (!response.ok) {
                 throw new Error(json.message || '2FA verification failed');
             }
-    
+
             console.log('2FA verification successful:', json);
-    
+
             // If the 2FA response contains updated user info, update localStorage
             if (json.token) {
                 // Update user data in localStorage with the latest token
                 const userJSON = localStorage.getItem('user');
                 const userData = userJSON ? JSON.parse(userJSON) : {};
-                
+
                 const updatedUserData = {
                     ...userData,
                     token: json.token,
@@ -566,11 +630,11 @@ class SignupPage extends Component {
                     ...(json.email && { email: json.email }),
                     ...(json.roles && { roles: json.roles })
                 };
-                
+
                 localStorage.setItem('user', JSON.stringify(updatedUserData));
                 console.log('Updated user data in localStorage:', updatedUserData);
             }
-    
+
             // Handle successful verification
             this.setState({
                 successMsg: "Verification successful!",
@@ -885,71 +949,134 @@ class SignupPage extends Component {
                                     {errorMsg}
                                 </div>
                             )}
+
+                            {/* Login Form Content */}
                             <form onSubmit={this.handleLoginSubmit} className="space-y-6">
-                                <div>
-                                    <label htmlFor="loginEmail" className="block text-sm font-medium text-gray-700">Email address</label>
-                                    <input
-                                        value={this.state.loginUsername}
-                                        onChange={this.changeLoginUsernameHandler}
-                                        id="loginUsername"
-                                        name="username"
-                                        type="text"
-                                        required
-                                        className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-blue-500 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Username"
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="loginPassword" className="block text-sm font-medium text-gray-700">Password</label>
-                                    <input
-                                        value={this.state.loginPassword}
-                                        onChange={this.changeLoginPasswordHandler}
-                                        id="loginPassword"
-                                        name="password"
-                                        type="password"
-                                        autoComplete="current-password"
-                                        required
-                                        className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-blue-500 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Password"
-                                        disabled={isLoading}
-                                    />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center">
-                                        <input
-                                            id="remember-me"
-                                            name="remember-me"
-                                            type="checkbox"
-                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                        />
-                                        <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                                            Remember me
-                                        </label>
+                                {/* 2FA Setup Form - shown only when enableTwoFactor is true */}
+                                {this.state.show2FASetupForm ? (
+                                    <div className="p-3 bg-blue-50 rounded-md border border-blue-200">
+                                        <h4 className="text-sm font-medium text-blue-800 mb-2">Two-Factor Authentication Setup</h4>
+                                        <p className="text-xs text-blue-600 mb-3">
+                                            Enter your username to enable two-factor authentication
+                                        </p>
+                                        <div className="flex">
+                                            <input
+                                                value={this.state.loginUsername}
+                                                onChange={this.changeLoginUsernameHandler}
+                                                type="text"
+                                                placeholder="Username"
+                                                className="flex-1 text-sm border border-blue-300 rounded-l-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={this.setup2FA}
+                                                className="bg-blue-500 text-white text-sm px-3 py-1 rounded-r-md hover:bg-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            >
+                                                Setup
+                                            </button>
+                                        </div>
+                                        <div className="mt-3 flex justify-end">
+                                            <button
+                                                type="button"
+                                                onClick={() => this.setState({ show2FASetupForm: false, enableTwoFactor: false, showLoginFields: true })}
+                                                className="text-xs text-blue-600 hover:text-blue-800"
+                                            >
+                                                Back to login
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="text-sm">
-                                        <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
-                                            Forgot your password?
-                                        </a>
-                                    </div>
-                                </div>
-                                <div className="flex justify-center gap-4">
-                                    <button
-                                        type="submit"
-                                        className={`w-2/5 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                        disabled={isLoading}
-                                    >
-                                        {isLoading ? 'Signing in...' : 'Login'}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={this.toggleLoginModal}
-                                        className={`w-2/5 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                        disabled={isLoading}
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
+                                ) : (
+                                    <>
+                                        <div>
+                                            <label htmlFor="loginUsername" className="block text-sm font-medium text-gray-700">Username</label>
+                                            <input
+                                                value={this.state.loginUsername}
+                                                onChange={this.changeLoginUsernameHandler}
+                                                id="loginUsername"
+                                                name="username"
+                                                type="text"
+                                                required
+                                                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-blue-500 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                placeholder="Username"
+                                                disabled={isLoading}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="loginPassword" className="block text-sm font-medium text-gray-700">Password</label>
+                                            <input
+                                                value={this.state.loginPassword}
+                                                onChange={this.changeLoginPasswordHandler}
+                                                id="loginPassword"
+                                                name="password"
+                                                type="password"
+                                                autoComplete="current-password"
+                                                required
+                                                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-blue-500 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                placeholder="Password"
+                                                disabled={isLoading}
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center">
+                                                <input
+                                                    id="enable-2fa"
+                                                    name="enable-2fa"
+                                                    type="checkbox"
+                                                    checked={this.state.enableTwoFactor}
+                                                    onChange={this.handleEnableTwoFactorChange}
+                                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                />
+                                                <label htmlFor="enable-2fa" className="ml-2 block text-sm text-gray-900">
+                                                    Enable 2FA
+                                                </label>
+                                            </div>
+                                            {!this.state.show2FASetupForm && (
+                                                <div className="text-sm">
+                                                    <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                                                        Forgot your password?
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* 2FA Setup Form - shown only when enableTwoFactor is true */}
+                                        {this.state.show2FASetupForm && (
+                                            <div className="p-3 bg-blue-50 rounded-md border border-blue-200 mt-3">
+                                                <h4 className="text-sm font-medium text-blue-800 mb-2">Two-Factor Authentication Setup</h4>
+                                                <p className="text-xs text-blue-600 mb-3">
+                                                    Click Setup to enable two-factor authentication for this username
+                                                </p>
+                                                <div className="flex justify-end">
+                                                    <button
+                                                        type="button"
+                                                        onClick={this.setup2FA}
+                                                        className="bg-blue-500 text-white text-sm px-3 py-1 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    >
+                                                        {isLoading ? 'Processing...' : 'Setup'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="flex justify-center gap-4">
+                                            <button
+                                                type="submit"
+                                                className={`w-2/5 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                                disabled={isLoading}
+                                            >
+                                                {isLoading ? 'Signing in...' : 'Login'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={this.toggleLoginModal}
+                                                className={`w-2/5 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                                disabled={isLoading}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
                             </form>
                             <div className="mt-4 text-center">
                                 <p className="text-sm text-gray-600">
@@ -1074,7 +1201,6 @@ class SignupPage extends Component {
                             )}
                         </div>
                     </div>
-
                 )}
 
                 {/* Footer */}

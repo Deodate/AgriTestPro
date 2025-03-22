@@ -31,10 +31,9 @@ const MENU_ITEMS = [
   
   // App constants
   export const APP_CONSTANTS = {
-    companyName: "Rwanda Agriculture",
-    companySubtitle: "Board",
+    companyName: "AGRI TEST",
+    companySubtitle: "Pro.",
     mainHeading: "Integrated Agricultural Product Testing and Management System",
-    companyTagline: "AgriTest Pro"
   };
   
   export default MENU_ITEMS;

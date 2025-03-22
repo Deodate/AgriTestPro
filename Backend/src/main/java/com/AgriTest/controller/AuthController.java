@@ -159,13 +159,24 @@ public class AuthController {
         }
     }
 
-    @PutMapping("/2fa/{userId}")
-    @PreAuthorize("hasRole('ADMIN') or @securityUtils.isCurrentUserId(#userId)")
+    @PutMapping("/2fa/{userIdentifier}")
+    // Removing @PreAuthorize annotation to allow public access
     public ResponseEntity<?> toggleTwoFactorAuth(
-            @PathVariable Long userId,
+            @PathVariable String userIdentifier,
             @RequestParam boolean enabled) {
         try {
-            UserResponse userResponse = authService.toggleTwoFactorAuth(userId, enabled);
+            UserResponse userResponse;
+
+            // Check if the identifier is numeric (userId) or alphanumeric (username)
+            if (userIdentifier.matches("\\d+")) {
+                // It's a userId
+                Long userId = Long.valueOf(userIdentifier);
+                userResponse = authService.toggleTwoFactorAuth(userId, enabled);
+            } else {
+                // It's a username
+                userResponse = authService.toggleTwoFactorAuthByUsername(userIdentifier, enabled);
+            }
+
             return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
             logger.error("2FA toggle error: ", e);
