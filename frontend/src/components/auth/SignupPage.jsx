@@ -413,11 +413,11 @@ class SignupPage extends Component {
     async handleLoginSubmit(e) {
         e.preventDefault();
         this.setState({ isLoading: true, errorMsg: "" });
-
+    
         // Trim the username and validate
         const username = this.state.loginUsername ? this.state.loginUsername.trim() : '';
         const password = this.state.loginPassword;
-
+    
         // Validate inputs
         if (!username) {
             this.setState({
@@ -426,7 +426,7 @@ class SignupPage extends Component {
             });
             return;
         }
-
+    
         if (!password) {
             this.setState({
                 errorMsg: "Password is required",
@@ -434,12 +434,12 @@ class SignupPage extends Component {
             });
             return;
         }
-
+    
         const payload = {
             username: username,
             password: password
         };
-
+    
         try {
             const response = await fetch('http://localhost:8088/api/auth/signin', {
                 method: 'POST',
@@ -448,59 +448,66 @@ class SignupPage extends Component {
                     'Content-Type': 'application/json'
                 }
             });
-
-            // Parse the response text to get more detailed error information
+    
+            // Parse the response text
             const responseText = await response.text();
             let json;
-
+    
             try {
                 json = JSON.parse(responseText);
             } catch (parseError) {
                 console.error('Error parsing response:', parseError);
                 throw new Error(responseText || 'Login failed');
             }
-
+    
             // Check for error response from server
             if (!response.ok) {
                 throw new Error(json.message || 'Login failed');
             }
-
-            console.log(json);
-
-            // Store user information in local storage
-            localStorage.setItem('user', JSON.stringify({
+    
+            console.log('Login successful:', json);
+    
+            // Clear any existing user data first
+            localStorage.removeItem('user');
+    
+            // Store user information in local storage with complete data
+            const userData = {
                 token: json.token,
                 type: json.type,
                 id: json.id,
                 username: json.username,
                 email: json.email,
                 roles: json.roles
-            }));
-
+            };
+            
+            localStorage.setItem('user', JSON.stringify(userData));
+            console.log('User data stored in localStorage:', userData);
+    
             // Handle 2FA if required
             if (json.requiresVerification) {
                 this.setState({
                     twoFactorUserId: json.userId,
                     twoFactorCode: '',
                     showLoginModal: false,
-                    showTwoFactorModal: true
+                    showTwoFactorModal: true,
+                    isLoading: false
                 });
                 return;
             }
-
-            // On successful login
+    
+            // On successful login - update state first
             this.setState({
                 successMsg: "Login successful!",
                 showLoginModal: false,
                 loginUsername: '',
-                loginPassword: ''
-            });
-
-            // Redirect to dashboard
-            setTimeout(() => {
+                loginPassword: '',
+                isLoading: false
+            }, () => {
+                // Use callback to ensure state is updated before navigation
+                console.log('Navigating to dashboard...');
                 this.props.navigate('/dashboard');
-            }, 1000);
-
+            });
+    
         } catch (error) {
             this.setState({
                 errorMsg: error.message || "Login failed. Please check your credentials.",
@@ -513,12 +520,12 @@ class SignupPage extends Component {
     async handleTwoFactorSubmit(e) {
         e.preventDefault();
         this.setState({ isLoading: true, errorMsg: "" });
-
+    
         const payload = {
             code: this.state.twoFactorCode,
             username: this.state.loginUsername
         };
-
+    
         try {
             const response = await fetch('http://localhost:8088/api/auth/2fa/verify', {
                 method: 'POST',
@@ -527,32 +534,53 @@ class SignupPage extends Component {
                     'Content-Type': 'application/json'
                 }
             });
-
+    
             const responseText = await response.text();
             let json;
-
+    
             try {
                 json = JSON.parse(responseText);
             } catch (parseError) {
                 console.error('Error parsing response:', parseError);
                 throw new Error(responseText || '2FA verification failed');
             }
-
+    
             if (!response.ok) {
                 throw new Error(json.message || '2FA verification failed');
             }
-
+    
+            console.log('2FA verification successful:', json);
+    
+            // If the 2FA response contains updated user info, update localStorage
+            if (json.token) {
+                // Update user data in localStorage with the latest token
+                const userJSON = localStorage.getItem('user');
+                const userData = userJSON ? JSON.parse(userJSON) : {};
+                
+                const updatedUserData = {
+                    ...userData,
+                    token: json.token,
+                    // Include any other updated fields from the response
+                    ...(json.id && { id: json.id }),
+                    ...(json.username && { username: json.username }),
+                    ...(json.email && { email: json.email }),
+                    ...(json.roles && { roles: json.roles })
+                };
+                
+                localStorage.setItem('user', JSON.stringify(updatedUserData));
+                console.log('Updated user data in localStorage:', updatedUserData);
+            }
+    
             // Handle successful verification
             this.setState({
                 successMsg: "Verification successful!",
-                showTwoFactorModal: false
-            });
-
-            // Redirect to dashboard
-            setTimeout(() => {
+                showTwoFactorModal: false,
+                isLoading: false
+            }, () => {
+                // Use callback to ensure state is updated before navigation
+                console.log('Navigating to dashboard after 2FA...');
                 this.props.navigate('/dashboard');
-            }, 1000);
-
+            });
         } catch (error) {
             this.setState({
                 errorMsg: error.message || "Verification failed. Please try again.",
