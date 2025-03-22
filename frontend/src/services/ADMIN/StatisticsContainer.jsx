@@ -15,7 +15,7 @@ const StatisticsContainer = () => {
   const salesData = [0, 200, 600, 800, 1400, 1800, 2400, 2400, 2400];
 
   return (
-    <div className="w-full space-y-4 pt-7">
+    <div className="w-full px-6 py-4 ml-63" style={{ backgroundColor: "#c5e4fa" }}>
       {/* Top row */}
       <div className="flex flex-col md:flex-row gap-4">
         {/* Today's Sales Chart */}
