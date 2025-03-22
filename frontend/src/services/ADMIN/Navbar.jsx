@@ -80,7 +80,7 @@ class Navbar extends Component {
       <nav className="bg-slate-700 fixed w-full top-0 left-0 right-0 z-10 h-16 flex items-center justify-between px-4 shadow-md">
         {/* Left side - Logo/Brand */}
         <div className="flex items-center">
-          <span className="text-white mr-2">Farm</span>
+          <span className="text-red-500 mr-2 font-bold">AGRI TEST PRO</span>
           <span className="text-blue-400 mr-2">›</span>
           <span className="text-blue-400">Dashboard</span>
         </div>

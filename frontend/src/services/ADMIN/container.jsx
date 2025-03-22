@@ -1,12 +1,13 @@
 import React from "react";
+import StatisticsContainer from "./StatisticsContainer";
 
 const Container = ({ children }) => {
-   return (
-       <div className="container mx-auto px-6 py-4 ml-64">
-           <h1 className="text-2xl font-bold mb-6 text-black">This Admin Panel</h1>
-           {children}
-       </div>
-   )
+    return (
+        <div className="w-full px-6 py-4 ml-64" style={{ backgroundColor: "#c5e4fa" }}>
+            <StatisticsContainer />
+            {children}
+        </div>
+    )
 }
 
 export default Container;
