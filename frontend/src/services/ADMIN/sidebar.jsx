@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 // SVG icons with different colors
 const IconDollar = () => (
@@ -123,7 +123,43 @@ const IconMapPin = () => (
   </svg>
 );
 
+// Define menu items array
+const menuItems = [
+  { to: "/dashboard", label: "Cost Tracking Form", icon: <IconDollar /> },
+  { to: "/test-case-creation", label: "Test Case Creation", icon: <IconFileCheck /> },
+  { to: "/operations", label: "Trial Phase Tracking", icon: <IconFlask /> },
+  { to: "/inventory", label: "Product Entry Form", icon: <IconPackage /> },
+  { to: "/reports", label: "Stock Movement", icon: <IconTruck /> },
+  { to: "/stock-monitoring", label: "Stock Monitoring", icon: <IconChart /> },
+  { to: "/report-generation", label: "Report Generation", icon: <IconReport /> },
+  { to: "/performance-analysis", label: "Performance Analysis", icon: <IconPerformance /> },
+  { to: "/compliance-checklist", label: "Compliance Checklist", icon: <IconShield /> },
+  { to: "/quality-incident", label: "Quality Incident", icon: <IconAlert /> },
+  { to: "/task-assignment", label: "Task Assignment", icon: <IconCheckSquare /> },
+  { to: "/broadcast", label: "Broadcast Announcement", icon: <IconSend /> },
+  { to: "/alert-setup", label: "Automated Alert Setup", icon: <IconBell /> },
+  { to: "/calendar", label: "Calendar Management", icon: <IconCalendar /> },
+  { to: "/users", label: "Test Results Submission", icon: <IconClipboardCheck /> },
+  { to: "/field-activity", label: "Field Activity Tracking", icon: <IconMapPin /> }
+];
+
+// Export menu items so they can be used in other components
+export { menuItems };
+
 const Sidebar = () => {
+    const location = useLocation();
+    const [activeRoute, setActiveRoute] = useState("/dashboard");
+    
+    useEffect(() => {
+        // Extract the base route from the current path
+        const currentPath = location.pathname;
+        const baseRoute = "/" + currentPath.split('/')[1];
+        setActiveRoute(baseRoute);
+        
+        // Store the active route in localStorage so Container can access it
+        localStorage.setItem('activeMenu', baseRoute);
+    }, [location]);
+
     return (
         <div className="w-64 bg-slate-700 text-white h-screen fixed left-0 top-0 flex flex-col">
             {/* Header */}
@@ -134,22 +170,15 @@ const Sidebar = () => {
             {/* Navigation */}
             <nav className="flex-1 overflow-y-auto p-4">
                 <ul className="space-y-1 px-2">
-                    <NavItem to="/dashboard" label="Cost Tracking Form" icon={<IconDollar />} active />
-                    <NavItem to="/test-case-creation" label="Test Case Creation" icon={<IconFileCheck />} />
-                    <NavItem to="/operations" label="Trial Phase Tracking" icon={<IconFlask />} />
-                    <NavItem to="/inventory" label="Product Entry Form" icon={<IconPackage />} />
-                    <NavItem to="/reports" label="Stock Movement" icon={<IconTruck />} />
-                    <NavItem to="/marketplace" label="Stock Monitoring" icon={<IconChart />} />
-                    <NavItem to="/marketplace" label="Report Generation" icon={<IconReport />} />
-                    <NavItem to="/marketplace" label="Performance Analysis" icon={<IconPerformance />} />
-                    <NavItem to="/marketplace" label="Compliance Checklist" icon={<IconShield />} />
-                    <NavItem to="/marketplace" label="Quality Incident" icon={<IconAlert />} />
-                    <NavItem to="/marketplace" label="Task Assignment" icon={<IconCheckSquare />} />
-                    <NavItem to="/marketplace" label="Broadcast Announcement" icon={<IconSend />} />
-                    <NavItem to="/marketplace" label="Automated Alert Setup" icon={<IconBell />} />
-                    <NavItem to="/marketplace" label="Calendar Management" icon={<IconCalendar />} />
-                    <NavItem to="/users" label="Test Results Submission" icon={<IconClipboardCheck />} />
-                    <NavItem to="/marketplace" label="Field Activity Tracking" icon={<IconMapPin />} />
+                    {menuItems.map((item, index) => (
+                        <NavItem 
+                            key={index}
+                            to={item.to} 
+                            label={item.label} 
+                            icon={item.icon} 
+                            active={activeRoute === item.to} 
+                        />
+                    ))}
                 </ul>
             </nav>
 
