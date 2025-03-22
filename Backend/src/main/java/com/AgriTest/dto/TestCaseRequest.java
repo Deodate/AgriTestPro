@@ -14,21 +14,29 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestCaseRequest {
-    @NotNull(message = "Product ID is required")
-    private Long productId;
+    @NotBlank(message = "Test name is required")
+    private String testName;
     
-    @NotBlank(message = "Title is required")
-    private String title;
+    private String testDescription;
     
-    private String description;
+    private String testObjectives;
     
-    private String methodology;
+    @NotBlank(message = "Product type is required")
+    private String productType;
+    
+    @NotBlank(message = "Product batch number is required")
+    private String productBatchNumber;
+    
+    @NotBlank(message = "Testing location is required")
+    private String testingLocation;
+    
+    @NotNull(message = "Assigned worker ID is required")
+    private Long assignedWorkerId;
     
     @NotNull(message = "Start date is required")
     private LocalDate startDate;
     
     private LocalDate endDate;
     
-    @NotBlank(message = "Status is required")
-    private String status;
+    private String notes;
 }

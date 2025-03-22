@@ -6,10 +6,12 @@ import com.AgriTest.model.Product;
 import com.AgriTest.model.TestCase;
 import com.AgriTest.model.TestPhase;
 import com.AgriTest.model.TestResult;
+import com.AgriTest.model.User;
 import com.AgriTest.repository.ProductRepository;
 import com.AgriTest.repository.TestCaseRepository;
 import com.AgriTest.repository.TestPhaseRepository;
 import com.AgriTest.repository.TestResultRepository;
+import com.AgriTest.repository.UserRepository;
 import com.AgriTest.service.TestCaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,17 +29,20 @@ public class TestCaseServiceImpl implements TestCaseService {
     private final TestPhaseRepository testPhaseRepository;
     private final TestResultRepository testResultRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
     @Autowired
     public TestCaseServiceImpl(
             TestCaseRepository testCaseRepository,
             TestPhaseRepository testPhaseRepository,
             TestResultRepository testResultRepository,
-            ProductRepository productRepository) {
+            ProductRepository productRepository,
+            UserRepository userRepository) {
         this.testCaseRepository = testCaseRepository;
         this.testPhaseRepository = testPhaseRepository;
         this.testResultRepository = testResultRepository;
         this.productRepository = productRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -55,18 +60,41 @@ public class TestCaseServiceImpl implements TestCaseService {
 
     @Override
     @Transactional
-    public TestCaseResponse createTestCase(TestCaseRequest testCaseRequest, Long userId) {
-        Product product = productRepository.findById(testCaseRequest.getProductId())
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + testCaseRequest.getProductId()));
+    public TestCaseResponse createTestCase(TestCaseRequest request, Long userId) {
+        // Find a product based on name or product type
+        Product product = productRepository.findByNameContainingIgnoreCase(request.getProductType())
+                .stream()
+                .findFirst()
+                .orElseGet(() -> {
+                    // Create new product if not found
+                    Product newProduct = new Product();
+                    newProduct.setName(request.getProductType());
+                    // If Product has category field, store productType there as well
+                    newProduct.setCategory(request.getProductType());
+                    // Store status if your Product entity has this field
+                    newProduct.setStatus("TESTING");
+                    // Store createdBy if your Product entity has this field
+                    newProduct.setCreatedBy(userId);
+                    return productRepository.save(newProduct);
+                });
+        
+        // Find assigned worker
+        User assignedWorker = userRepository.findById(request.getAssignedWorkerId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getAssignedWorkerId()));
         
         TestCase testCase = new TestCase();
         testCase.setProduct(product);
-        testCase.setTitle(testCaseRequest.getTitle());
-        testCase.setDescription(testCaseRequest.getDescription());
-        testCase.setMethodology(testCaseRequest.getMethodology());
-        testCase.setStartDate(testCaseRequest.getStartDate());
-        testCase.setEndDate(testCaseRequest.getEndDate());
-        testCase.setStatus(testCaseRequest.getStatus());
+        testCase.setTestName(request.getTestName());
+        testCase.setTestDescription(request.getTestDescription());
+        testCase.setTestObjectives(request.getTestObjectives());
+        testCase.setProductType(request.getProductType());
+        testCase.setProductBatchNumber(request.getProductBatchNumber());
+        testCase.setTestingLocation(request.getTestingLocation());
+        testCase.setAssignedWorker(assignedWorker);
+        testCase.setStartDate(request.getStartDate());
+        testCase.setEndDate(request.getEndDate());
+        testCase.setNotes(request.getNotes());
+        testCase.setStatus("PENDING"); // Default status for new test cases
         testCase.setCreatedBy(userId);
         
         TestCase savedTestCase = testCaseRepository.save(testCase);
@@ -75,20 +103,45 @@ public class TestCaseServiceImpl implements TestCaseService {
 
     @Override
     @Transactional
-    public TestCaseResponse updateTestCase(Long id, TestCaseRequest testCaseRequest) {
+    public TestCaseResponse updateTestCase(Long id, TestCaseRequest request) {
         TestCase existingTestCase = testCaseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Test case not found with id: " + id));
         
-        Product product = productRepository.findById(testCaseRequest.getProductId())
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + testCaseRequest.getProductId()));
+        // Update product based on product type
+        if (!existingTestCase.getProductType().equals(request.getProductType())) {
+            Product product = productRepository.findByNameContainingIgnoreCase(request.getProductType())
+                    .stream()
+                    .findFirst()
+                    .orElseGet(() -> {
+                        // Create new product if not found
+                        Product newProduct = new Product();
+                        newProduct.setName(request.getProductType());
+                        newProduct.setCategory(request.getProductType());
+                        newProduct.setStatus("TESTING");
+                        newProduct.setCreatedBy(existingTestCase.getCreatedBy());
+                        return productRepository.save(newProduct);
+                    });
+            
+            existingTestCase.setProduct(product);
+        }
         
-        existingTestCase.setProduct(product);
-        existingTestCase.setTitle(testCaseRequest.getTitle());
-        existingTestCase.setDescription(testCaseRequest.getDescription());
-        existingTestCase.setMethodology(testCaseRequest.getMethodology());
-        existingTestCase.setStartDate(testCaseRequest.getStartDate());
-        existingTestCase.setEndDate(testCaseRequest.getEndDate());
-        existingTestCase.setStatus(testCaseRequest.getStatus());
+        // Update assigned worker if changed
+        if (!existingTestCase.getAssignedWorker().getId().equals(request.getAssignedWorkerId())) {
+            User assignedWorker = userRepository.findById(request.getAssignedWorkerId())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getAssignedWorkerId()));
+            
+            existingTestCase.setAssignedWorker(assignedWorker);
+        }
+        
+        existingTestCase.setTestName(request.getTestName());
+        existingTestCase.setTestDescription(request.getTestDescription());
+        existingTestCase.setTestObjectives(request.getTestObjectives());
+        existingTestCase.setProductType(request.getProductType());
+        existingTestCase.setProductBatchNumber(request.getProductBatchNumber());
+        existingTestCase.setTestingLocation(request.getTestingLocation());
+        existingTestCase.setStartDate(request.getStartDate());
+        existingTestCase.setEndDate(request.getEndDate());
+        existingTestCase.setNotes(request.getNotes());
         
         TestCase updatedTestCase = testCaseRepository.save(existingTestCase);
         return mapTestCaseToTestCaseResponse(updatedTestCase);
@@ -182,44 +235,53 @@ public class TestCaseServiceImpl implements TestCaseService {
                 .collect(Collectors.toList());
     }
     
-    private ProductResponse mapProductToProductResponse(Product product) {
-        return ProductResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .description(product.getDescription())
-                .category(product.getCategory())
-                .manufacturer(product.getManufacturer())
-                .createdAt(product.getCreatedAt())
-                .updatedAt(product.getUpdatedAt())
-                .build();
-    }
-    
     private TestCaseResponse mapTestCaseToTestCaseResponse(TestCase testCase) {
-        List<TestPhaseResponse> phases = testCase.getPhases().stream()
-                .map(this::mapTestPhaseToTestPhaseResponse)
-                .collect(Collectors.toList());
+        List<TestCaseResponse.TestPhaseDto> phaseDtos = null;
+        if (testCase.getPhases() != null) {
+            phaseDtos = testCase.getPhases().stream()
+                    .map(phase -> TestCaseResponse.TestPhaseDto.builder()
+                            .id(phase.getId())
+                            .name(phase.getName())
+                            .description(phase.getDescription())
+                            .startDate(phase.getStartDate())
+                            .endDate(phase.getEndDate())
+                            .status(phase.getStatus())
+                            .build())
+                    .collect(Collectors.toList());
+        }
+        
+        TestCaseResponse.UserDto assignedWorkerDto = null;
+        if (testCase.getAssignedWorker() != null) {
+            assignedWorkerDto = TestCaseResponse.UserDto.builder()
+                    .id(testCase.getAssignedWorker().getId())
+                    .username(testCase.getAssignedWorker().getUsername())
+                    .fullName(testCase.getAssignedWorker().getFullName())
+                    .email(testCase.getAssignedWorker().getEmail())
+                    .build();
+        }
         
         return TestCaseResponse.builder()
                 .id(testCase.getId())
-                .product(mapProductToProductResponse(testCase.getProduct()))
-                .title(testCase.getTitle())
-                .description(testCase.getDescription())
-                .methodology(testCase.getMethodology())
+                .testName(testCase.getTestName())
+                .testDescription(testCase.getTestDescription())
+                .testObjectives(testCase.getTestObjectives())
+                .productType(testCase.getProductType())
+                .productBatchNumber(testCase.getProductBatchNumber())
+                .testingLocation(testCase.getTestingLocation())
+                .assignedWorker(assignedWorkerDto)
                 .startDate(testCase.getStartDate())
                 .endDate(testCase.getEndDate())
+                .notes(testCase.getNotes())
                 .status(testCase.getStatus())
                 .createdBy(testCase.getCreatedBy())
                 .createdAt(testCase.getCreatedAt())
                 .updatedAt(testCase.getUpdatedAt())
-                .phases(phases)
+                .phases(phaseDtos)
                 .build();
     }
     
     private TestPhaseResponse mapTestPhaseToTestPhaseResponse(TestPhase testPhase) {
-        List<TestResultResponse> results = testPhase.getResults().stream()
-                .map(this::mapTestResultToTestResultResponse)
-                .collect(Collectors.toList());
-        
+        // You will need to define TestPhaseResponse based on your requirements
         return TestPhaseResponse.builder()
                 .id(testPhase.getId())
                 .testCaseId(testPhase.getTestCase().getId())
@@ -230,11 +292,12 @@ public class TestCaseServiceImpl implements TestCaseService {
                 .status(testPhase.getStatus())
                 .createdAt(testPhase.getCreatedAt())
                 .updatedAt(testPhase.getUpdatedAt())
-                .results(results)
+                // Add other fields as needed
                 .build();
     }
     
     private TestResultResponse mapTestResultToTestResultResponse(TestResult testResult) {
+        // You will need to define TestResultResponse based on your requirements
         return TestResultResponse.builder()
                 .id(testResult.getId())
                 .testPhaseId(testResult.getTestPhase().getId())
@@ -244,7 +307,7 @@ public class TestCaseServiceImpl implements TestCaseService {
                 .notes(testResult.getNotes())
                 .recordedBy(testResult.getRecordedBy())
                 .recordedAt(testResult.getRecordedAt())
-                .mediaFiles(new ArrayList<>()) // This would need to be populated if you have media files
+                // Add other fields as needed
                 .build();
     }
 }

@@ -13,7 +13,7 @@ const Sidebar = () => {
             <nav className="flex-1 overflow-y-auto p-4">
                 <ul className="space-y-2 font-medium text-white">
                     <NavItem to="/dashboard" label="Dashboard" />
-                    <NavItem to="/dashboard/tests" label="Tests" />
+                    <NavItem to="/dashboard/tests" label="Test Case Creation Form" />
                     <NavItem to="/dashboard/operations" label="Operations" />
                     <NavItem to="/dashboard/users" label="Users" />
                     <NavItem to="/dashboard/inventory" label="Inventory" />

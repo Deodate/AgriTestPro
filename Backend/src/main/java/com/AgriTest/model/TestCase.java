@@ -22,24 +22,40 @@ public class TestCase {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
-
-    @Column(nullable = false)
-    private String title;
-
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
-    @Column(columnDefinition = "TEXT")
-    private String methodology;
+    
+    @Column(name = "test_name", nullable = false)
+    private String testName;
+    
+    @Column(name = "test_description", columnDefinition = "TEXT")
+    private String testDescription;
+    
+    @Column(name = "test_objectives", columnDefinition = "TEXT")
+    private String testObjectives;
+    
+    @Column(name = "product_type", nullable = false)
+    private String productType;
+    
+    @Column(name = "product_batch_number", nullable = false)
+    private String productBatchNumber;
+    
+    @Column(name = "testing_location", nullable = false)
+    private String testingLocation;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_worker_id", nullable = false)
+    private User assignedWorker;
 
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
     @Column(name = "end_date")
     private LocalDate endDate;
+    
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
 
     @Column(nullable = false)
-    private String status;
+    private String status = "PENDING";
 
     @Column(name = "created_by")
     private Long createdBy;

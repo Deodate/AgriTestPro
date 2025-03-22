@@ -1,4 +1,3 @@
-// File: src/main/java/com/AgriTest/mapper/TestScheduleMapper.java
 package com.AgriTest.mapper;
 
 import com.AgriTest.dto.TestScheduleRequest;
@@ -24,7 +23,7 @@ public class TestScheduleMapper {
         return TestScheduleResponse.builder()
                 .id(testSchedule.getId())
                 .testCaseId(testSchedule.getTestCase().getId())
-                .testCaseTitle(testSchedule.getTestCase().getTitle())
+                .testCaseTitle(testSchedule.getTestCase().getTestName()) // Changed from getTitle() to getTestName()
                 .scheduleName(testSchedule.getScheduleName())
                 .startDate(testSchedule.getStartDate())
                 .endDate(testSchedule.getEndDate())

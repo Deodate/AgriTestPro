@@ -1,4 +1,3 @@
-// File: src/main/java/com/AgriTest/service/ExportService.java
 package com.AgriTest.service;
 
 import com.AgriTest.dto.TestCaseResponse;
@@ -86,18 +85,19 @@ public class ExportService {
         StringBuilder csv = new StringBuilder();
         
         // Add header
-        csv.append("ID,Title,Description,Methodology,Start Date,End Date,Status,Product\n");
+        csv.append("ID,Test Name,Test Description,Test Objectives,Product Type,Product Batch Number,Start Date,End Date,Status\n");
         
         // Add data
         for (TestCaseResponse testCase : testCases) {
             csv.append(testCase.getId()).append(",");
-            csv.append("\"").append(escapeCSV(testCase.getTitle())).append("\",");
-            csv.append("\"").append(escapeCSV(testCase.getDescription())).append("\",");
-            csv.append("\"").append(escapeCSV(testCase.getMethodology())).append("\",");
+            csv.append("\"").append(escapeCSV(testCase.getTestName())).append("\",");
+            csv.append("\"").append(escapeCSV(testCase.getTestDescription())).append("\",");
+            csv.append("\"").append(escapeCSV(testCase.getTestObjectives())).append("\",");
+            csv.append("\"").append(escapeCSV(testCase.getProductType())).append("\",");
+            csv.append("\"").append(escapeCSV(testCase.getProductBatchNumber())).append("\",");
             csv.append(testCase.getStartDate()).append(",");
             csv.append(testCase.getEndDate()).append(",");
-            csv.append(testCase.getStatus()).append(",");
-            csv.append("\"").append(escapeCSV(testCase.getProduct().getName())).append("\"");
+            csv.append(testCase.getStatus());
             csv.append("\n");
         }
         

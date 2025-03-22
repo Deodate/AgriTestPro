@@ -1,10 +1,10 @@
-// File: src/main/java/com/AgriTest/mapper/TestCaseMapper.java
 package com.AgriTest.mapper;
 
 import com.AgriTest.dto.TestCaseRequest;
 import com.AgriTest.dto.TestCaseResponse;
 import com.AgriTest.model.Product;
 import com.AgriTest.model.TestCase;
+import com.AgriTest.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,66 +15,113 @@ import java.util.stream.Collectors;
 public class TestCaseMapper {
 
     @Autowired
-    private ProductMapper productMapper;
+    private TestPhaseMapper testPhaseMapper;
     
     @Autowired
-    private TestPhaseMapper testPhaseMapper;
+    private UserMapper userMapper;
     
     public TestCaseResponse toDto(TestCase testCase) {
         if (testCase == null) {
             return null;
         }
         
+        TestCaseResponse.UserDto assignedWorkerDto = null;
+        if (testCase.getAssignedWorker() != null) {
+            assignedWorkerDto = TestCaseResponse.UserDto.builder()
+                    .id(testCase.getAssignedWorker().getId())
+                    .username(testCase.getAssignedWorker().getUsername())
+                    .fullName(testCase.getAssignedWorker().getFullName())
+                    .email(testCase.getAssignedWorker().getEmail())
+                    .build();
+        }
+        
+        List<TestCaseResponse.TestPhaseDto> phaseDtos = null;
+        if (testCase.getPhases() != null) {
+            phaseDtos = testCase.getPhases().stream()
+                    .map(phase -> TestCaseResponse.TestPhaseDto.builder()
+                            .id(phase.getId())
+                            .name(phase.getName())
+                            .description(phase.getDescription())
+                            .startDate(phase.getStartDate())
+                            .endDate(phase.getEndDate())
+                            .status(phase.getStatus())
+                            .build())
+                    .collect(Collectors.toList());
+        }
+        
         return TestCaseResponse.builder()
                 .id(testCase.getId())
-                .product(productMapper.toDto(testCase.getProduct()))
-                .title(testCase.getTitle())
-                .description(testCase.getDescription())
-                .methodology(testCase.getMethodology())
+                .testName(testCase.getTestName())
+                .testDescription(testCase.getTestDescription())
+                .testObjectives(testCase.getTestObjectives())
+                .productType(testCase.getProductType())
+                .productBatchNumber(testCase.getProductBatchNumber())
+                .testingLocation(testCase.getTestingLocation())
+                .assignedWorker(assignedWorkerDto)
                 .startDate(testCase.getStartDate())
                 .endDate(testCase.getEndDate())
+                .notes(testCase.getNotes())
                 .status(testCase.getStatus())
                 .createdBy(testCase.getCreatedBy())
                 .createdAt(testCase.getCreatedAt())
                 .updatedAt(testCase.getUpdatedAt())
-                .phases(testPhaseMapper.toDtoList(testCase.getPhases()))
+                .phases(phaseDtos)
                 .build();
     }
     
     public List<TestCaseResponse> toDtoList(List<TestCase> testCases) {
+        if (testCases == null) {
+            return null;
+        }
         return testCases.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
     
-    public TestCase toEntity(TestCaseRequest testCaseRequest, Product product) {
-        if (testCaseRequest == null) {
+    public TestCase toEntity(TestCaseRequest request, Product product, User assignedWorker, Long createdBy) {
+        if (request == null) {
             return null;
         }
         
         TestCase testCase = new TestCase();
         testCase.setProduct(product);
-        testCase.setTitle(testCaseRequest.getTitle());
-        testCase.setDescription(testCaseRequest.getDescription());
-        testCase.setMethodology(testCaseRequest.getMethodology());
-        testCase.setStartDate(testCaseRequest.getStartDate());
-        testCase.setEndDate(testCaseRequest.getEndDate());
-        testCase.setStatus(testCaseRequest.getStatus());
+        testCase.setTestName(request.getTestName());
+        testCase.setTestDescription(request.getTestDescription());
+        testCase.setTestObjectives(request.getTestObjectives());
+        testCase.setProductType(request.getProductType());
+        testCase.setProductBatchNumber(request.getProductBatchNumber());
+        testCase.setTestingLocation(request.getTestingLocation());
+        testCase.setAssignedWorker(assignedWorker);
+        testCase.setStartDate(request.getStartDate());
+        testCase.setEndDate(request.getEndDate());
+        testCase.setNotes(request.getNotes());
+        testCase.setStatus("PENDING"); // Default status for new test cases
+        testCase.setCreatedBy(createdBy);
         
         return testCase;
     }
     
-    public void updateEntityFromDto(TestCaseRequest testCaseRequest, TestCase testCase, Product product) {
-        if (testCaseRequest == null) {
+    public void updateEntityFromDto(TestCaseRequest request, TestCase testCase, Product product, User assignedWorker) {
+        if (request == null) {
             return;
         }
         
-        testCase.setProduct(product);
-        testCase.setTitle(testCaseRequest.getTitle());
-        testCase.setDescription(testCaseRequest.getDescription());
-        testCase.setMethodology(testCaseRequest.getMethodology());
-        testCase.setStartDate(testCaseRequest.getStartDate());
-        testCase.setEndDate(testCaseRequest.getEndDate());
-        testCase.setStatus(testCaseRequest.getStatus());
+        if (product != null) {
+            testCase.setProduct(product);
+        }
+        
+        if (assignedWorker != null) {
+            testCase.setAssignedWorker(assignedWorker);
+        }
+        
+        testCase.setTestName(request.getTestName());
+        testCase.setTestDescription(request.getTestDescription());
+        testCase.setTestObjectives(request.getTestObjectives());
+        testCase.setProductType(request.getProductType());
+        testCase.setProductBatchNumber(request.getProductBatchNumber());
+        testCase.setTestingLocation(request.getTestingLocation());
+        testCase.setStartDate(request.getStartDate());
+        testCase.setEndDate(request.getEndDate());
+        testCase.setNotes(request.getNotes());
     }
 }
