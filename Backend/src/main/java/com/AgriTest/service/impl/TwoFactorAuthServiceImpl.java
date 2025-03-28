@@ -2,13 +2,18 @@ package com.AgriTest.service.impl;
 
 import com.AgriTest.dto.JwtResponse;
 import com.AgriTest.dto.TwoFactorResponse;
+import com.AgriTest.dto.TwoFactorVerificationRequest;
+import com.AgriTest.dto.UserResponse;
 import com.AgriTest.model.TwoFactorCode;
 import com.AgriTest.model.User;
 import com.AgriTest.repository.TwoFactorCodeRepository;
 import com.AgriTest.repository.UserRepository;
 import com.AgriTest.security.jwt.JwtUtils;
 import com.AgriTest.security.service.UserDetailsServiceImpl;
+import com.AgriTest.service.EmailService;
+import com.AgriTest.service.SmsService;
 import com.AgriTest.service.TwoFactorAuthService;
+import com.AgriTest.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +40,7 @@ public class TwoFactorAuthServiceImpl implements TwoFactorAuthService {
     private static final String VERIFICATION_KEY = "W23U";
     private static final int CODE_LENGTH = 6;
     private static final int CODE_EXPIRATION_MINUTES = 2;
+    private static final int CODE_EXPIRY_MINUTES = 10;
     
     @Autowired
     private UserRepository userRepository;
@@ -47,6 +53,15 @@ public class TwoFactorAuthServiceImpl implements TwoFactorAuthService {
     
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
+    
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private EmailService emailService;
+    
+    @Autowired
+    private SmsService smsService;
 
     @Override
     @Transactional
@@ -95,13 +110,15 @@ public class TwoFactorAuthServiceImpl implements TwoFactorAuthService {
         logger.info("Expiration Time: {}", expiresAt);
         
         // Create and save 2FA code
-        TwoFactorCode twoFactorCode = new TwoFactorCode(
-            user, 
-            verificationCode, 
-            phoneNumber, 
-            expiresAt,
-            temporaryCode
-        );
+        TwoFactorCode twoFactorCode = TwoFactorCode.builder()
+            .user(user)
+            .userId(user.getId())
+            .code(verificationCode)
+            .phoneNumber(phoneNumber)
+            .expiresAt(expiresAt)
+            .temporaryCode(temporaryCode)
+            .used(false)
+            .build();
         
         // Save to database with error handling
         try {
@@ -222,13 +239,15 @@ public class TwoFactorAuthServiceImpl implements TwoFactorAuthService {
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(CODE_EXPIRATION_MINUTES);
         
         // Save the new code to the database
-        TwoFactorCode twoFactorCode = new TwoFactorCode(
-            user, 
-            verificationCode, 
-            phoneNumber, 
-            expiresAt,
-            temporaryCode
-        );
+        TwoFactorCode twoFactorCode = TwoFactorCode.builder()
+            .user(user)
+            .userId(user.getId())
+            .code(verificationCode)
+            .phoneNumber(phoneNumber)
+            .expiresAt(expiresAt)
+            .temporaryCode(temporaryCode)
+            .used(false)
+            .build();
         twoFactorCodeRepository.save(twoFactorCode);
         
         // Log the codes for testing/development
@@ -253,8 +272,130 @@ public class TwoFactorAuthServiceImpl implements TwoFactorAuthService {
         twoFactorCodeRepository.deleteByExpiresAtBefore(LocalDateTime.now());
     }
     
+    @Override
+    @Transactional
+    public boolean generateAndSendCode(Long userId) {
+        try {
+            User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+            
+            // If 2FA is not enabled for the user, don't generate a code
+            if (!user.getTwoFactorEnabled()) {
+                logger.warn("Attempted to generate 2FA code for user without 2FA enabled: {}", userId);
+                return false;
+            }
+            
+            // Check if the user has a phone number
+            if (user.getPhoneNumber() == null || user.getPhoneNumber().trim().isEmpty()) {
+                logger.warn("User {} does not have a phone number for SMS verification", userId);
+                return false;
+            }
+            
+            // Invalidate any existing codes
+            List<TwoFactorCode> existingCodes = twoFactorCodeRepository
+                .findByUserIdAndUsedFalseAndExpiresAtGreaterThan(userId, LocalDateTime.now());
+            existingCodes.forEach(code -> code.setUsed(true));
+            twoFactorCodeRepository.saveAll(existingCodes);
+            
+            // Generate a new code
+            String code = generateRandomCode(CODE_LENGTH);
+            
+            // Create and save the new code
+            TwoFactorCode twoFactorCode = TwoFactorCode.builder()
+                .userId(userId)
+                .code(code)
+                .phoneNumber(user.getPhoneNumber())
+                .used(false)
+                .createdAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusMinutes(CODE_EXPIRY_MINUTES))
+                .build();
+            
+            twoFactorCodeRepository.save(twoFactorCode);
+            
+            // Send the code via SMS
+            String message = String.format(
+                "Your AgriTestPro verification code is: %s. It will expire in %d minutes.",
+                code, CODE_EXPIRY_MINUTES);
+            
+            boolean smsSent = smsService.sendSms(user.getPhoneNumber(), message);
+            
+            if (!smsSent) {
+                logger.error("Failed to send SMS to user {}", userId);
+                return false;
+            }
+            
+            logger.info("2FA code generated and sent via SMS to user: {}", userId);
+            return true;
+        } catch (Exception e) {
+            logger.error("Error generating 2FA code for user {}: {}", userId, e.getMessage());
+            return false;
+        }
+    }
+    
+    @Override
+    @Transactional
+    public boolean verifyCode(Long userId, String code) {
+        try {
+            TwoFactorCode twoFactorCode = twoFactorCodeRepository
+                .findValidCodeForUser(userId, LocalDateTime.now())
+                .orElseThrow(() -> new RuntimeException("No valid code found for user"));
+            
+            // Check if the code matches
+            if (!twoFactorCode.getCode().equals(code)) {
+                logger.warn("Invalid 2FA code attempt for user: {}", userId);
+                return false;
+            }
+            
+            // Mark the code as used
+            twoFactorCode.setUsed(true);
+            twoFactorCodeRepository.save(twoFactorCode);
+            
+            logger.info("2FA code successfully verified for user: {}", userId);
+            return true;
+        } catch (Exception e) {
+            logger.error("Error verifying 2FA code for user {}: {}", userId, e.getMessage());
+            return false;
+        }
+    }
+    
+    @Override
+    @Transactional
+    public String verifyCodeAndGenerateToken(TwoFactorVerificationRequest request) {
+        if (verifyCode(request.getUserId(), request.getCode())) {
+            // Load user details and generate a JWT token
+            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+            
+            return jwtUtils.generateJwtToken(authentication);
+        }
+        return null;
+    }
+    
+    @Override
+    @Transactional
+    public UserResponse toggleTwoFactorAuth(Long userId, boolean enabled) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        
+        user.setTwoFactorEnabled(enabled);
+        User updatedUser = userRepository.save(user);
+        
+        logger.info("2FA {} for user: {}", enabled ? "enabled" : "disabled", userId);
+        return userService.mapUserToUserResponse(updatedUser);
+    }
+    
+    @Override
+    @Transactional
+    public UserResponse toggleTwoFactorAuthByUsername(String username, boolean enabled) {
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
+        
+        return toggleTwoFactorAuth(user.getId(), enabled);
+    }
+    
     /**
-     * Generate a random numeric code of the specified length
+     * Generate a random numeric code of specified length
      */
     private String generateRandomCode(int length) {
         StringBuilder code = new StringBuilder();

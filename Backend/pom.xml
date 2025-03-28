@@ -8,7 +8,7 @@
         <version>3.3.9</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.AgriTest.Pro</groupId>
+    <groupId>com.AgriTest</groupId>
     <artifactId>AgriTest-Pro</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>AgriTest-Pro</name>
@@ -160,6 +160,20 @@
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.4.0</version>
         </dependency>
+        
+        <!-- Twilio for SMS -->
+        <dependency>
+            <groupId>com.twilio.sdk</groupId>
+            <artifactId>twilio</artifactId>
+            <version>9.15.0</version>
+        </dependency>
+        
+        <!-- Infobip for SMS -->
+        <dependency>
+            <groupId>com.infobip</groupId>
+            <artifactId>infobip-api-java-client</artifactId>
+            <version>4.1.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -174,6 +188,7 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <mainClass>com.AgriTest.AgriTestProApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

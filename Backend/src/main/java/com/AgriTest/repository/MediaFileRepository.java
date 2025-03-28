@@ -3,7 +3,6 @@ package com.AgriTest.repository;
 import com.AgriTest.model.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -43,14 +42,14 @@ public interface MediaFileRepository extends JpaRepository<MediaFile, Long> {
     // Custom query methods
     @Query("SELECT mf FROM MediaFile mf WHERE mf.uploadedAt BETWEEN :startDate AND :endDate")
     List<MediaFile> findByUploadDateRange(
-        @Param("startDate") LocalDateTime startDate, 
-        @Param("endDate") LocalDateTime endDate
+        LocalDateTime startDate, 
+        LocalDateTime endDate
     );
     
     @Query("SELECT mf FROM MediaFile mf WHERE mf.uploadedBy = :userId AND mf.associationType = :associationType")
     List<MediaFile> findByUserAndAssociationType(
-        @Param("userId") Long userId, 
-        @Param("associationType") String associationType
+        Long userId, 
+        String associationType
     );
     
     // Find most recent file for a specific entity and association type
@@ -58,8 +57,8 @@ public interface MediaFileRepository extends JpaRepository<MediaFile, Long> {
            "WHERE mf.expense.id = :expenseId AND mf.associationType = :associationType " +
            "ORDER BY mf.uploadedAt DESC")
     Optional<MediaFile> findMostRecentExpenseReceipt(
-        @Param("expenseId") Long expenseId, 
-        @Param("associationType") String associationType
+        Long expenseId, 
+        String associationType
     );
     
     // Count methods
@@ -77,8 +76,8 @@ public interface MediaFileRepository extends JpaRepository<MediaFile, Long> {
            "(:uploadedBy IS NULL OR mf.uploadedBy = :uploadedBy) AND " +
            "(:associationType IS NULL OR mf.associationType = :associationType)")
     List<MediaFile> findByFilter(
-        @Param("fileType") String fileType,
-        @Param("uploadedBy") Long uploadedBy,
-        @Param("associationType") String associationType
+        String fileType,
+        Long uploadedBy,
+        String associationType
     );
 }

@@ -21,35 +21,52 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 50)
+    @Column(unique = true, nullable = false)
     private String username;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, length = 100)
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(name = "full_name", nullable = false, length = 100)
+    @Column(name = "full_name")
     private String fullName;
     
-    @Column(name = "phone_number", length = 20, unique = true)
+    @Column(name = "phone_number", unique = true)
     private String phoneNumber;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false)
     private String role;
 
-    @Column(nullable = false)
+    @Column(name = "permissions")
+    private String permissions;
+
+    @Column(name = "enabled")
     private Boolean enabled = true;
     
-    @Column(name = "two_factor_enabled", nullable = false)
+    @Column(name = "two_factor_enabled")
     private Boolean twoFactorEnabled = false;
 
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "updated_by")
+    private String updatedBy;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

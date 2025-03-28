@@ -10,11 +10,10 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
-    Optional<Expense> findByExpenseId(String expenseId);
+    List<Expense> findByExpenseId(String expenseId);
     
     List<Expense> findByExpenseType(Expense.ExpenseType expenseType);
     

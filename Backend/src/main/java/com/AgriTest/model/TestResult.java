@@ -17,26 +17,67 @@ public class TestResult {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "test_phase_id", nullable = false)
+    @JoinColumn(name = "test_phase_id")
     private TestPhase testPhase;
 
-    @Column(name = "parameter_name", nullable = false)
     private String parameterName;
-
-    @Column(nullable = false, columnDefinition = "TEXT")
     private String value;
-
     private String unit;
-
-    @Column(columnDefinition = "TEXT")
     private String notes;
-
-    @Column(name = "recorded_by")
     private Long recordedBy;
+    private LocalDateTime recordedAt;
 
-    @Column(name = "recorded_at", nullable = false)
-    private LocalDateTime recordedAt = LocalDateTime.now();
+    @Column(name = "product_id", nullable = false)
+    private Long productId;
+
+    @Column(name = "trial_phase", nullable = false)
+    private String trialPhase;
+
+    @Column(name = "growth_rate")
+    private Double growthRate;
+
+    @Column(name = "yield")
+    private Double yield;
+
+    @Column(name = "pest_resistance")
+    private Double pestResistance;
+
+    @Column(name = "final_verdict", nullable = false)
+    private String finalVerdict; // PASS/FAIL
+
+    @Column(name = "recommendations", columnDefinition = "TEXT")
+    private String recommendations;
+
+    @Column(name = "approved_by", nullable = false)
+    private String approvedBy;
+
+    @Column(name = "date_of_approval", nullable = false)
+    private LocalDateTime dateOfApproval;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @Column(name = "created_by")
+    private String createdBy;
+
+    @Column(name = "updated_by")
+    private String updatedBy;
 
     @OneToMany(mappedBy = "testResult", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MediaFile> mediaFiles = new ArrayList<>();
+
+    @PrePersist
+    protected void onCreate() {
+        recordedAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

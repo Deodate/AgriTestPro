@@ -1,7 +1,10 @@
 package com.AgriTest.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -13,6 +16,9 @@ import java.util.List;
 @Entity
 @Table(name = "test_cases")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TestCase {
 
     @Id
@@ -55,12 +61,14 @@ public class TestCase {
     private String notes;
 
     @Column(nullable = false)
+    @Builder.Default
     private String status = "PENDING";
 
     @Column(name = "created_by")
     private Long createdBy;
 
     @OneToMany(mappedBy = "testCase", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<TestPhase> phases = new ArrayList<>();
 
     @CreationTimestamp

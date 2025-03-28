@@ -85,7 +85,7 @@ public class JwtUtils {
                 .build()
                 .parseClaimsJws(authToken);
             return true;
-        } catch (SignatureException e) {
+        } catch (io.jsonwebtoken.security.SecurityException e) {
             logger.error("JWT validation error: Invalid JWT signature: {}", e.getMessage());
         } catch (MalformedJwtException e) {
             logger.error("JWT validation error: Invalid JWT token: {}", e.getMessage());

@@ -1,6 +1,5 @@
 package com.AgriTest.service.impl;
 
-import com.AgriTest.dto.JwtResponse;
 import com.AgriTest.dto.LoginRequest;
 import com.AgriTest.dto.SignUpRequest;
 import com.AgriTest.dto.TwoFactorResponse;

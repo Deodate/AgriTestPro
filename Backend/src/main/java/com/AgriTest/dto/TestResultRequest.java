@@ -2,22 +2,44 @@
 package com.AgriTest.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class TestResultRequest {
-    @NotBlank(message = "Parameter name is required")
+    @NotNull(message = "Test case ID is required")
+    private Long testCaseId;
+
+    @NotNull(message = "Product ID is required")
+    private Long productId;
+
+    @NotBlank(message = "Trial phase is required")
+    private String trialPhase;
+
+    private Double growthRate;
+    private Double yield;
+    private Double pestResistance;
+
+    @NotBlank(message = "Final verdict is required")
+    private String finalVerdict;
+
+    private String recommendations;
+
+    @NotBlank(message = "Approved by is required")
+    private String approvedBy;
+
+    @NotNull(message = "Date of approval is required")
+    private LocalDateTime dateOfApproval;
+
+    @NotBlank
     private String parameterName;
     
-    @NotBlank(message = "Value is required")
+    @NotBlank
     private String value;
     
+    @NotBlank
     private String unit;
+    
     private String notes;
 }

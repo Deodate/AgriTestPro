@@ -1,7 +1,7 @@
 // src/services/AUTH/userAuth.js
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8088/api/auth";
+const API_BASE_URL = "http://localhost:8089/api/auth";
 
 class UserAuth {
     // Register a new user

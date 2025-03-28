@@ -3,7 +3,6 @@ package com.AgriTest.repository;
 import com.AgriTest.model.PerformanceAnalysis;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -26,5 +25,5 @@ public interface PerformanceAnalysisRepository extends JpaRepository<Performance
     // Custom query to find top N best-performing analyses
     @Query("SELECT pa FROM PerformanceAnalysis pa " +
            "ORDER BY pa.effectivenessRating DESC")
-    List<PerformanceAnalysis> findTopPerformingAnalyses(@Param("limit") int limit);
+    List<PerformanceAnalysis> findTopPerformingAnalyses(int limit);
 }

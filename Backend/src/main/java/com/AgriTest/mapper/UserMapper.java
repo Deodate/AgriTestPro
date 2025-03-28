@@ -22,6 +22,7 @@ public class UserMapper {
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .role(user.getRole())
+                .permissions(user.getPermissions())
                 .enabled(user.getEnabled())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
@@ -45,6 +46,7 @@ public class UserMapper {
         user.setFullName(signUpRequest.getFullName());
         user.setPassword(signUpRequest.getPassword());
         user.setRole(signUpRequest.getRole());
+        user.setPermissions(signUpRequest.getPermissions());
         user.setEnabled(true);
         
         return user;

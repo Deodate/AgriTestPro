@@ -2,8 +2,53 @@ package com.AgriTest.service;
 
 import com.AgriTest.dto.JwtResponse;
 import com.AgriTest.dto.TwoFactorResponse;
+import com.AgriTest.dto.TwoFactorVerificationRequest;
+import com.AgriTest.dto.UserResponse;
 
 public interface TwoFactorAuthService {
+
+    /**
+     * Generate a 2FA code for a user and send it via SMS
+     * 
+     * @param userId The user's ID
+     * @return true if code was generated and sent, false otherwise
+     */
+    boolean generateAndSendCode(Long userId);
+    
+    /**
+     * Verify a 2FA code entered by a user
+     * 
+     * @param userId The user's ID
+     * @param code The code entered by the user
+     * @return true if code is valid, false otherwise
+     */
+    boolean verifyCode(Long userId, String code);
+    
+    /**
+     * Verify a 2FA code with more details
+     * 
+     * @param request The verification request containing user ID and code
+     * @return The JWT token if verification is successful
+     */
+    String verifyCodeAndGenerateToken(TwoFactorVerificationRequest request);
+    
+    /**
+     * Enable or disable 2FA for a user
+     * 
+     * @param userId The user's ID
+     * @param enabled Whether to enable (true) or disable (false) 2FA
+     * @return The updated user
+     */
+    UserResponse toggleTwoFactorAuth(Long userId, boolean enabled);
+    
+    /**
+     * Enable or disable 2FA for a user by username
+     * 
+     * @param username The username
+     * @param enabled Whether to enable (true) or disable (false) 2FA
+     * @return The updated user
+     */
+    UserResponse toggleTwoFactorAuthByUsername(String username, boolean enabled);
     
     /**
      * Generate a two-factor authentication code for a user with the given phone number

@@ -8,7 +8,6 @@ import java.util.List;
 
 @Repository
 public interface TestResultRepository extends JpaRepository<TestResult, Long> {
-    List<TestResult> findByTestPhaseId(Long testPhaseId);
-    
-    List<TestResult> findByRecordedBy(Long userId);
+    List<TestResult> findByTestPhase_TestCase_Id(Long testCaseId);
+    List<TestResult> findByProductId(Long productId);
 }

@@ -2,10 +2,7 @@ package com.AgriTest.controller;
 
 import com.AgriTest.dto.ReportScheduleRequest;
 import com.AgriTest.dto.ReportScheduleResponse;
-import com.AgriTest.model.ReportType;
 import com.AgriTest.service.ReportScheduleService;
-import com.AgriTest.util.FileNameGenerator;
-import com.AgriTest.util.ReportFileNameContext;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -21,15 +17,12 @@ import java.util.List;
 public class ReportScheduleController {
 
     private final ReportScheduleService reportScheduleService;
-    private final ReportFileNameContext fileNameContext;
 
     @Autowired
     public ReportScheduleController(
-        ReportScheduleService reportScheduleService,
-        ReportFileNameContext fileNameContext
+        ReportScheduleService reportScheduleService
     ) {
         this.reportScheduleService = reportScheduleService;
-        this.fileNameContext = fileNameContext;
     }
 
     @PostMapping
@@ -40,20 +33,8 @@ public class ReportScheduleController {
         // Extract user ID from authentication
         Long userId = extractUserId(authentication);
         
-        // Generate a preview filename for demonstration
-        String previewFileName = fileNameContext.generateFileName(
-            request.getReportType(), 
-            request.getExportFormat(), 
-            request.getEntityIds().isEmpty() 
-                ? null 
-                : request.getEntityIds().iterator().next()
-        );
-        
         // Create report schedule
         ReportScheduleResponse response = reportScheduleService.createReportSchedule(request, userId);
-        
-        // You could add the preview filename to the response if needed
-        // response.setPreviewFileName(previewFileName);
         
         return ResponseEntity.ok(response);
     }
@@ -75,15 +56,6 @@ public class ReportScheduleController {
         @PathVariable Long id, 
         @Valid @RequestBody ReportScheduleRequest request
     ) {
-        // Generate a preview filename for demonstration
-        String previewFileName = fileNameContext.generateFileName(
-            request.getReportType(), 
-            request.getExportFormat(), 
-            request.getEntityIds().isEmpty() 
-                ? null 
-                : request.getEntityIds().iterator().next()
-        );
-        
         return ResponseEntity.ok(reportScheduleService.updateReportSchedule(id, request));
     }
 

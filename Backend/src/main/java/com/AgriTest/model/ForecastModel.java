@@ -39,6 +39,7 @@ public class ForecastModel {
     private Integer forecastHorizon;  // Number of periods to forecast
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @CreationTimestamp
@@ -57,6 +58,7 @@ public class ForecastModel {
     // Training status
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private ModelStatus status = ModelStatus.UNTRAINED;
     
     // Last training time

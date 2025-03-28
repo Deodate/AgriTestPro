@@ -20,6 +20,15 @@ class SignupPage extends Component {
             confirmPassword: '',
             twoFactorPhoneNumber: '',
 
+            // Available roles
+            roles: [
+                { value: "ROLE_ADMIN", label: "Admin" },
+                { value: "ROLE_AGRONOMIST", label: "Agronomist (Farm Manager)" },
+                { value: "ROLE_STOREKEEPER", label: "Storekeeper" },
+                { value: "ROLE_MANUFACTURER", label: "Manufacturer" },
+                { value: "ROLE_FIELD_WORKER", label: "Field Worker" }
+            ],
+
             // Login modal fields
             loginUsername: "",
             loginPassword: "",
@@ -54,8 +63,15 @@ class SignupPage extends Component {
                 username: false,
                 password: false,
                 confirmPassword: false
-            }
+            },
 
+            // Enhanced 2FA state
+            twoFactorSetup: {
+                step: 'initial', // 'initial', 'phone_verification', 'code_verification', 'complete'
+                phoneNumber: '',
+                verificationCode: '',
+                isVerified: false
+            }
         };
 
         // Binding all methods to 'this' context
@@ -84,12 +100,14 @@ class SignupPage extends Component {
         this.createAccount = this.createAccount.bind(this);
         this.requestTwoFactorCode = this.requestTwoFactorCode.bind(this);
         this.changeTwoFactorPhoneNumberHandler = this.changeTwoFactorPhoneNumberHandler.bind(this);
+        this.changeRoleHandler = this.changeRoleHandler.bind(this);
     }
 
-    // Define setup2FA as an arrow function
+    // Enhanced 2FA setup method
     setup2FA = async () => {
-        // Validate username
-        if (!this.state.loginUsername.trim()) {
+        const { loginUsername } = this.state;
+
+        if (!loginUsername.trim()) {
             this.setState({
                 errorMsg: "Please enter a username to enable 2FA"
             });
@@ -99,38 +117,189 @@ class SignupPage extends Component {
         this.setState({ isLoading: true, errorMsg: "" });
 
         try {
-            // Get the user token from localStorage (if available)
-            const userJSON = localStorage.getItem('user');
-            const userData = userJSON ? JSON.parse(userJSON) : {};
-            const token = userData.token;
-
-            const response = await fetch(`http://localhost:8088/api/auth/2fa/${this.state.loginUsername}?enabled=true`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Include authorization header if token exists
-                    ...(token && { 'Authorization': `Bearer ${token}` })
-                }
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Failed to enable 2FA");
-            }
-
-            // Success! Show success message and return to login form
+            // 1. Enable 2FA for user
+            await UserAccount.toggleTwoFactor(loginUsername, true);
+            
+            // 2. Move to phone verification
             this.setState({
-                successMsg: "2FA has been enabled successfully!",
-                show2FASetupForm: false,
-                showLoginPassword: true,
-                enableTwoFactor: false
+                twoFactorSetup: {
+                    ...this.state.twoFactorSetup,
+                    step: 'phone_verification'
+                },
+                successMsg: "2FA enabled. Please verify your phone number.",
+                isLoading: false
             });
         } catch (error) {
             this.setState({
-                errorMsg: error.message || "Error enabling 2FA. Please try again."
+                errorMsg: error.message || "Error enabling 2FA",
+                isLoading: false
             });
-        } finally {
-            this.setState({ isLoading: false });
+        }
+    }
+
+    // Handle phone number verification for 2FA
+    handlePhoneVerification = async (e) => {
+        e.preventDefault();
+        const { twoFactorPhoneNumber } = this.state;
+
+        if (!twoFactorPhoneNumber || twoFactorPhoneNumber.length !== 10) {
+            this.setState({
+                errorMsg: "Please enter a valid 10-digit phone number"
+            });
+            return;
+        }
+
+        this.setState({ isLoading: true, errorMsg: "" });
+
+        try {
+            // Request verification code
+            const response = await UserAccount.requestTwoFactorCode(twoFactorPhoneNumber);
+            
+            this.setState(prevState => ({
+                twoFactorSetup: {
+                    ...prevState.twoFactorSetup,
+                    step: 'code_verification',
+                    phoneNumber: twoFactorPhoneNumber
+                },
+                successMsg: "Verification code sent to your phone.",
+                isLoading: false
+            }));
+        } catch (error) {
+            this.setState({
+                errorMsg: error.message || "Failed to send verification code",
+                isLoading: false
+            });
+        }
+    }
+
+    // Handle verification code submission
+    handleCodeVerification = async (e) => {
+        e.preventDefault();
+        const { twoFactorCode, loginUsername } = this.state;
+
+        if (!twoFactorCode) {
+            this.setState({
+                errorMsg: "Please enter the verification code"
+            });
+            return;
+        }
+
+        this.setState({ isLoading: true, errorMsg: "" });
+
+        try {
+            await UserAccount.verifyTwoFactorCode(twoFactorCode, loginUsername);
+            
+            this.setState(prevState => ({
+                twoFactorSetup: {
+                    ...prevState.twoFactorSetup,
+                    step: 'complete',
+                    isVerified: true
+                },
+                successMsg: "2FA has been successfully set up!",
+                show2FASetupForm: false,
+                showLoginFields: true,
+                isLoading: false
+            }));
+
+            // Optionally redirect to login or dashboard
+            setTimeout(() => {
+                this.props.navigate('/login');
+            }, 2000);
+        } catch (error) {
+            this.setState({
+                errorMsg: error.message || "Failed to verify code.",
+                isLoading: false
+            });
+        }
+    }
+
+    // Render 2FA setup form based on current step
+    render2FASetupForm = () => {
+        const { twoFactorSetup, isLoading, twoFactorPhoneNumber, twoFactorCode } = this.state;
+
+        switch (twoFactorSetup.step) {
+            case 'phone_verification':
+                return (
+                    <div className="p-4 bg-white rounded-lg shadow">
+                        <h3 className="text-lg font-medium mb-4">Verify Your Phone Number</h3>
+                        <form onSubmit={this.handlePhoneVerification}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Phone Number
+                                </label>
+                                <input
+                                    type="tel"
+                                    value={twoFactorPhoneNumber}
+                                    onChange={this.changeTwoFactorPhoneNumberHandler}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    placeholder="Enter 10-digit phone number"
+                                    maxLength="10"
+                                    required
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={isLoading || twoFactorPhoneNumber.length !== 10}
+                                className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+                                    ${isLoading || twoFactorPhoneNumber.length !== 10 
+                                        ? 'bg-gray-400 cursor-not-allowed' 
+                                        : 'bg-blue-600 hover:bg-blue-700'}`}
+                            >
+                                {isLoading ? 'Sending...' : 'Send Verification Code'}
+                            </button>
+                        </form>
+                    </div>
+                );
+
+            case 'code_verification':
+                return (
+                    <div className="p-4 bg-white rounded-lg shadow">
+                        <h3 className="text-lg font-medium mb-4">Enter Verification Code</h3>
+                        <form onSubmit={this.handleCodeVerification}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Verification Code
+                                </label>
+                                <input
+                                    type="text"
+                                    value={twoFactorCode}
+                                    onChange={this.changeTwoFactorCodeHandler}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    placeholder="Enter verification code"
+                                    required
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={isLoading || !twoFactorCode}
+                                className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+                                    ${isLoading || !twoFactorCode 
+                                        ? 'bg-gray-400 cursor-not-allowed' 
+                                        : 'bg-blue-600 hover:bg-blue-700'}`}
+                            >
+                                {isLoading ? 'Verifying...' : 'Verify Code'}
+                            </button>
+                        </form>
+                    </div>
+                );
+
+            default:
+                return (
+                    <div className="p-4 bg-white rounded-lg shadow">
+                        <h3 className="text-lg font-medium mb-4">Enable Two-Factor Authentication</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Enhance your account security by enabling two-factor authentication.
+                        </p>
+                        <button
+                            onClick={this.setup2FA}
+                            disabled={isLoading}
+                            className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+                                ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+                        >
+                            {isLoading ? 'Setting up...' : 'Set up 2FA'}
+                        </button>
+                    </div>
+                );
         }
     }
 
@@ -166,65 +335,64 @@ class SignupPage extends Component {
     }
 
 
-    createAccount = (e) => {
+    createAccount = async (e) => {
         e.preventDefault();
-        this.setState({ isLoading: true, errorMsg: "", successMsg: "" });
+        
+        if (this.state.password !== this.state.confirmPassword) {
+            this.setState({
+                errorMsg: "Passwords do not match"
+            });
+            return;
+        }
 
-        // Create account object from state
-        let account = {
-            fullName: this.state.fullName,
-            phoneNumber: this.state.phoneNumber,
-            email: this.state.email,
+        const account = {
             username: this.state.username,
             password: this.state.password,
+            confirmPassword: this.state.confirmPassword,
+            email: this.state.email,
+            fullName: this.state.fullName,
+            phoneNumber: this.state.phoneNumber,
             role: this.state.role
         };
 
-        console.log('account => ' + JSON.stringify(account));
+        this.setState({ errorMsg: "", isLoading: true });
 
-        // Make API call to backend service
-        UserAccount.createAccount(account).then(response => {
-            console.log('User registered successfully', response.data);
-
-            // Reset form fields
-            this.setState({
-                successMsg: "Account created successfully! You can now sign in.",
-                fullName: '',
-                phoneNumber: '',
-                email: '',
-                username: '',
-                password: '',
-                role: 'ROLE_USER',
-                confirmPassword: '',
-                isLoading: false
-            });
-
-            // Auto-open login modal after successful signup
-            setTimeout(() => {
-                this.setState({ showLoginModal: true });
-            }, 2000);
-
-        }).catch(error => {
-            // Error handling
-            let errorMessage = "Registration failed. Please try again.";
-
-            // Extract more specific error message if available
-            if (error.response && error.response.data) {
-                if (error.response.data.message) {
-                    errorMessage = error.response.data.message;
-                } else if (typeof error.response.data === 'string') {
-                    errorMessage = error.response.data;
-                }
+        try {
+            // 1. Create account
+            const response = await UserAccount.createAccount(account);
+            
+            // 2. Enable account if needed
+            if (response.userId) {
+                await UserAccount.enableAccount(response.userId);
             }
 
             this.setState({
-                errorMsg: errorMessage,
+                successMsg: "Account created successfully! Please login to continue.",
                 isLoading: false
             });
 
-            console.error("Registration error:", error);
-        });
-    }
+            // Show login modal after delay
+            setTimeout(() => {
+                this.setState({
+                    showLoginModal: true,
+                    // Reset form
+                    fullName: '',
+                    phoneNumber: '',
+                    email: '',
+                    username: '',
+                    password: '',
+                    confirmPassword: '',
+                    role: 'ROLE_USER'
+                });
+            }, 2000);
+
+        } catch (error) {
+            this.setState({
+                errorMsg: error.message || "Error creating account",
+                isLoading: false
+            });
+        }
+    };
 
 
     // Input handlers
@@ -425,52 +593,21 @@ class SignupPage extends Component {
         e.preventDefault();
         this.setState({ isLoading: true, errorMsg: "", successMsg: "" });
 
-        // Use the phone number directly without prepending '+1'
-        const phoneNumber = this.state.twoFactorPhoneNumber.replace(/[^\d]/g, '');
-
-        const payload = {
-            phoneNumber: phoneNumber
-        };
-
         try {
-            const response = await fetch(`http://localhost:8088/api/auth/2fa/request-code?verificationKey=W23U`, {
-                method: 'POST',
-                body: JSON.stringify(payload),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            const phoneNumber = this.state.twoFactorPhoneNumber.replace(/[^\d]/g, '');
+            const response = await UserAccount.requestTwoFactorCode(phoneNumber);
 
-            const responseText = await response.text();
-            let json;
-
-            try {
-                json = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('Error parsing response:', parseError);
-                throw new Error(responseText || '2FA code request failed');
-            }
-
-            if (!response.ok) {
-                throw new Error(json.message || '2FA code request failed');
-            }
-
-            console.log(json);
-
-            // Update state with 2FA information
             this.setState({
-                twoFactorUserId: json.userId,
-                twoFactorCode: json.generatedCode, // Set the generated code
-                successMsg: `This is your Verification code: ${json.generatedCode}`,
+                twoFactorUserId: response.userId,
+                twoFactorCode: response.generatedCode,
+                successMsg: `This is your Verification code: ${response.generatedCode}`,
                 isLoading: false
             });
-
         } catch (error) {
             this.setState({
                 errorMsg: error.message || "Failed to request verification code.",
                 isLoading: false
             });
-            console.error("2FA code request error:", error);
         }
     }
 
@@ -478,80 +615,17 @@ class SignupPage extends Component {
         e.preventDefault();
         this.setState({ isLoading: true, errorMsg: "" });
 
-        // Trim the username and validate
-        const username = this.state.loginUsername ? this.state.loginUsername.trim() : '';
-        const password = this.state.loginPassword;
-
-        // Validate inputs
-        if (!username) {
-            this.setState({
-                errorMsg: "Username is required",
-                isLoading: false
-            });
-            return;
-        }
-
-        if (!password) {
-            this.setState({
-                errorMsg: "Password is required",
-                isLoading: false
-            });
-            return;
-        }
-
-        const payload = {
-            username: username,
-            password: password
-        };
-
         try {
-            const response = await fetch('http://localhost:8088/api/auth/signin', {
-                method: 'POST',
-                body: JSON.stringify(payload),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            // 1. Attempt login
+            const response = await UserAccount.login(
+                this.state.loginUsername,
+                this.state.loginPassword
+            );
 
-            // Parse the response text
-            const responseText = await response.text();
-            let json;
-
-            try {
-                json = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('Error parsing response:', parseError);
-                throw new Error(responseText || 'Login failed');
-            }
-
-            // Check for error response from server
-            if (!response.ok) {
-                throw new Error(json.message || 'Login failed');
-            }
-
-            console.log('Login successful:', json);
-
-            // Clear any existing user data first
-            localStorage.removeItem('user');
-
-            // Store user information in local storage with complete data
-            const userData = {
-                token: json.token,
-                type: json.type,
-                id: json.id,
-                username: json.username,
-                email: json.email,
-                roles: json.roles
-            };
-
-            localStorage.setItem('user', JSON.stringify(userData));
-            console.log('User data stored in localStorage:', userData);
-
-            // Handle 2FA if required
-            if (json.requiresVerification) {
+            // 2. Handle 2FA if required
+            if (response.requiresVerification) {
                 this.setState({
-                    twoFactorUserId: json.userId,
-                    twoFactorCode: '',
+                    twoFactorUserId: response.userId,
                     showLoginModal: false,
                     showTwoFactorModal: true,
                     isLoading: false
@@ -559,104 +633,67 @@ class SignupPage extends Component {
                 return;
             }
 
-            // On successful login - update state first
+            // 3. Login successful
             this.setState({
                 successMsg: "Login successful!",
                 showLoginModal: false,
                 loginUsername: '',
                 loginPassword: '',
                 isLoading: false
-            }, () => {
-                // Use callback to ensure state is updated before navigation
-                console.log('Navigating to dashboard...');
-                this.props.navigate('/dashboard');
             });
+
+            // 4. Redirect to dashboard
+            this.props.navigate('/dashboard');
 
         } catch (error) {
             this.setState({
-                errorMsg: error.message || "Login failed. Please check your credentials.",
+                errorMsg: error.message || "Login failed",
                 isLoading: false
             });
-            console.error("Login error:", error);
         }
     }
 
     async handleTwoFactorSubmit(e) {
         e.preventDefault();
+        const { twoFactorCode, loginUsername } = this.state;
+
+        if (!twoFactorCode) {
+            this.setState({
+                errorMsg: "Please enter the verification code"
+            });
+            return;
+        }
+
         this.setState({ isLoading: true, errorMsg: "" });
 
-        const payload = {
-            code: this.state.twoFactorCode,
-            username: this.state.loginUsername
-        };
-
         try {
-            const response = await fetch('http://localhost:8088/api/auth/2fa/verify', {
-                method: 'POST',
-                body: JSON.stringify(payload),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            const responseText = await response.text();
-            let json;
-
-            try {
-                json = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('Error parsing response:', parseError);
-                throw new Error(responseText || '2FA verification failed');
-            }
-
-            if (!response.ok) {
-                throw new Error(json.message || '2FA verification failed');
-            }
-
-            console.log('2FA verification successful:', json);
-
-            // If the 2FA response contains updated user info, update localStorage
-            if (json.token) {
-                // Update user data in localStorage with the latest token
-                const userJSON = localStorage.getItem('user');
-                const userData = userJSON ? JSON.parse(userJSON) : {};
-
-                const updatedUserData = {
-                    ...userData,
-                    token: json.token,
-                    // Include any other updated fields from the response
-                    ...(json.id && { id: json.id }),
-                    ...(json.username && { username: json.username }),
-                    ...(json.email && { email: json.email }),
-                    ...(json.roles && { roles: json.roles })
-                };
-
-                localStorage.setItem('user', JSON.stringify(updatedUserData));
-                console.log('Updated user data in localStorage:', updatedUserData);
-            }
-
-            // Handle successful verification
+            // Verify 2FA code
+            await UserAccount.verifyTwoFactorCode(twoFactorCode, loginUsername);
+            
             this.setState({
                 successMsg: "Verification successful!",
                 showTwoFactorModal: false,
                 isLoading: false
-            }, () => {
-                // Use callback to ensure state is updated before navigation
-                console.log('Navigating to dashboard after 2FA...');
-                this.props.navigate('/dashboard');
             });
+
+            // Redirect to dashboard
+            this.props.navigate('/dashboard');
         } catch (error) {
             this.setState({
-                errorMsg: error.message || "Verification failed. Please try again.",
+                errorMsg: error.message || "Verification failed",
                 isLoading: false
             });
-            console.error("2FA verification error:", error);
         }
+    }
+
+    // Add role change handler
+    changeRoleHandler = (event) => {
+        this.setState({ role: event.target.value });
     }
 
     render() {
         const {
-            fullName, phoneNumber, email, username, password, confirmPassword, role,
+            fullName, phoneNumber, email, username, password, confirmPassword, role, roles,
             loginEmail, loginPassword, twoFactorCode,
             activeDropdown, showLoginModal, showTwoFactorModal,
             isLoading, errorMsg, successMsg,
@@ -848,6 +885,24 @@ class SignupPage extends Component {
                                 )}
                             </div>
                             <div>
+                                <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Select Role</label>
+                                <select
+                                    value={role}
+                                    onChange={this.changeRoleHandler}
+                                    id="role"
+                                    name="role"
+                                    required
+                                    className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    disabled={isLoading}
+                                >
+                                    {roles.map((roleOption) => (
+                                        <option key={roleOption.value} value={roleOption.value}>
+                                            {roleOption.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
                                 <label htmlFor="password" className="sr-only">Password</label>
                                 <input
                                     value={this.state.password}
@@ -954,36 +1009,8 @@ class SignupPage extends Component {
                             <form onSubmit={this.handleLoginSubmit} className="space-y-6">
                                 {/* 2FA Setup Form - shown only when enableTwoFactor is true */}
                                 {this.state.show2FASetupForm ? (
-                                    <div className="p-3 bg-blue-50 rounded-md border border-blue-200">
-                                        <h4 className="text-sm font-medium text-blue-800 mb-2">Two-Factor Authentication Setup</h4>
-                                        <p className="text-xs text-blue-600 mb-3">
-                                            Enter your username to enable two-factor authentication
-                                        </p>
-                                        <div className="flex">
-                                            <input
-                                                value={this.state.loginUsername}
-                                                onChange={this.changeLoginUsernameHandler}
-                                                type="text"
-                                                placeholder="Username"
-                                                className="flex-1 text-sm border border-blue-300 rounded-l-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={this.setup2FA}
-                                                className="bg-blue-500 text-white text-sm px-3 py-1 rounded-r-md hover:bg-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                            >
-                                                Setup
-                                            </button>
-                                        </div>
-                                        <div className="mt-3 flex justify-end">
-                                            <button
-                                                type="button"
-                                                onClick={() => this.setState({ show2FASetupForm: false, enableTwoFactor: false, showLoginFields: true })}
-                                                className="text-xs text-blue-600 hover:text-blue-800"
-                                            >
-                                                Back to login
-                                            </button>
-                                        </div>
+                                    <div className="mt-4">
+                                        {this.render2FASetupForm()}
                                     </div>
                                 ) : (
                                     <>
@@ -1038,25 +1065,6 @@ class SignupPage extends Component {
                                                 </div>
                                             )}
                                         </div>
-
-                                        {/* 2FA Setup Form - shown only when enableTwoFactor is true */}
-                                        {this.state.show2FASetupForm && (
-                                            <div className="p-3 bg-blue-50 rounded-md border border-blue-200 mt-3">
-                                                <h4 className="text-sm font-medium text-blue-800 mb-2">Two-Factor Authentication Setup</h4>
-                                                <p className="text-xs text-blue-600 mb-3">
-                                                    Click Setup to enable two-factor authentication for this username
-                                                </p>
-                                                <div className="flex justify-end">
-                                                    <button
-                                                        type="button"
-                                                        onClick={this.setup2FA}
-                                                        className="bg-blue-500 text-white text-sm px-3 py-1 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                                    >
-                                                        {isLoading ? 'Processing...' : 'Setup'}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
 
                                         <div className="flex justify-center gap-4">
                                             <button

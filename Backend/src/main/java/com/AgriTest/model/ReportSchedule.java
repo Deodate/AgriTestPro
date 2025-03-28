@@ -44,11 +44,13 @@ public class ReportSchedule {
     @ElementCollection
     @CollectionTable(name = "report_schedule_entities", joinColumns = @JoinColumn(name = "report_schedule_id"))
     @Column(name = "entity_id")
+    @Builder.Default
     private Set<Long> entityIds = new HashSet<>();
 
     @ElementCollection
     @CollectionTable(name = "report_schedule_recipients", joinColumns = @JoinColumn(name = "report_schedule_id"))
     @Column(name = "email")
+    @Builder.Default
     private Set<String> recipients = new HashSet<>();
 
     @Column(nullable = false)
@@ -76,6 +78,7 @@ public class ReportSchedule {
     private LocalDate nextExecution;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(nullable = false)

@@ -2,6 +2,15 @@
 package com.AgriTest.service;
 
 public interface EmailService {
+    /**
+     * Send a simple email
+     * 
+     * @param to Recipient email address
+     * @param subject Email subject
+     * @param body Email body
+     * @return True if sent successfully, false otherwise
+     */
+    boolean sendEmail(String to, String subject, String body);
     
     /**
      * Send an email with a report attachment

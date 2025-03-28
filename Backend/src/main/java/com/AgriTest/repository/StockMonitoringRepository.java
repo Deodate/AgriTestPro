@@ -3,7 +3,6 @@ package com.AgriTest.repository;
 import com.AgriTest.model.StockMonitoring;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -16,7 +15,7 @@ public interface StockMonitoringRepository extends JpaRepository<StockMonitoring
            "WHERE sm.currentStockLevel <= :threshold " +
            "ORDER BY sm.currentStockLevel ASC")
     List<StockMonitoring> findLowStockEntriesWithProductDetails(
-        @Param("threshold") Integer threshold
+        Integer threshold
     );
 
     // Additional methods remain the same

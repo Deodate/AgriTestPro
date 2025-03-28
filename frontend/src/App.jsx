@@ -1,27 +1,34 @@
-import { Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import SignupPage from "./components/auth/SignupPage";
-import Dashboard from "./services/ADMIN/admin_dashboard.jsx";
-import Sidebar from "./services/ADMIN/sidebar";
-import ProtectedRoutes from "./components/auth/ProtectedRoute";
-import TestCaseCreationForm from "./services/ADMIN/components/TestCaseCreationForm";
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import SignupPage from './components/pages/auth/SignupPage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import DashboardLayout from './components/layout/DashboardLayout';
+import DashboardHome from './components/pages/dashboard/DashboardHome';
+import TestCases from './components/pages/dashboard/TestCases';
+import Settings from './components/pages/dashboard/Settings';
+import HomePage from './components/pages/HomePage';
 
-function App() {
+const App = () => {
   return (
     <Routes>
+      {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/login" element={<SignupPage />} />
-      
-      <Route element={<ProtectedRoutes />}>
-        <Route path="/dashboard/*" element={<Dashboard />} />
-        <Route path="/test-case-creation" element={<Dashboard />}>
-          <Route index element={<TestCaseCreationForm />} />
+
+      {/* Protected Routes */}
+      <Route path="/dashboard" element={<ProtectedRoute />}>
+        <Route element={<DashboardLayout />}>
+          <Route index element={<DashboardHome />} />
+          <Route path="test-cases" element={<TestCases />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
-        <Route path="/sidebar" element={<Sidebar />} />
       </Route>
+
+      {/* Catch all route - redirect to home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
-}
+};
 
 export default App;

@@ -171,10 +171,13 @@ public class ExpenseServiceImpl implements ExpenseService {
     public ExpenseResponse getExpenseByExpenseId(String expenseId) {
         log.info("Fetching expense with expense ID: {}", expenseId);
         
-        Expense expense = expenseRepository.findByExpenseId(expenseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Expense not found with expense ID: " + expenseId));
-                
-        return mapToExpenseResponse(expense);
+        List<Expense> expenses = expenseRepository.findByExpenseId(expenseId);
+        if (expenses.isEmpty()) {
+            throw new ResourceNotFoundException("Expense not found with expense ID: " + expenseId);
+        }
+        
+        // Return the first matching expense
+        return mapToExpenseResponse(expenses.get(0));
     }
 
     @Override

@@ -4,7 +4,6 @@ import com.AgriTest.model.AnalyticsData;
 import com.AgriTest.model.EntityType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -33,9 +32,9 @@ public interface AnalyticsDataRepository extends JpaRepository<AnalyticsData, Lo
            "AND a.dataDate BETWEEN :startDate AND :endDate " +
            "ORDER BY a.dataDate")
     List<AnalyticsData> findDataForTrendAnalysis(
-            @Param("dataSource") String dataSource,
-            @Param("entityType") EntityType entityType,
-            @Param("entityId") Long entityId,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate);
+            String dataSource,
+            EntityType entityType,
+            Long entityId,
+            LocalDate startDate,
+            LocalDate endDate);
 }

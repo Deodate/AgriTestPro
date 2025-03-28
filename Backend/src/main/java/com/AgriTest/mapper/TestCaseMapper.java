@@ -5,7 +5,6 @@ import com.AgriTest.dto.TestCaseResponse;
 import com.AgriTest.model.Product;
 import com.AgriTest.model.TestCase;
 import com.AgriTest.model.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -13,12 +12,6 @@ import java.util.stream.Collectors;
 
 @Component
 public class TestCaseMapper {
-
-    @Autowired
-    private TestPhaseMapper testPhaseMapper;
-    
-    @Autowired
-    private UserMapper userMapper;
     
     public TestCaseResponse toDto(TestCase testCase) {
         if (testCase == null) {

@@ -12,6 +12,7 @@ import com.AgriTest.security.service.UserDetailsImpl;
 import com.AgriTest.service.AuthService;
 import com.AgriTest.service.TokenBlacklistService;
 import com.AgriTest.service.UserService;
+import com.AgriTest.service.TwoFactorAuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -25,13 +26,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -60,6 +61,9 @@ public class AuthController {
     @Autowired
     private TokenBlacklistService tokenBlacklistService;
 
+    @Autowired
+    private TwoFactorAuthService twoFactorAuthService;
+
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
@@ -71,28 +75,50 @@ public class AuthController {
                             loginRequest.getUsername(),
                             loginRequest.getPassword()));
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = jwtUtils.generateJwtToken(authentication);
+            // Get the user from repository to check if enabled
+            User user = userRepository.findByUsername(loginRequest.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Check if the account is enabled
+            if (!user.getEnabled()) {
+                logger.warn("Login attempt for disabled account: {}", loginRequest.getUsername());
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("status", HttpStatus.FORBIDDEN.value());
+                errorResponse.put("message", "Account is not activated. Please contact administration.");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+            }
 
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            // Check if 2FA is enabled
+            if (user.getTwoFactorEnabled() != null && user.getTwoFactorEnabled()) {
+                // Generate and send 2FA code
+                boolean codeSent = twoFactorAuthService.generateAndSendCode(user.getId());
+                
+                if (!codeSent) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                        "status", HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        "message", "Failed to send verification code"
+                    ));
+                }
+                
+                // Return response indicating 2FA is required
+                return ResponseEntity.ok(TwoFactorResponse.builder()
+                        .message("Please verify with 2FA code sent to your mobile phone")
+                        .userId(user.getId())
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .requiresVerification(true)
+                        .build());
+            }
+
+            // If 2FA not enabled, generate and return token immediately
+            String jwt = jwtUtils.generateJwtToken(authentication);
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             List<String> roles = userDetails.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toList());
 
-            // Check if 2FA is enabled
-            User user = userRepository.findByUsername(loginRequest.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            if (user.getTwoFactorEnabled() != null && user.getTwoFactorEnabled()) {
-                return ResponseEntity.ok(TwoFactorResponse.builder()
-                        .message("Please verify with 2FA code")
-                        .userId(user.getId())
-                        .username(user.getUsername())
-                        .requiresVerification(true)
-                        .build());
-            }
-
-            // If 2FA not enabled, return token immediately
             return ResponseEntity.ok(new JwtResponse(
                     jwt,
                     userDetails.getId(),
@@ -115,6 +141,13 @@ public class AuthController {
         try {
             logger.info("Registration attempt for user: {}", signUpRequest.getUsername());
 
+            // Validate password confirmation
+            if (!signUpRequest.getPassword().equals(signUpRequest.getConfirmPassword())) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "message", "Error: Passwords do not match!"));
+            }
+
             if (userRepository.existsByUsername(signUpRequest.getUsername())) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "status", HttpStatus.BAD_REQUEST.value(),
@@ -133,6 +166,32 @@ public class AuthController {
                         "status", HttpStatus.BAD_REQUEST.value(),
                         "message", "Error: Phone number is already in use!"));
             }
+            
+            // Validate role and convert to proper format
+            String role = signUpRequest.getRole().toUpperCase().trim();
+            
+            // Standardize role format: convert spaces to underscores and add ROLE_ prefix if needed
+            if (!role.startsWith("ROLE_")) {
+                role = "ROLE_" + role.replace(" ", "_");
+            }
+            
+            // List of allowed roles
+            Set<String> allowedRoles = Set.of(
+                "ROLE_ADMIN", 
+                "ROLE_AGRONOMIST", 
+                "ROLE_STOREKEEPER", 
+                "ROLE_MANUFACTURER", 
+                "ROLE_FIELD_WORKER"
+            );
+            
+            if (!allowedRoles.contains(role)) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "message", "Error: Invalid role specified. Valid roles are: Admin, Agronomist, Storekeeper, Manufacturer, Field Worker"));
+            }
+            
+            // Set the standardized role
+            signUpRequest.setRole(role);
 
             // Create new user's account
             User user = new User();
@@ -142,7 +201,7 @@ public class AuthController {
             user.setFullName(signUpRequest.getFullName());
             user.setPhoneNumber(signUpRequest.getPhoneNumber());
             user.setRole(signUpRequest.getRole());
-            user.setEnabled(true);
+            user.setEnabled(false);
             user.setTwoFactorEnabled(false);
 
             UserResponse savedUser = userService.createUser(user);
@@ -194,33 +253,40 @@ public class AuthController {
         try {
             // Extract token from request
             String token = jwtUtils.extractTokenFromRequest(request);
+            
+            if (token == null || token.isEmpty()) {
+                logger.warn("Logout attempt with no token");
+                return ResponseEntity.badRequest().body(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "message", "No valid token found in request"));
+            }
 
             // Get the current authentication
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication != null ? authentication.getName() : "unknown";
 
-            if (authentication != null) {
-                // Log the signout
-                logger.info("User signed out: {}", authentication.getName());
-
-                // Blacklist the token if it exists
-                if (token != null) {
-                    tokenBlacklistService.blacklistToken(token);
-                    logger.info("Token blacklisted for user: {}", authentication.getName());
-                }
-
-                // Clear the security context
-                SecurityContextHolder.clearContext();
-            }
-
-            // Return a success response
+            // Blacklist the token
+            tokenBlacklistService.blacklistToken(token);
+            logger.info("Token blacklisted for user: {}", username);
+            
+            // Clear the security context
+            SecurityContextHolder.clearContext();
+            
+            // Return a success response with token info (masked for security)
+            String maskedToken = token.substring(0, Math.min(10, token.length())) + "...";
             return ResponseEntity.ok(Map.of(
                     "status", HttpStatus.OK.value(),
-                    "message", "Signout successful"));
+                    "message", "You've been signed out successfully!",
+                    "details", Map.of(
+                        "username", username,
+                        "tokenInvalidated", true,
+                        "tokenInfo", maskedToken
+                    )));
         } catch (Exception e) {
             logger.error("Signout error: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "status", HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    "message", "An error occurred during signout"));
+                    "message", "An error occurred during signout: " + e.getMessage()));
         }
     }
 
@@ -285,4 +351,54 @@ public class AuthController {
         }
     }
 
+    /**
+     * Activates or deactivates a user account. Only accessible to administrators.
+     * 
+     * @param userIdentifier The user ID or username
+     * @param enabled Whether to enable (true) or disable (false) the account
+     * @return The updated user details
+     */
+    @PutMapping("/account-status/{userIdentifier}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateAccountStatus(
+            @PathVariable String userIdentifier,
+            @RequestParam boolean enabled) {
+        try {
+            logger.info("Account status update requested for user: {}, enabled: {}", userIdentifier, enabled);
+            UserResponse userResponse;
+
+            // Check if the identifier is numeric (userId) or alphanumeric (username)
+            if (userIdentifier.matches("\\d+")) {
+                // It's a userId
+                Long userId = Long.valueOf(userIdentifier);
+                User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                
+                user.setEnabled(enabled);
+                User updatedUser = userRepository.save(user);
+                userResponse = userService.mapUserToUserResponse(updatedUser);
+                
+                logger.info("Account status updated for user ID {}: enabled = {}", userId, enabled);
+            } else {
+                // It's a username
+                User user = userRepository.findByUsername(userIdentifier)
+                    .orElseThrow(() -> new RuntimeException("User not found with username: " + userIdentifier));
+                
+                user.setEnabled(enabled);
+                User updatedUser = userRepository.save(user);
+                userResponse = userService.mapUserToUserResponse(updatedUser);
+                
+                logger.info("Account status updated for username {}: enabled = {}", userIdentifier, enabled);
+            }
+
+            return ResponseEntity.ok(userResponse);
+        } catch (Exception e) {
+            logger.error("Account status update error: ", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
+            errorResponse.put("message", e.getMessage());
+
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
 }
