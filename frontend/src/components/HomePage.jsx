@@ -198,7 +198,7 @@ function HomePage() {
             {/* Buttons Container */}
             <foreignObject x="20%" y="50%" width="60%" height="100">
               <div xmlns="http://www.w3.org/1999/xhtml" className="flex justify-center space-x-6">
-                <Link
+              <Link
                   to="/signup"
                   className="bg-blue-600 text-white text-xl font-bold py-3 px-10 rounded-md 
                     hover:bg-blue-700 transition-colors duration-300 
