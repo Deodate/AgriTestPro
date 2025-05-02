@@ -4,7 +4,6 @@ import com.AgriTest.service.SmsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -16,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 @Service
-@Primary
 public class DirectHttpSmsServiceImpl implements SmsService {
 
     private static final Logger logger = LoggerFactory.getLogger(DirectHttpSmsServiceImpl.class);

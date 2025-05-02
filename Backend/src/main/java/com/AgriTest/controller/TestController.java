@@ -70,4 +70,39 @@ public class TestController {
             return ResponseEntity.internalServerError().body(Map.of("error", "Failed to send 2FA code: " + e.getMessage()));
         }
     }
+
+    @PostMapping("/sms/direct")
+    public ResponseEntity<?> testDirectSms(@RequestBody Map<String, String> request) {
+        String phoneNumber = request.get("phoneNumber");
+        String message = request.get("message");
+        
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Phone number is required"));
+        }
+        
+        if (message == null || message.trim().isEmpty()) {
+            message = "This is a test SMS from AgriTest Pro";
+        }
+
+        try {
+            logger.info("Testing direct SMS sending to phone number: {}", phoneNumber);
+            boolean success = smsService.sendSms(phoneNumber, message);
+            
+            if (success) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "Test SMS sent successfully");
+                response.put("phoneNumber", phoneNumber);
+                response.put("testMessage", message);
+                response.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                logger.info("Test SMS sent successfully to {}", phoneNumber);
+                return ResponseEntity.ok(response);
+            } else {
+                logger.error("Failed to send test SMS");
+                return ResponseEntity.internalServerError().body(Map.of("error", "Failed to send test SMS"));
+            }
+        } catch (Exception e) {
+            logger.error("Error sending test SMS: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
 } 

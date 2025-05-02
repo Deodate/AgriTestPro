@@ -5,6 +5,9 @@ import com.AgriTest.dto.LoginRequest;
 import com.AgriTest.dto.SignUpRequest;
 import com.AgriTest.dto.TwoFactorResponse;
 import com.AgriTest.dto.UserResponse;
+import com.AgriTest.dto.ForgotPasswordRequest;
+import com.AgriTest.dto.ResetPasswordRequest;
+import com.AgriTest.dto.VerifyResetCodeRequest;
 import com.AgriTest.model.User;
 import com.AgriTest.repository.UserRepository;
 import com.AgriTest.security.jwt.JwtUtils;
@@ -13,6 +16,7 @@ import com.AgriTest.service.AuthService;
 import com.AgriTest.service.TokenBlacklistService;
 import com.AgriTest.service.UserService;
 import com.AgriTest.service.TwoFactorAuthService;
+import com.AgriTest.service.PasswordResetService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -34,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -64,6 +69,9 @@ public class AuthController {
     @Autowired
     private TwoFactorAuthService twoFactorAuthService;
 
+    @Autowired
+    private PasswordResetService passwordResetService;
+
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
@@ -90,6 +98,13 @@ public class AuthController {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             
+            // Generate token for all cases
+            String jwt = jwtUtils.generateJwtToken(authentication);
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            List<String> roles = userDetails.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toList());
+            
             // Check if 2FA is enabled
             if (user.getTwoFactorEnabled() != null && user.getTwoFactorEnabled()) {
                 // Generate and send 2FA code
@@ -102,23 +117,21 @@ public class AuthController {
                     ));
                 }
                 
-                // Return response indicating 2FA is required
-                return ResponseEntity.ok(TwoFactorResponse.builder()
-                        .message("Please verify with 2FA code sent to your mobile phone")
-                        .userId(user.getId())
-                        .username(user.getUsername())
-                        .email(user.getEmail())
-                        .requiresVerification(true)
-                        .build());
+                // Return response with both 2FA requirements and token
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "Please verify with 2FA code sent to your mobile phone");
+                response.put("userId", user.getId());
+                response.put("username", user.getUsername());
+                response.put("email", user.getEmail());
+                response.put("requiresVerification", true);
+                response.put("token", jwt); // Include the token
+                response.put("roles", roles);
+                response.put("tokenStatus", "temporary"); // Indicate token needs verification
+                
+                return ResponseEntity.ok(response);
             }
 
-            // If 2FA not enabled, generate and return token immediately
-            String jwt = jwtUtils.generateJwtToken(authentication);
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            List<String> roles = userDetails.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toList());
-
+            // If 2FA not enabled, return normal response
             return ResponseEntity.ok(new JwtResponse(
                     jwt,
                     userDetails.getId(),
@@ -399,6 +412,120 @@ public class AuthController {
             errorResponse.put("message", e.getMessage());
 
             return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            logger.info("Password reset requested for email: {}", request.getEmail());
+            
+            // Find user by email
+            Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
+            if (userOptional.isEmpty()) {
+                throw new RuntimeException("User not found with this email");
+            }
+            User user = userOptional.get();
+
+            // Generate and send reset code via SMS
+            String code = passwordResetService.generateResetCode(user);
+            
+            // Mask the phone number to show only the last 3 digits
+            String phoneNumber = user.getPhoneNumber();
+            String lastThreeDigits = phoneNumber.substring(Math.max(0, phoneNumber.length() - 3));
+            
+            // Create response with both message and debug information
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", String.format("A reset code has been sent to your phone number ending in %s. The code will expire in 60 seconds.", lastThreeDigits));
+            response.put("status", HttpStatus.OK.value());
+            response.put("debug", Map.of(
+                "resetCode", code,
+                "phoneNumber", phoneNumber
+            ));
+            
+            logger.info("Reset code generated: {} for phone number: {}", code, phoneNumber);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("Forgot password error: ", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", HttpStatus.BAD_REQUEST.value(),
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            logger.info("Password reset attempt with code");
+
+            // Validate password confirmation
+            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "status", HttpStatus.BAD_REQUEST.value(),
+                    "message", "Passwords do not match"
+                ));
+            }
+
+            // Validate code and reset password
+            boolean success = passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
+
+            if (!success) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "status", HttpStatus.BAD_REQUEST.value(),
+                    "message", "Invalid or expired reset code"
+                ));
+            }
+
+            return ResponseEntity.ok(Map.of(
+                "status", HttpStatus.OK.value(),
+                "message", "Password has been reset successfully"
+            ));
+
+        } catch (Exception e) {
+            logger.error("Reset password error: ", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", HttpStatus.BAD_REQUEST.value(),
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    @PostMapping("/verify-reset-code")
+    public ResponseEntity<?> verifyResetCode(@Valid @RequestBody VerifyResetCodeRequest request) {
+        try {
+            logger.info("Verifying reset code and setting new password");
+
+            // Validate password confirmation
+            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "status", HttpStatus.BAD_REQUEST.value(),
+                    "message", "Passwords do not match"
+                ));
+            }
+
+            // Validate code and reset password
+            boolean success = passwordResetService.resetPassword(request.getCode(), request.getNewPassword());
+
+            if (!success) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "status", HttpStatus.BAD_REQUEST.value(),
+                    "message", "Invalid or expired reset code"
+                ));
+            }
+
+            return ResponseEntity.ok(Map.of(
+                "status", HttpStatus.OK.value(),
+                "message", "Password has been reset successfully"
+            ));
+
+        } catch (Exception e) {
+            logger.error("Reset code verification error: ", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", HttpStatus.BAD_REQUEST.value(),
+                "message", e.getMessage()
+            ));
         }
     }
 }

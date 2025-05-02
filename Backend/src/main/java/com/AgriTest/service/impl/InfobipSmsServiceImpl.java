@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@Primary
 public class InfobipSmsServiceImpl implements SmsService {
 
     private static final Logger logger = LoggerFactory.getLogger(InfobipSmsServiceImpl.class);
@@ -35,31 +36,44 @@ public class InfobipSmsServiceImpl implements SmsService {
         this.restTemplate = restTemplate;
     }
 
+    private String formatPhoneNumber(String phoneNumber) {
+        // Remove any spaces, dashes, or parentheses
+        String cleaned = phoneNumber.replaceAll("[\\s\\-\\(\\)]", "");
+        
+        // Remove leading zeros
+        cleaned = cleaned.replaceAll("^0+", "");
+        
+        // If number starts with +, keep it, otherwise add +250 (Rwanda)
+        if (!cleaned.startsWith("+")) {
+            cleaned = "+250" + cleaned;
+        }
+        
+        logger.debug("Formatted phone number from {} to {}", phoneNumber, cleaned);
+        return cleaned;
+    }
+
     @Override
     public boolean sendSms(String phoneNumber, String message) {
         try {
-            logger.debug("Preparing to send SMS to {} with message: {}", phoneNumber, message);
+            String formattedNumber = formatPhoneNumber(phoneNumber);
+            logger.debug("Preparing to send SMS to {} (formatted from {}) with message: {}", 
+                formattedNumber, phoneNumber, message);
             
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", apiKey);
+            headers.set("Authorization", "App " + apiKey);
             
             logger.debug("Using Infobip base URL: {}", baseUrl);
             logger.debug("Using sender: {}", sender);
 
-            Map<String, Object> destination = new HashMap<>();
-            destination.put("to", phoneNumber);
-
-            Map<String, Object> smsMessage = new HashMap<>();
-            smsMessage.put("from", sender);
-            smsMessage.put("destinations", new Object[]{destination});
-            smsMessage.put("text", message);
-
+            // Using simpler message format
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("messages", new Object[]{smsMessage});
+            requestBody.put("from", sender);
+            requestBody.put("to", formattedNumber);
+            requestBody.put("text", message);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-            String url = baseUrl + "/sms/2/text/advanced";
+            String url = baseUrl + "/sms/2/text/single";
             
             logger.debug("Full API URL: {}", url);
             logger.debug("Request headers: {}", headers);
@@ -71,10 +85,10 @@ public class InfobipSmsServiceImpl implements SmsService {
                     response.getStatusCode(), response.getBody());
             
             if (response.getStatusCode().is2xxSuccessful()) {
-                logger.info("SMS sent successfully to {}", phoneNumber);
+                logger.info("SMS sent successfully to {}", formattedNumber);
                 return true;
             } else {
-                logger.error("Failed to send SMS to {}: {}", phoneNumber, response.getBody());
+                logger.error("Failed to send SMS to {}: {}", formattedNumber, response.getBody());
                 return false;
             }
         } catch (Exception e) {
