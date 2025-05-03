@@ -6,6 +6,7 @@ import com.AgriTest.service.TokenBlacklistService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
@@ -35,23 +36,36 @@ public class JwtUtils {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
 
         return Jwts.builder()
-                .setSubject((userPrincipal.getUsername()))
-                .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
-                .signWith(key(), SignatureAlgorithm.HS256)
+                .subject(userPrincipal.getUsername())
+                .issuedAt(new Date())
+                .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(key())
                 .compact();
     }
     
-    private Key key() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+    private SecretKey key() {
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+        
+        // Check if the key meets minimum security requirements (256 bits = 32 bytes)
+        if (keyBytes.length < 32) {
+            logger.error("JWT secret key is too short ({}). Generating a secure key.", keyBytes.length);
+            // Generate a secure key using the recommended method
+            return Jwts.SIG.HS256.key().build();
+        }
+        
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String getUserNameFromJwtToken(String token) {
         // Trim the token to remove any whitespace
         token = token.trim();
         
-        return Jwts.parserBuilder().setSigningKey(key()).build()
-                .parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parser()
+                .verifyWith(key())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
     }
 
     public boolean validateJwtToken(String authToken) {
@@ -80,12 +94,12 @@ public class JwtUtils {
             // Add logging to see the token being validated
             logger.debug("Validating token: {}", authToken);
             
-            Jwts.parserBuilder()
-                .setSigningKey(key())
+            Jwts.parser()
+                .verifyWith(key())
                 .build()
-                .parseClaimsJws(authToken);
+                .parseSignedClaims(authToken);
             return true;
-        } catch (io.jsonwebtoken.security.SecurityException e) {
+        } catch (SignatureException e) {
             logger.error("JWT validation error: Invalid JWT signature: {}", e.getMessage());
         } catch (MalformedJwtException e) {
             logger.error("JWT validation error: Invalid JWT token: {}", e.getMessage());

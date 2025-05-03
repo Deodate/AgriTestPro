@@ -10,7 +10,6 @@ import com.AgriTest.repository.TwoFactorCodeRepository;
 import com.AgriTest.repository.UserRepository;
 import com.AgriTest.security.jwt.JwtUtils;
 import com.AgriTest.security.service.UserDetailsServiceImpl;
-import com.AgriTest.service.EmailService;
 import com.AgriTest.service.SmsService;
 import com.AgriTest.service.TwoFactorAuthService;
 import com.AgriTest.service.UserService;
@@ -56,9 +55,6 @@ public class TwoFactorAuthServiceImpl implements TwoFactorAuthService {
     
     @Autowired
     private UserService userService;
-    
-    @Autowired
-    private EmailService emailService;
     
     @Autowired
     private SmsService smsService;

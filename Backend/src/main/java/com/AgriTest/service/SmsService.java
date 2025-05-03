@@ -2,11 +2,11 @@ package com.AgriTest.service;
 
 public interface SmsService {
     /**
-     * Send an SMS message
+     * Send an SMS message to a phone number
      * 
-     * @param phoneNumber Recipient phone number (international format)
-     * @param message SMS message content
-     * @return True if sent successfully, false otherwise
+     * @param phoneNumber The recipient's phone number
+     * @param message The message to send
+     * @return true if the message was sent successfully, false otherwise
      */
     boolean sendSms(String phoneNumber, String message);
 } 

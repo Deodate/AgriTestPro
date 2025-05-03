@@ -8,9 +8,10 @@ import com.AgriTest.model.ExportFormat;
 import com.AgriTest.model.ReportSchedule;
 import com.AgriTest.model.ReportType;
 import com.AgriTest.repository.ReportScheduleRepository;
-import com.AgriTest.service.EmailService;
 import com.AgriTest.service.ExportService;
 import com.AgriTest.service.ReportScheduleService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,16 +29,14 @@ public class ReportScheduleServiceImpl implements ReportScheduleService {
 
     private final ReportScheduleRepository reportScheduleRepository;
     private final ExportService exportService;
-    private final EmailService emailService;
+    private static final Logger logger = LoggerFactory.getLogger(ReportScheduleServiceImpl.class);
 
     @Autowired
     public ReportScheduleServiceImpl(
             ReportScheduleRepository reportScheduleRepository,
-            ExportService exportService,
-            EmailService emailService) {
+            ExportService exportService) {
         this.reportScheduleRepository = reportScheduleRepository;
         this.exportService = exportService;
-        this.emailService = emailService;
     }
 
     @Override
@@ -213,17 +212,9 @@ public class ReportScheduleServiceImpl implements ReportScheduleService {
                 throw new IllegalStateException("Unsupported report type: " + schedule.getReportType());
         }
         
-        // Send the report to all recipients
-        for (String recipient : schedule.getRecipients()) {
-            emailService.sendReportEmail(
-                recipient,
-                "Scheduled Report: " + reportName,
-                "Please find attached the scheduled report: " + reportName,
-                reportFileName,
-                reportData,
-                getMimeType(format)
-            );
-        }
+        // Save the report to a file or storage system instead of sending via email
+        // TODO: Implement report storage mechanism
+        logger.info("Report {} generated successfully. File name: {}", reportName, reportFileName);
     }
     
     // Helper method to map entity to response DTO

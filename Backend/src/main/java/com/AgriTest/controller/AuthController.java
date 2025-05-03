@@ -31,7 +31,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.validation.FieldError;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Optional;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -72,20 +76,43 @@ public class AuthController {
     @Autowired
     private PasswordResetService passwordResetService;
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        
+        logger.error("Validation error: {}", errors);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.BAD_REQUEST.value());
+        response.put("message", "Validation failed");
+        response.put("errors", errors);
+        
+        return ResponseEntity.badRequest().body(response);
+    }
+
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
             logger.info("Login attempt for user: {}", loginRequest.getUsername());
 
-            // Direct authentication approach
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUsername(),
-                            loginRequest.getPassword()));
-
-            // Get the user from repository to check if enabled
-            User user = userRepository.findByUsername(loginRequest.getUsername())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            // First check if the user exists in the database
+            Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
+            if (userOptional.isEmpty()) {
+                logger.warn("Login attempt for non-existent user: {}", loginRequest.getUsername());
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("status", HttpStatus.UNAUTHORIZED.value());
+                errorResponse.put("message", "Username not found. Please check your username or register a new account.");
+                errorResponse.put("error", "user_not_found");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+            }
+            
+            User user = userOptional.get();
             
             // Check if the account is enabled
             if (!user.getEnabled()) {
@@ -93,13 +120,41 @@ public class AuthController {
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("status", HttpStatus.FORBIDDEN.value());
                 errorResponse.put("message", "Account is not activated. Please contact administration.");
+                errorResponse.put("error", "account_disabled");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+            }
+
+            // Now attempt authentication
+            Authentication authentication;
+            try {
+                authentication = authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                loginRequest.getUsername(),
+                                loginRequest.getPassword()));
+            } catch (BadCredentialsException e) {
+                logger.warn("Bad credentials for user: {}", loginRequest.getUsername());
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("status", HttpStatus.UNAUTHORIZED.value());
+                errorResponse.put("message", "Invalid password. Please try again.");
+                errorResponse.put("error", "invalid_password");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
             }
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             
             // Generate token for all cases
-            String jwt = jwtUtils.generateJwtToken(authentication);
+            String jwt;
+            try {
+                jwt = jwtUtils.generateJwtToken(authentication);
+            } catch (Exception e) {
+                logger.error("JWT token generation error: {}", e.getMessage());
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+                errorResponse.put("message", "Authentication error: Unable to generate security token.");
+                errorResponse.put("error", "token_generation_failed");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            }
+            
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             List<String> roles = userDetails.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
@@ -113,7 +168,8 @@ public class AuthController {
                 if (!codeSent) {
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                         "status", HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        "message", "Failed to send verification code"
+                        "message", "Failed to send verification code",
+                        "error", "verification_code_sending_failed"
                     ));
                 }
                 
@@ -144,6 +200,7 @@ public class AuthController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("status", HttpStatus.UNAUTHORIZED.value());
             errorResponse.put("message", "Authentication failed: " + e.getMessage());
+            errorResponse.put("error", "authentication_error");
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
@@ -154,8 +211,18 @@ public class AuthController {
         try {
             logger.info("Registration attempt for user: {}", signUpRequest.getUsername());
 
+            // Set default full name if not provided
+            if (signUpRequest.getFullName() == null || signUpRequest.getFullName().trim().isEmpty()) {
+                signUpRequest.setFullName(signUpRequest.getUsername());
+            }
+            
+            // Set default role if not provided
+            if (signUpRequest.getRole() == null || signUpRequest.getRole().trim().isEmpty()) {
+                signUpRequest.setRole("ROLE_USER");
+            }
+            
             // Validate password confirmation
-            if (!signUpRequest.getPassword().equals(signUpRequest.getConfirmPassword())) {
+            if (signUpRequest.getConfirmPassword() == null || !signUpRequest.getPassword().equals(signUpRequest.getConfirmPassword())) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "status", HttpStatus.BAD_REQUEST.value(),
                         "message", "Error: Passwords do not match!"));
@@ -191,6 +258,7 @@ public class AuthController {
             // List of allowed roles
             Set<String> allowedRoles = Set.of(
                 "ROLE_ADMIN", 
+                "ROLE_USER",
                 "ROLE_AGRONOMIST", 
                 "ROLE_STOREKEEPER", 
                 "ROLE_MANUFACTURER", 
@@ -200,7 +268,7 @@ public class AuthController {
             if (!allowedRoles.contains(role)) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "status", HttpStatus.BAD_REQUEST.value(),
-                        "message", "Error: Invalid role specified. Valid roles are: Admin, Agronomist, Storekeeper, Manufacturer, Field Worker"));
+                        "message", "Error: Invalid role specified. Valid roles are: User, Admin, Agronomist, Storekeeper, Manufacturer, Field Worker"));
             }
             
             // Set the standardized role
@@ -214,7 +282,7 @@ public class AuthController {
             user.setFullName(signUpRequest.getFullName());
             user.setPhoneNumber(signUpRequest.getPhoneNumber());
             user.setRole(signUpRequest.getRole());
-            user.setEnabled(false);
+            user.setEnabled(true); // Set to true for immediate access
             user.setTwoFactorEnabled(false);
 
             UserResponse savedUser = userService.createUser(user);
@@ -527,5 +595,15 @@ public class AuthController {
                 "message", e.getMessage()
             ));
         }
+    }
+
+    @GetMapping("/health")
+    public ResponseEntity<?> healthCheck() {
+        logger.info("Auth system health check");
+        return ResponseEntity.ok(Map.of(
+            "status", "UP",
+            "message", "Authentication system is healthy",
+            "timestamp", new Date()
+        ));
     }
 }

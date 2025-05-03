@@ -34,6 +34,8 @@ public class InfobipSmsServiceImpl implements SmsService {
         this.baseUrl = baseUrl;
         this.sender = sender;
         this.restTemplate = restTemplate;
+        
+        logger.info("Initializing Infobip SMS service with base URL: {}", baseUrl);
     }
 
     private String formatPhoneNumber(String phoneNumber) {

@@ -9,9 +9,10 @@ import com.AgriTest.model.Notification;
 import com.AgriTest.model.NotificationType;
 import com.AgriTest.repository.NotificationRepository;
 import com.AgriTest.service.NotificationService;
+import com.AgriTest.service.SmsService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,14 +23,16 @@ import java.util.stream.Collectors;
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
+    private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
+
     @Autowired
     private NotificationRepository notificationRepository;
 
     @Autowired
     private NotificationMapper notificationMapper;
 
-    @Autowired(required = false)  // Make this optional since we might not have email configured yet
-    private JavaMailSender mailSender;
+    @Autowired
+    private SmsService smsService;
 
     @Override
     public List<NotificationResponse> getAllNotifications() {
@@ -64,22 +67,20 @@ public class NotificationServiceImpl implements NotificationService {
         boolean sentSuccessfully = false;
         
         try {
-            if (notification.getType() == NotificationType.EMAIL && mailSender != null) {
-                sendEmail(notification.getRecipientEmail(), notification.getMessage());
-                sentSuccessfully = true;
-            } else {
-                // For now, just mark as sent for other types
-                sentSuccessfully = true;
+            if (notification.getType() == NotificationType.SMS) {
+                sentSuccessfully = smsService.sendSms(notification.getRecipientPhone(), notification.getMessage());
             }
             
             if (sentSuccessfully) {
                 notification.setSent(true);
                 notification.setSentAt(LocalDateTime.now());
                 notification = notificationRepository.save(notification);
+                logger.info("Notification {} sent successfully", id);
+            } else {
+                logger.error("Failed to send notification {}", id);
             }
         } catch (Exception e) {
-            // Log the error but don't throw it to the client
-            System.err.println("Failed to send notification: " + e.getMessage());
+            logger.error("Error sending notification {}: {}", id, e.getMessage());
         }
         
         return notificationMapper.toDto(notification);
@@ -106,18 +107,5 @@ public class NotificationServiceImpl implements NotificationService {
     public List<NotificationResponse> getNotificationsByRecipientPhone(String phone) {
         List<Notification> notifications = notificationRepository.findByRecipientPhone(phone);
         return notificationMapper.toDtoList(notifications);
-    }
-    
-    private void sendEmail(String recipient, String message) {
-        if (recipient == null || recipient.isEmpty() || mailSender == null) {
-            return;
-        }
-        
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(recipient);
-        mailMessage.setSubject("AgriTest Pro Notification");
-        mailMessage.setText(message);
-        
-        mailSender.send(mailMessage);
     }
 }
