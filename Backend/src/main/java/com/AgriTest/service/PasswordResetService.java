@@ -3,6 +3,7 @@ package com.AgriTest.service;
 import com.AgriTest.model.User;
 import com.AgriTest.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,9 @@ public class PasswordResetService {
 
     @Autowired
     private SmsService smsService;
+    
+    @Value("${spring.profiles.active:prod}")
+    private String activeProfile;
 
     // Token expiration time (1 minute)
     private static final long TOKEN_EXPIRATION_SECONDS = 60;
@@ -37,11 +41,21 @@ public class PasswordResetService {
         
         // Send SMS with the reset code
         String message = String.format("Your password reset code is: %s. This code will expire in 60 seconds.", code);
-        boolean smsSent = smsService.sendSms(user.getPhoneNumber(), message);
+        boolean smsSent = false;
         
-        if (!smsSent) {
+        try {
+            smsSent = smsService.sendSms(user.getPhoneNumber(), message);
+        } catch (Exception e) {
+            logger.error("SMS service error: {}", e.getMessage());
+            // Continue with the code generation even if SMS fails
+            smsSent = isDevelopmentMode();
+        }
+        
+        if (!smsSent && !isDevelopmentMode()) {
             logger.error("Failed to send SMS to phone number: {}", user.getPhoneNumber());
             throw new RuntimeException("Failed to send reset code via SMS");
+        } else if (!smsSent) {
+            logger.warn("SMS sending failed, but continuing in development mode. Code: {}", code);
         }
         
         userRepository.save(user);
@@ -83,9 +97,23 @@ public class PasswordResetService {
         userRepository.save(user);
 
         // Send confirmation SMS
+        try {
         String message = "Your password has been reset successfully.";
         smsService.sendSms(user.getPhoneNumber(), message);
+        } catch (Exception e) {
+            // Log the error but don't fail the password reset
+            logger.error("Failed to send password reset confirmation SMS: {}", e.getMessage());
+        }
 
         return true;
+    }
+    
+    /**
+     * Check if the application is running in development mode
+     * 
+     * @return true if in development mode
+     */
+    private boolean isDevelopmentMode() {
+        return activeProfile.contains("dev") || activeProfile.contains("test") || activeProfile.contains("local");
     }
 } 

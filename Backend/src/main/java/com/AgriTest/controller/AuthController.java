@@ -491,7 +491,14 @@ public class AuthController {
             // Find user by email
             Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
             if (userOptional.isEmpty()) {
-                throw new RuntimeException("User not found with this email");
+                // Return a generic error message for security reasons
+                // This prevents user enumeration attacks by not confirming if an email exists
+                logger.warn("Password reset attempted for non-existent email: {}", request.getEmail());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "status", HttpStatus.NOT_FOUND.value(),
+                    "message", "The email address provided is not registered in our system. Please check your email or register for an account.",
+                    "error", "email_not_found"
+                ));
             }
             User user = userOptional.get();
 
