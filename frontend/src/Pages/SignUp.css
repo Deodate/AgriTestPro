@@ -1,0 +1,224 @@
+.input-container {
+    position: relative;
+    width: 50%;
+  }
+  
+  .workshop-registration {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .workshop-form-container {
+    flex-grow: 1;
+    background-color: #0a5b54; /* Teal background color from screenshot */
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  
+  .workshop-form-wrapper {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .circle-title {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 2px solid white;
+    display: flex;
+    justify-content: center;
+    margin: 0 auto 2rem 320px; /* This centers the circle horizontally */
+    align-self: center; /* This centers it relative to its flex parent */
+  }
+  
+  .circle-title span {
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.2;
+  }
+  
+  .workshop-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .form-row {
+    display: flex;
+    margin-bottom: 1rem;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .form-row .form-group {
+    width: 100%;
+  }
+  
+  .form-group.half {
+    width: 50%;
+  }
+  
+  .form-group label {
+    color: white;
+    font-size: 0.9rem;
+    width: 30%;
+    text-align: right;
+    padding-right: 1rem;
+  }
+  
+  .form-group input[type="text"],
+  .form-group input[type="email"],
+  .form-group input[type="password"],
+  .form-group input[type="tel"] {
+    padding: 0.5rem;
+    border: 1px solid white;
+    border-radius: 4px;
+    background-color: #0a5b54;
+    color: white;
+    font-size: 0.9rem;
+    width: 100%;
+  }
+  
+  .form-group input[type="text"]:focus,
+  .form-group input[type="email"]:focus,
+  .form-group input[type="password"]:focus,
+  .form-group input[type="tel"]:focus {
+    outline: none;
+    border-color: #fff;
+  }
+  
+  .form-group input.error {
+    border-color: #ff6b6b;
+  }
+  
+  .error-text {
+    color: #ff6b6b;
+    font-size: 0.75rem;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    margin-top: 2px;
+  }
+  
+  .form-group.checkbox {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .form-group.checkbox input[type="checkbox"] {
+    width: auto;
+    margin-right: 0.5rem;
+    margin-left: 30%;
+  }
+  
+  .form-group.checkbox label {
+    width: auto;
+    text-align: left;
+    padding-right: 0;
+  }
+  
+  .form-group button {
+    margin-left: 30%;
+  }
+  
+  /* Button Group Styling */
+  .button-group {
+    display: flex;
+    width: 50%;
+    justify-content: space-between;
+  }
+  
+  /* Register Button (Blue, Left) */
+  .register-button {
+    background-color: #0066cc; /* Blue color */
+    color: white;
+    border: 1px solid #0055aa;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    flex: 1;
+    margin-right: 10px;
+  }
+  
+  .register-button:hover {
+    background-color: #0055aa;
+  }
+  
+  .register-button.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  /* Cancel Button (Right) */
+  .cancel-button {
+    background-color: #0a5b54; /* Same as form background */
+    color: white;
+    border: 1px solid white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    flex: 1;
+  }
+  
+  .cancel-button:hover {
+    background-color: #0c6b63;
+  }
+  
+  .success-message {
+    background-color: rgba(0, 255, 0, 0.1);
+    color: white;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(0, 255, 0, 0.3);
+  }
+  
+  .error-message {
+    background-color: rgba(255, 0, 0, 0.1);
+    color: white;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(255, 0, 0, 0.3);
+  }
+  
+  .login-link {
+    text-align: center;
+    color: white;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .login-link a {
+    color: white;
+    text-decoration: underline;
+  }
+  
+  .login-link a:hover {
+    text-decoration: none;
+  }

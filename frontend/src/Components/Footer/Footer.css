@@ -1,0 +1,101 @@
+.footer {
+    padding: 3rem 1rem 1rem;
+    background-color: #fff;
+    font-family: Arial, sans-serif;
+  }
+  
+  .footer__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 2rem;
+  }
+  
+  .footer__section {
+    flex: 1;
+    min-width: 250px;
+  }
+  
+  .footer__logo {
+    margin-bottom: 1rem;
+  }
+  
+  .footer__title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+    color: #333;
+  }
+  
+  .footer__contact-item, 
+  .footer__link-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+  }
+  
+  .footer__contact-item p {
+    margin: 0;
+    line-height: 1.5;
+    color: #555;
+  }
+  
+  .footer__link-item a {
+    text-decoration: none;
+    color: #555;
+    transition: color 0.2s;
+  }
+  
+  .footer__link-item a:hover {
+    color: #2196F3;
+  }
+  
+  .footer__divider {
+    height: 1px;
+    background-color: #eee;
+    margin: 2rem auto;
+    max-width: 1200px;
+  }
+  
+  .footer__bottom {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: #777;
+    font-size: 0.9rem;
+  }
+  
+  .footer__rwandan-product {
+    text-align: right;
+    color: #999;
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .footer__container {
+      flex-direction: column;
+      gap: 2rem;
+    }
+    
+    .footer__section {
+      width: 100%;
+    }
+    
+    .footer__bottom {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+    .footer__rwandan-product {
+      text-align: center;
+    }
+  }

@@ -1,0 +1,346 @@
+/* TestCaseForm.css */
+.test-case-form-container {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.test-case-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 1rem;
+}
+
+.test-case-form-header h1 {
+  font-size: 2rem;
+  color: #333;
+  margin: 0;
+  font-weight: 400;
+}
+
+.test-case-form-subheader {
+  font-size: 1rem;
+  color: #666;
+  margin: 0.5rem 0 1.5rem 0;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: 1px solid #3498db;
+  color: #3498db;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #3498db;
+  color: white;
+}
+
+.test-case-form-content {
+  width: 100%;
+}
+
+.form-field {
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+}
+
+.half-width {
+  width: 50%;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #555;
+  font-size: 0.85rem;
+}
+
+.required {
+  color: #e74c3c;
+  margin-left: 4px;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 608px;
+  margin: 0 auto 10px;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  max-width: 608px;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #333;
+  transition: border-color 0.2s ease;
+  background-color: #f9f9f9;
+  box-sizing: border-box;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: #3498db;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20px;
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+
+.save-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #013515;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.save-btn:hover {
+  background-color: #024b1e;
+}
+
+.cancel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #e20714;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background-color: #c20612;
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #7f8c8d;
+  font-size: 1rem;
+}
+
+.form-input.with-icon {
+  padding-left: 38px;
+}
+
+.date-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.calendar-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #7f8c8d;
+  pointer-events: none;
+}
+
+/* Make sure the date input doesn't conflict with the icon */
+.form-input.date-input {
+  padding-right: 38px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.checkbox-container input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+.checkbox-container label {
+  margin-bottom: 0;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  color: #666;
+}
+
+/* Field groups for form layout */
+.field-group {
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.field-group.full-width {
+  max-width: 608px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .half-width {
+    width: 100%;
+  }
+  
+  .test-case-form-container {
+    padding: 1rem;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  
+  .save-btn, .cancel-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* When used inside dashboard */
+.dashboard-testcase-wrapper .test-case-form-container {
+  box-shadow: none;
+  padding: 0;
+}
+
+.dashboard-testcase-wrapper .test-case-form-header h1 {
+  display: none;
+}
+
+.dashboard-testcase-wrapper .test-case-form-subheader {
+  display: none;
+}
+
+.dashboard-testcase-wrapper .back-button {
+  display: none;
+}
+
+.error-message {
+  color: #e20714;
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+}
+
+/* Custom Toast Notification Styles */
+.Toastify__toast-container {
+  z-index: 9999 !important; /* Ensure toasts appear on top */
+  width: 350px !important;
+}
+
+.Toastify__toast {
+  font-size: 15px !important;
+  border-radius: 8px !important;
+  padding: 16px !important;
+  margin-bottom: 12px !important;
+}
+
+.Toastify__toast--success {
+  background-color: #4CAF50 !important; /* Green color for success */
+  border-left: 5px solid #2E7D32 !important;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.25) !important;
+}
+
+.Toastify__toast--error {
+  background-color: #F44336 !important; /* Red color for error */
+  border-left: 5px solid #C62828 !important;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.25) !important;
+}
+
+.Toastify__toast-body {
+  font-family: 'Arial', sans-serif;
+  font-weight: 500;
+  color: white;
+  padding: 0 10px;
+}
+
+.Toastify__progress-bar {
+  height: 4px !important;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Style for disabled submit button */
+.save-btn:disabled {
+  background-color: #94c095;
+  cursor: not-allowed;
+}
+
+.cancel-btn:disabled {
+  background-color: #e5a5a5;
+  cursor: not-allowed;
+}
+
+.info-message {
+  color: #3498db;
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+  display: flex;
+  align-items: center;
+}
+
+.info-message::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  border: 2px solid #3498db;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spinner 1s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+} 

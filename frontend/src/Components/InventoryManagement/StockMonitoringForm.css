@@ -1,0 +1,98 @@
+.stock-monitoring-form-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align to the top */
+    padding: 20px;
+}
+
+.stock-monitoring-form {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px; /* Limit form width */
+}
+
+.stock-monitoring-form h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center; /* Vertically align label and input */
+}
+
+.form-group label {
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+    margin-right: 10px; /* Add some space between label and input */
+    flex-shrink: 0; /* Prevent label from shrinking */
+    width: 150px; /* Give labels a fixed width for alignment, adjust as needed */
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+    flex-grow: 1; /* Allow input to take remaining space */
+    max-width: 400px; /* Limit the maximum width of the input */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.form-group textarea {
+    resize: vertical; /* Allow vertical resizing */
+    min-height: 100px;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: flex-start; /* Align buttons to the left */
+    gap: 10px; /* Add space between buttons */
+    margin-top: 25px; /* Add space above the buttons */
+}
+
+.stock-monitoring-form button[type="submit"] {
+    display: block;
+    width: 100%;
+    max-width: 100px; /* Limit the width of the submit button */
+    padding: 2px 8px; /* Reduced padding to decrease height and width */
+    background-color: #0882ec; /* Blue color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.stock-monitoring-form button[type="submit"]:hover {
+    background-color: #066ac9; /* Darker blue on hover */
+}
+
+.stock-monitoring-form .cancel-button {
+    display: block;
+    width: 100%;
+    max-width: 100px; /* Limit the width of the cancel button */
+    padding: 2px 8px; /* Reduced padding to decrease height and width */
+    background-color: #dc3545; /* Red color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.stock-monitoring-form .cancel-button:hover {
+    background-color: #c82333; /* Darker red on hover */
+} 
