@@ -6,7 +6,7 @@ import axios from 'axios';
 
 // Services
 import authService from '../services/authService';
-import API_CONFIG from '../config/apiConfig';
+import { API_CONFIG } from '../config';
 
 // Components
 import DashboardHeader from '../Components/Dashboard/DashboardHeader';
