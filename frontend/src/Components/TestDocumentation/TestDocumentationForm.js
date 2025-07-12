@@ -12,17 +12,24 @@ const TestDocumentationForm = () => {
         expectedResults: '',
         actualResults: '',
         testStatus: 'PENDING',
-        attachments: ''
+        attachments: null
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
+        const { name, value, files } = e.target;
+        if (name === 'attachments') {
+            setFormData(prevState => ({
+                ...prevState,
+                attachments: files
+            }));
+        } else {
+            setFormData(prevState => ({
+                ...prevState,
+                [name]: value
+            }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -41,9 +48,10 @@ const TestDocumentationForm = () => {
                 expectedResults: '',
                 actualResults: '',
                 testStatus: 'PENDING',
-                attachments: ''
+                attachments: null
             });
         } catch (error) {
+            console.error('Error creating test documentation:', error);
             toast.error(error.message || 'Failed to create test documentation');
         } finally {
             setIsSubmitting(false);
@@ -156,6 +164,7 @@ const TestDocumentationForm = () => {
                         name="attachments"
                         onChange={handleChange}
                         multiple
+                        accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
                     />
                 </div>
 
