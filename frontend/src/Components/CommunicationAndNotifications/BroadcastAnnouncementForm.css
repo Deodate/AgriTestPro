@@ -1,8 +1,10 @@
 .broadcast-announcement-form-container {
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Align to the top */
+    align-items: flex-start;
     padding: 20px;
+    min-height: calc(100vh - 100px);
+    background-color: #f5f5f5;
 }
 
 .broadcast-announcement-form {
@@ -11,89 +13,133 @@
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 600px; /* Limit form width */
+    max-width: 800px;
 }
 
 .broadcast-announcement-form h2 {
     text-align: center;
     margin-bottom: 25px;
     color: #333;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.error-message {
+    background-color: #fee;
+    color: #d32f2f;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border: 1px solid #fcc;
+    font-size: 14px;
 }
 
 .form-group {
     margin-bottom: 20px;
-    display: flex;
-    align-items: center; /* Vertically align label and input */
 }
 
 .form-group label {
+    display: block;
     margin-bottom: 8px;
-    font-weight: bold;
-    color: #555;
-    margin-right: 10px; /* Add some space between label and input */
-    flex-shrink: 0; /* Prevent label from shrinking */
-    width: 150px; /* Give labels a fixed width for alignment, adjust as needed */
+    font-weight: 500;
+    color: #333;
 }
 
 .form-group input[type="text"],
-.form-group input[type="date"],
-.form-group input[type="number"],
 .form-group select,
-.form-group textarea,
-.form-group input[type="file"] {
-    flex-grow: 1; /* Allow input to take remaining space */
-    max-width: 400px; /* Limit the maximum width of the input */
+.form-group textarea {
+    width: 100%;
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #ddd;
     border-radius: 4px;
-    font-size: 1rem;
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #1976d2;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
 }
 
 .form-group textarea {
-    resize: vertical; /* Allow vertical resizing */
-    min-height: 100px;
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-group input[type="file"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+}
+
+.form-group small {
+    display: block;
+    color: #666;
+    font-size: 12px;
+    margin-top: 4px;
 }
 
 .form-buttons {
     display: flex;
-    justify-content: flex-start; /* Align buttons to the left */
-    gap: 10px; /* Add space between buttons */
-    margin-top: 25px; /* Add space above the buttons */
+    justify-content: flex-start;
+    gap: 12px;
+    margin-top: 30px;
 }
 
-.broadcast-announcement-form button[type="submit"] {
-    display: block;
-    width: 100%;
-    max-width: 100px; /* Reduce the width of the submit button */
-    padding: 10px 15px; /* Adjust padding */
-    background-color: #007bff; /* Blue color for submit */
-    color: white;
+.form-buttons button {
+    padding: 10px 20px;
     border: none;
     border-radius: 4px;
-    font-size: 1.1rem;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    min-width: 120px;
 }
 
-.broadcast-announcement-form button[type="submit"]:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-}
-
-.broadcast-announcement-form .cancel-button {
-    display: block;
-    width: 100%;
-    max-width: 100px; /* Limit the width of the cancel button */
-    padding: 10px 15px; /* Adjust padding */
-    background-color: #dc3545; /* Red color */
+.form-buttons button[type="submit"] {
+    background-color: #1976d2;
     color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
 }
 
-.broadcast-announcement-form .cancel-button:hover {
-    background-color: #c82333; /* Darker red on hover */
+.form-buttons button[type="submit"]:hover:not(:disabled) {
+    background-color: #1565c0;
+}
+
+.form-buttons button[type="submit"]:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.form-buttons .cancel-button {
+    background-color: #f44336;
+    color: white;
+}
+
+.form-buttons .cancel-button:hover:not(:disabled) {
+    background-color: #d32f2f;
+}
+
+.form-buttons .cancel-button:disabled {
+    background-color: #ffcdd2;
+    cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .broadcast-announcement-form {
+        padding: 20px;
+        margin: 10px;
+    }
+
+    .form-buttons {
+        flex-direction: column;
+    }
+
+    .form-buttons button {
+        width: 100%;
+    }
 } 
