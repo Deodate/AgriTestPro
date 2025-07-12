@@ -2,9 +2,9 @@ package com.AgriTest.service;
 
 import com.AgriTest.dto.TestCaseResponse;
 import com.AgriTest.dto.TestResultResponse;
-import com.AgriTest.dto.TestScheduleResponse;
 import com.AgriTest.exception.ExportException;
 import com.AgriTest.model.ExportFormat;
+import com.AgriTest.model.TestSchedule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +45,7 @@ public class ExportService {
      * Export test schedules to the specified format
      */
     public byte[] exportTestSchedules(ExportFormat format, List<Long> scheduleIds) {
-        List<TestScheduleResponse> schedules;
+        List<TestSchedule> schedules;
         
         if (scheduleIds != null && !scheduleIds.isEmpty()) {
             // Export specific schedules
@@ -104,22 +104,22 @@ public class ExportService {
         return csv.toString().getBytes();
     }
     
-    private byte[] exportSchedulesToCsv(List<TestScheduleResponse> schedules) {
+    private byte[] exportSchedulesToCsv(List<TestSchedule> schedules) {
         StringBuilder csv = new StringBuilder();
         
         // Add header
-        csv.append("ID,Schedule Name,Test Case,Start Date,End Date,Frequency,Status\n");
+        csv.append("ID,Test Name,Test Type,Scheduled Date,Assigned To,Priority,Status,Description\n");
         
         // Add data
-        for (TestScheduleResponse schedule : schedules) {
+        for (TestSchedule schedule : schedules) {
             csv.append(schedule.getId()).append(",");
-            csv.append("\"").append(escapeCSV(schedule.getScheduleName())).append("\",");
-            csv.append("\"").append(escapeCSV(schedule.getTestCaseTitle())).append("\",");
-            csv.append(schedule.getStartDate()).append(",");
-            csv.append(schedule.getEndDate()).append(",");
-            csv.append(schedule.getFrequency()).append(",");
-            // Fixed: Using direct string instead of isActive() method
-            csv.append("Active"); // Default to Active
+            csv.append("\"").append(escapeCSV(schedule.getTestName())).append("\",");
+            csv.append("\"").append(escapeCSV(schedule.getTestType())).append("\",");
+            csv.append(schedule.getScheduledDate()).append(",");
+            csv.append("\"").append(escapeCSV(schedule.getAssignedTo())).append("\",");
+            csv.append("\"").append(escapeCSV(schedule.getPriority())).append("\",");
+            csv.append("\"").append(escapeCSV(schedule.getStatus())).append("\",");
+            csv.append("\"").append(escapeCSV(schedule.getDescription())).append("\"");
             csv.append("\n");
         }
         

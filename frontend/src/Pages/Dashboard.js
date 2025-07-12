@@ -91,7 +91,7 @@ const Dashboard = () => {
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
-
+  
   // Menu state variables
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
@@ -99,7 +99,7 @@ const Dashboard = () => {
   
   // State for Evidence List table
   const [showEvidenceList, setShowEvidenceList] = useState(false);
-
+  
   // Sidebar menu open/closed states
   const [productTestingOpen, setProductTestingOpen] = useState(true);
   const [complianceChecklistOpen, setComplianceChecklistOpen] = useState(false);
@@ -415,7 +415,7 @@ const Dashboard = () => {
     setNotifications(updatedNotifications);
     setNotificationCount(0);
   };
-
+  
   // Function to render status badges
   const renderStatusBadge = (status) => {
     let className = 'status-badge';
@@ -463,13 +463,13 @@ const Dashboard = () => {
       let count = 0;
       const finalValue = totalTestCases;
       const speed = 900; // Slightly slower
-
-      const animateCounter = () => {
+        
+        const animateCounter = () => {
         if (count < finalValue) {
           count++;
           setAnimatedSoilCount(count); // Update for soil tests
           setTimeout(animateCounter, speed);
-        } else {
+          } else {
           setIsSoilMax(true);
         }
       };
@@ -492,7 +492,7 @@ const Dashboard = () => {
 
       const animateCounter = () => {
         if (count < finalValue) {
-          count++;
+            count++;
           setAnimatedWaterCount(count); // Update for water tests
           setTimeout(animateCounter, speed);
         } else {
@@ -527,25 +527,25 @@ const Dashboard = () => {
       };
 
       const startDelay = setTimeout(animateCounter, 600); // Initial delay
-
+      
       return () => clearTimeout(startDelay);
     } else {
       setAnimatedEquipmentCount(0);
       setIsEquipmentMax(false);
     }
   }, [failedTestCount]); // Depend on failedTestCount
-
+  
   // Animated stat counters for scheduledTests
   useEffect(() => {
     if (scheduledTests.length > 0) {
       let count = 0;
-      const finalValue = scheduledTests.length;
+        const finalValue = scheduledTests.length;
       const speed = 650; // Fastest speed
-
-      const animateCounter = () => {
+        
+        const animateCounter = () => {
         if (count < finalValue) {
-          count++;
-          setAnimatedScheduledCount(count);
+            count++;
+            setAnimatedScheduledCount(count);
           setTimeout(animateCounter, speed);
         } else {
           setIsScheduledMax(true);
@@ -553,7 +553,7 @@ const Dashboard = () => {
       };
 
       const startDelay = setTimeout(animateCounter, 800); // Initial delay
-
+      
       return () => clearTimeout(startDelay);
     } else {
       setAnimatedScheduledCount(0);
@@ -650,7 +650,7 @@ const Dashboard = () => {
           setLoadingSchedules(false);
           return;
         }
-
+        
         try {
           // Replace with your actual backend endpoint for fetching test schedules
           const response = await fetch('http://localhost:8089/api/schedules', {
@@ -668,7 +668,7 @@ const Dashboard = () => {
           const data = await response.json();
           console.log('Fetched test schedules:', data);
           setTestSchedules(data);
-        } catch (error) {
+      } catch (error) {
           console.error('Error fetching test schedules:', error);
           setSchedulesError(`Error loading test schedules: ${error.message}`);
           setTestSchedules([]); // Clear previous data on error
@@ -813,7 +813,7 @@ const Dashboard = () => {
           toast.success('Trial phase deleted successfully!');
           // Remove the deleted phase from the state
           setTrialPhases(prevPhases => prevPhases.filter(phase => phase.id !== id));
-        } else {
+          } else {
           toast.error('Failed to delete trial phase.');
         }
       } catch (error) {
@@ -1616,9 +1616,9 @@ const Dashboard = () => {
                     setActiveTab('testcase');
                     setTestCaseMode('list');
                     // Hide all other forms/lists
-                    setShowComplianceForm(false);
+                setShowComplianceForm(false);
                     setShowTrialPhaseForm(false);
-                    setShowTestDocumentationForm(false);
+                setShowTestDocumentationForm(false);
                     setShowProductEntryForm(false);
                     setShowStockMovementForm(false);
                     setShowStockMonitoringForm(false);
@@ -1669,11 +1669,11 @@ const Dashboard = () => {
                   }}
                 >
                   <FaClipboardCheck /> List Test Cases
-                </div>
+            </div>
                  {/* Add Test Documentation tab */}
-                 <div
+            <div 
                   className={`dashboard-tab ${activeMenuItem === 'testdocumentation' ? 'active' : ''}`}
-                  onClick={() => {
+              onClick={() => {
                     setActiveTab('testdocumentation');
                     setShowTestDocumentationForm(true); // Show Test Documentation Form
                     // Hide all other forms/lists
@@ -1732,16 +1732,16 @@ const Dashboard = () => {
                   <FaFileAlt /> Create Test Documentation
             </div>
              {/* Add List of Evidence tab */}
-             <div
+            <div 
                   className={`dashboard-tab ${activeMenuItem === 'evidencelist' ? 'active' : ''}`}
-                  onClick={() => {
+              onClick={() => {
                     setActiveTab('evidencelist');
                     setShowEvidenceList(true); // Show the Evidence List Table
                     // Hide all other forms/lists
                     setShowComplianceForm(false);
                     setShowTestCaseForm(false);
                     setShowTrialPhaseForm(false);
-                    setShowTestDocumentationForm(false);
+                setShowTestDocumentationForm(false);
                     setShowProductEntryForm(false);
                     setShowStockMovementForm(false);
                     setShowStockMonitoringForm(false);
@@ -1791,7 +1791,7 @@ const Dashboard = () => {
                   }}
                 >
                   <FaClipboardCheck /> List of Evidence
-                </div>
+            </div>
           </div>
 
           {/* Compliance Checklist Content */}
@@ -2271,16 +2271,16 @@ const Dashboard = () => {
                                 <td>{phase.phaseDate}</td>
                                 <td>{phase.weatherData?.temperature ?? 'N/A'}</td> {/* Display temperature if available */} 
                                 <td>{phase.testName || 'N/A'}</td> {/* Use phase.testName directly, fallback to N/A */} 
-                                <td>
-                                  <button 
-                                    className="action-button"
-                                    onClick={() => {
-                                      setTrialPhaseMode('view');
+                          <td>
+                            <button 
+                              className="action-button"
+                              onClick={() => {
+                                setTrialPhaseMode('view');
                                       navigate(`/dashboard?TrialPhaseTrackingForm=view&id=${phase.id}`, { replace: true });
-                                    }}
-                                  >
-                                    View
-                                  </button>
+                              }}
+                            >
+                              View
+                            </button>
                                   <button 
                                     className="action-button delete"
                                     onClick={() => {
@@ -2289,8 +2289,8 @@ const Dashboard = () => {
                                   >
                                     Delete
                                   </button>
-                                </td>
-                              </tr>
+                          </td>
+                        </tr>
                             ));
                         })()}
                       </tbody>
@@ -2977,7 +2977,7 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-    </div>
+        </div>
     );
 };
 

@@ -67,4 +67,9 @@ public class TestScheduleServiceImpl implements TestScheduleService {
         }
         testScheduleRepository.deleteById(id);
     }
+
+    @Override
+    public List<TestSchedule> getTestSchedulesByIds(List<Long> scheduleIds) {
+        return testScheduleRepository.findAllById(scheduleIds);
+    }
 }

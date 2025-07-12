@@ -11,4 +11,5 @@ public interface TestScheduleService {
     TestSchedule getTestScheduleById(Long id);
     TestSchedule updateTestSchedule(Long id, TestScheduleRequest request);
     void deleteTestSchedule(Long id);
+    List<TestSchedule> getTestSchedulesByIds(List<Long> scheduleIds);
 }
