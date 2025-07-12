@@ -4,6 +4,11 @@
       "paths": {
         "@components/*": ["Components/*"],
         "@pages/*": ["Pages/*"]
+<<<<<<< HEAD
       }
+=======
+      },
+      "types": []
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     }
   }

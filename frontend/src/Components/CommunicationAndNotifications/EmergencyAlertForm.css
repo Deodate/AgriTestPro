@@ -1,0 +1,72 @@
+.emergency-alert-form-container {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.emergency-alert-form .form-row {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.emergency-alert-form label {
+    flex: 1; /* Give labels some flexibility */
+    margin-right: 10px;
+    font-weight: bold;
+    min-width: 150px; /* Ensure labels have a minimum width */
+}
+
+.emergency-alert-form input[type="text"],
+.emergency-alert-form input[type="time"],
+.emergency-alert-form textarea,
+.emergency-alert-form select,
+.emergency-alert-form input[type="file"] {
+    flex: 2; /* Give inputs more flexibility */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.emergency-alert-form textarea {
+    resize: vertical; /* Allow vertical resizing */
+    min-height: 100px;
+}
+
+.emergency-alert-form .button-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.emergency-alert-form button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.emergency-alert-form button[type="submit"] {
+    background-color: #d9534f; /* Red for emergency */
+    color: white;
+}
+
+.emergency-alert-form button[type="submit"]:hover {
+    background-color: #c9302c;
+}
+
+.emergency-alert-form button[type="button"] {
+    background-color: #5cb85c; /* Green for cancel */
+    color: white;
+}
+
+.emergency-alert-form button[type="button"]:hover {
+    background-color: #4cae4c;
+} 

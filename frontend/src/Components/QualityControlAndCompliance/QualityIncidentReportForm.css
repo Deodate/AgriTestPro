@@ -20,6 +20,7 @@
     color: #333;
 }
 
+<<<<<<< HEAD
 .form-group {
     margin-bottom: 20px;
     display: flex;
@@ -41,6 +42,27 @@
 .form-group select,
 .form-group textarea,
 .form-group input[type="file"] {
+=======
+.form-row {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center; /* Vertically align label and input */
+    gap: 15px; /* Space between label and input */
+}
+
+.form-row label {
+    font-weight: bold;
+    color: #555;
+    min-width: 150px; /* Adjust as needed for label alignment */
+}
+
+/* Adjust styling for inputs and selects */
+.form-row input[type="text"],
+.form-row input[type="date"],
+.form-row textarea,
+.form-row select,
+.form-row input[type="file"] {
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     flex-grow: 1; /* Allow input to take remaining space */
     max-width: 400px; /* Limit the maximum width of the input */
     padding: 10px;
@@ -50,19 +72,31 @@
     box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
+<<<<<<< HEAD
 .form-group textarea {
+=======
+.form-row textarea {
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     resize: vertical; /* Allow vertical resizing */
     min-height: 100px;
 }
 
+<<<<<<< HEAD
 .form-buttons {
+=======
+.button-row {
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     display: flex;
     justify-content: flex-start; /* Align buttons to the left */
     gap: 10px; /* Add space between buttons */
     margin-top: 25px; /* Add space above the buttons */
 }
 
+<<<<<<< HEAD
 .quality-incident-report-form button[type="submit"] {
+=======
+.button-row .submit-button {
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     display: block;
     width: 100%;
     max-width: 100px; /* Reduce the width of the submit button */
@@ -76,11 +110,19 @@
     transition: background-color 0.3s ease;
 }
 
+<<<<<<< HEAD
 .quality-incident-report-form button[type="submit"]:hover {
     background-color: #0056b3; /* Darker blue on hover */
 }
 
 .quality-incident-report-form .cancel-button {
+=======
+.button-row .submit-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+.button-row .cancel-button {
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     display: block;
     width: 100%;
     max-width: 100px; /* Limit the width of the cancel button */
@@ -94,6 +136,10 @@
     transition: background-color 0.3s ease;
 }
 
+<<<<<<< HEAD
 .quality-incident-report-form .cancel-button:hover {
+=======
+.button-row .cancel-button:hover {
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     background-color: #c82333; /* Darker red on hover */
 } 

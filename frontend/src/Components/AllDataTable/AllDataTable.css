@@ -1,0 +1,135 @@
+/* AllDataTable.css */
+
+.all-data-table-container {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.search-bar-container {
+    padding: 15px;
+    background-color: #f8f8f8;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex; /* Ensure the search bar container is a flex container */
+    justify-content: flex-end; /* Align content to the right */
+}
+
+.search-input-wrapper {
+    position: relative;
+    width: 300px; /* Adjust width as needed */
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 35px 10px 30px; /* Adjusted left padding for cursor position */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 0.9em;
+    color: black; /* Set text color to black */
+}
+
+.search-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    pointer-events: none; /* Make icon unclickable so clicks pass through to input */
+}
+
+.all-data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.all-data-table th {
+    background-color: #1f4037; /* Dark green from the image */
+    color: white;
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9em;
+    border-bottom: none; /* Remove default border from th */
+}
+
+.all-data-table td {
+    padding: 10px 15px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 0.88em;
+    color: #333;
+}
+
+.all-data-table tbody tr:last-child td {
+    border-bottom: none; /* No border for the last row */
+}
+
+.all-data-table tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border-top: 1px solid #e0e0e0;
+}
+
+.pagination-controls button {
+    background-color: #31544a; /* Lighter shade of dark green for inactive buttons */
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin: 0 5px;
+    border-radius: 4px; /* Slightly rounded corners */
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+    background-color: #1f4037;
+}
+
+.pagination-controls button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.pagination-controls span {
+    margin: 0 10px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+/* Active page button style */
+.pagination-controls .pagination-button.active {
+    background-color: #1f4037; /* Dark green from the image */
+    color: white;
+    font-weight: bold;
+}
+
+.page-number-button {
+    background-color: #31544a;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin: 0 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+}
+
+.page-number-button:hover:not(.active) {
+    background-color: #1f4037;
+}
+
+.page-number-button.active {
+    background-color: #1f4037;
+    color: white;
+    font-weight: bold;
+} 

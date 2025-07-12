@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import './CostTrackingForm.css';
 
 const CostTrackingForm = () => {
+<<<<<<< HEAD
     const [expenseId, setExpenseId] = useState('');
+=======
+    const [expenseName, setExpenseName] = useState('');
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     const [date, setDate] = useState('');
     const [expenseType, setExpenseType] = useState('');
     const [amount, setAmount] = useState('');
@@ -13,7 +17,11 @@ const CostTrackingForm = () => {
         e.preventDefault();
         // Handle form submission logic here
         console.log({
+<<<<<<< HEAD
             expenseId,
+=======
+            expenseName,
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
             date,
             expenseType,
             amount,
@@ -38,9 +46,15 @@ const CostTrackingForm = () => {
                 <div className="form-row">
                     <input
                         type="text"
+<<<<<<< HEAD
                         placeholder="Expense ID"
                         value={expenseId}
                         onChange={(e) => setExpenseId(e.target.value)}
+=======
+                        placeholder="Expense Name"
+                        value={expenseName}
+                        onChange={(e) => setExpenseName(e.target.value)}
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                         required
                     />
                 </div>

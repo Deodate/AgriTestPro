@@ -1,6 +1,7 @@
 package com.AgriTest.service;
 
 import com.AgriTest.dto.TrialPhaseRequest;
+<<<<<<< HEAD
 import com.AgriTest.dto.TrialPhaseResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,4 +26,16 @@ public interface TrialPhaseService {
     // Bulk operations
     List<TrialPhaseResponse> createBulkTrialPhases(List<TrialPhaseRequest> requests);
     void deleteBulkTrialPhases(List<Long> ids);
+=======
+import com.AgriTest.model.TrialPhase;
+import java.util.List;
+
+public interface TrialPhaseService {
+    TrialPhase createTrialPhase(TrialPhaseRequest request);
+    TrialPhase getTrialPhase(Long id);
+    List<TrialPhase> getTrialPhasesByTestCase(Long testCaseId);
+    List<TrialPhase> getAllTrialPhases();
+    TrialPhase updateTrialPhase(Long id, TrialPhaseRequest request);
+    void deleteTrialPhase(Long id);
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 } 

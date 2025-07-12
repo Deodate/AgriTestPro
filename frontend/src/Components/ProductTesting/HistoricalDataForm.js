@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import './HistoricalDataForm.css';
 
@@ -21,17 +22,165 @@ const HistoricalDataForm = () => {
             keywords
         });
         // Clear form or show success message
+=======
+import React, { useState, useEffect } from 'react';
+import './HistoricalDataForm.css';
+import { AUTH_SETTINGS } from '../../config'; // Import AUTH_SETTINGS
+import { toast, ToastContainer } from 'react-toastify'; // Import toast and ToastContainer
+import 'react-toastify/dist/ReactToastify.css'; // Import toastify CSS
+import axios from 'axios'; // Import axios
+
+const HistoricalDataForm = () => {
+    const [testName, setTestName] = useState('');
+    const [selectedTestId, setSelectedTestId] = useState('');
+    const [trialPhase, setTrialPhase] = useState('');
+    const [dateRange, setDateRange] = useState(''); // Consider date range picker later
+    const [productType, setProductType] = useState('');
+    const [resultStatus, setResultStatus] = useState('');
+    const [keywords, setKeywords] = useState('');
+    const [testCases, setTestCases] = useState([]); // Add state for test cases
+    const [isLoadingTestCases, setIsLoadingTestCases] = useState(false); // Add loading state for test cases
+
+    // Effect to fetch test cases on component mount
+    useEffect(() => {
+        const fetchTestCases = async () => {
+            setIsLoadingTestCases(true);
+            try {
+                const token = localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY);
+                if (!token) {
+                    console.error('Authentication token not found. Cannot fetch test cases.');
+                    // Optionally show a toast or handle authentication flow
+                    setIsLoadingTestCases(false);
+                    return;
+                }
+
+                const api = axios.create({
+                    baseURL: AUTH_SETTINGS.API_BASE_URL || 'http://localhost:8089', // Use base URL from AUTH_SETTINGS or default
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const response = await api.get('/api/testcases'); // Assuming this endpoint exists
+                if (response.data && Array.isArray(response.data)) {
+                    setTestCases(response.data);
+                } else {
+                    console.error('Failed to fetch test cases: Invalid data format', response.data);
+                    setTestCases([]);
+                }
+            } catch (error) {
+                console.error('Error fetching test cases:', error);
+                toast.error('Failed to load test cases.');
+                setTestCases([]);
+            } finally {
+                setIsLoadingTestCases(false);
+            }
+        };
+
+        fetchTestCases();
+    }, []); // Empty dependency array means this runs once on mount
+
+    // Handle change in Test Name dropdown
+    const handleTestNameChange = (e) => {
+        const id = e.target.value;
+        setSelectedTestId(id);
+
+        // Find the selected test case from the fetched list by ID
+        const selectedTestCase = testCases.find(tc => tc.id === parseInt(id));
+
+        if (selectedTestCase) {
+            setTestName(selectedTestCase.testName || '');
+            setProductType(selectedTestCase.productType || '');
+        } else {
+            setTestName('');
+            setProductType('');
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        console.log('Handling form submission...');
+
+        const formData = {
+            testName: testName,
+            trialPhase,
+            dateRange,
+            productType,
+            resultStatus,
+            keywords
+        };
+
+        console.log('Form data:', formData);
+
+        // Get authentication token from local storage
+        const token = localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY);
+
+        if (!token) {
+            console.error('Authentication token not found. Please log in.');
+            toast.error('Authentication required to submit historical data.'); // Use toast.error
+            return; // Stop the submission if no token is found
+        }
+
+        try {
+            console.log('Sending POST request to http://localhost:8089/api/historical-data...');
+            const response = await fetch('http://localhost:8089/api/historical-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, // Add Authorization header
+                },
+                body: JSON.stringify(formData),
+            });
+
+            console.log('API Response:', response);
+
+            if (response.ok) {
+                console.log('Historical data submitted successfully!');
+                toast.success('Historical data submitted successfully!'); // Use toast.success
+                // alert('Historical data submitted successfully!'); // Removed alert
+                // Clear the form after successful submission
+                setTestName('');
+                setTrialPhase('');
+                setDateRange('');
+                setProductType('');
+                setResultStatus('');
+                setKeywords('');
+            } else {
+                const errorData = await response.json();
+                console.error('Failed to submit historical data:', response.status, errorData);
+                console.log('API Error Response Body:', errorData);
+                toast.error(`Failed to submit historical data: ${errorData.message || response.statusText}`); // Use toast.error
+                // alert(`Failed to submit historical data: ${errorData.message || response.statusText}`); // Removed alert
+            }
+        } catch (error) {
+            console.error('Error submitting historical data:', error);
+            console.log('API Fetch Error:', error);
+            toast.error('An error occurred while submitting historical data.'); // Use toast.error
+            // alert('An error occurred while submitting historical data.'); // Removed alert
+        }
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     };
 
     const handleCancel = () => {
         // Handle cancel logic here, maybe close the form or clear fields
         console.log('Form cancelled');
+<<<<<<< HEAD
+=======
+         setTestName('');
+         setTrialPhase('');
+         setDateRange('');
+         setProductType('');
+         setResultStatus('');
+         setKeywords('');
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     };
 
     return (
         <div className="historical-data-form-container">
             <form className="historical-data-form" onSubmit={handleSubmit}>
                 <div className="form-row">
+<<<<<<< HEAD
                     <input
                         type="text"
                         placeholder="Product Name"
@@ -39,6 +188,24 @@ const HistoricalDataForm = () => {
                         onChange={(e) => setProductName(e.target.value)}
                         required
                     />
+=======
+                    <select
+                        value={selectedTestId}
+                        onChange={handleTestNameChange}
+                        required
+                    >
+                        <option value="">Select Test Name</option>
+                        {isLoadingTestCases ? (
+                            <option value="" disabled>Loading Test Cases...</option>
+                        ) : (
+                            testCases.map((testCase) => (
+                                <option key={testCase.id} value={testCase.id}>
+                                    {testCase.testName}
+                                </option>
+                            ))
+                        )}
+                    </select>
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                 </div>
                 <div className="form-row">
                     <input
@@ -52,7 +219,11 @@ const HistoricalDataForm = () => {
                 <div className="form-row">
                     <input
                         type="text"
+<<<<<<< HEAD
                         placeholder="Date Range (e.g., 2023-01-01 to 2023-12-31)"
+=======
+                        placeholder="Date Range (e.g., YYYY-MM-DD to YYYY-MM-DD)" // Updated placeholder for clarity
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                         value={dateRange}
                         onChange={(e) => setDateRange(e.target.value)}
                         required
@@ -61,9 +232,16 @@ const HistoricalDataForm = () => {
                  <div className="form-row">
                      <input
                         type="text"
+<<<<<<< HEAD
                         placeholder="Crop Type"
                         value={cropType}
                         onChange={(e) => setCropType(e.target.value)}
+=======
+                        placeholder="Product Type"
+                        value={productType}
+                        onChange={(e) => setProductType(e.target.value)}
+                        readOnly
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                         required
                     />
                 </div>
@@ -90,10 +268,18 @@ const HistoricalDataForm = () => {
                 </div>
 
                 <div className="button-row">
+<<<<<<< HEAD
                     <button type="submit">Submit</button>
                     <button type="button" onClick={handleCancel}>Cancel</button>
                 </div>
             </form>
+=======
+                    <button type="submit" onClick={handleSubmit}>Submit</button>
+                    <button type="button" onClick={handleCancel}>Cancel</button>
+                </div>
+            </form>
+            <ToastContainer /> {/* Add ToastContainer */}
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
         </div>
     );
 };

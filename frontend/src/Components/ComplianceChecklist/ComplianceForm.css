@@ -84,6 +84,24 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
 }
 
+<<<<<<< HEAD
+=======
+.form-input.input-error, 
+.form-select.input-error,
+.form-textarea.input-error {
+  border-color: #ef4444; /* Red border */
+  border-width: 2px;     /* Bolder border */
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25); /* Red shadow for focus/error */
+}
+
+.error-text {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 .form-input::placeholder,
 .form-textarea::placeholder {
   color: #9ca3af;

@@ -984,6 +984,28 @@
     overflow-x: auto;
 }
 
+<<<<<<< HEAD
+=======
+/* Table Styles */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+/* Font and size for the entire table */
+.data-table table {
+    font-family: "Times New Roman", Times, serif; /* Use a standard fallback font */
+    font-size: 12px;
+}
+
+/* Ensure table headers and data also use the specified font size */
+.data-table th,
+.data-table td {
+    font-size: 12px;
+}
+
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 /* Table styles */
 table {
     width: 100%;
@@ -991,7 +1013,11 @@ table {
 }
 
 thead {
+<<<<<<< HEAD
     background-color: #f7f9f8;
+=======
+    background-color: #dbe9fd;
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 }
 
 th {
@@ -1072,6 +1098,26 @@ tbody tr:hover {
     color: #721c24;
 }
 
+<<<<<<< HEAD
+=======
+/* Styles for the 'Tested' column */
+.tested-no {
+    color: #721c24; /* Dark red text */
+    background-color: #f8d7da; /* Light red background */
+    padding: 4px 8px; /* Padding like status badges */
+    border-radius: 12px; /* Rounded corners like status badges */
+    font-weight: bold;
+}
+
+.tested-yes-bg {
+    background-color: #e9f5e1; /* Light green background */
+    color: #2c5842; /* Dark green text */
+    padding: 2px 8px; /* Add some padding for the background to show */
+    border-radius: 4px; /* Slightly rounded corners */
+    font-weight: bold;
+}
+
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 /* pH value indicators */
 .ph-value {
     display: inline-flex;
@@ -1261,7 +1307,11 @@ tbody tr:hover {
 }
 
 .table-search .search-input {
+<<<<<<< HEAD
   padding: 7px 30px 7px 10px;
+=======
+  padding: 7px 30px 7px 35px;
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
   border: 1px solid #ced4da;
   border-radius: 4px;
   font-size: 14px;
@@ -1276,6 +1326,7 @@ tbody tr:hover {
 }
 
 .table-search .search-icon {
+<<<<<<< HEAD
   position: absolute;
   right: 10px;
   top: 50%;
@@ -1283,6 +1334,13 @@ tbody tr:hover {
   color: #6c757d;
   font-size: 14px;
   pointer-events: none;
+=======
+  color: #888;
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 }
 
 .table-search .clear-search {
@@ -1747,4 +1805,84 @@ tbody tr:hover {
 .dashboard-testcase-wrapper .test-case-form-container {
   padding: 0;
   box-shadow: none;
+<<<<<<< HEAD
+=======
+} 
+
+.centered-form-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  width: 100%;
+  padding: 24px 0;
+}
+
+.center-header {
+  justify-content: center !important;
+}
+
+.small-btn {
+  padding: 2px 8px !important;
+  font-size: 0.8rem !important;
+  line-height: 1.2 !important;
+}
+
+.icon-action-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin: 0 5px; /* Adjust spacing between icons */
+  padding: 0;
+  font-size: 1rem; /* Adjust size as needed */
+}
+
+.edit-icon {
+  color: #ffc107; /* Yellow/Orange color */
+}
+
+.delete-icon {
+  color: #dc3545; /* Red color */
+}
+
+/* Ensure icons are on the same row */
+.data-table td {
+  vertical-align: middle;
+}
+
+.data-table td button {
+  display: inline-block;
+  margin-right: 5px; /* Space between icons */
+}
+
+.product-search-input {
+  color: black;
+}
+
+/* Table Styles */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.hide-button {
+  display: none;
+} 
+
+.historical-list-button {
+    background-color: skyblue; /* Make it sky-blue */
+    color: white; /* White text for contrast */
+    border: 1px solid deepskyblue; /* A slightly darker border */
+    display: inline-block; /* Ensure it's treated as a block for layout */
+    padding: 8px 15px; /* Add some padding */
+    margin-left: 10px; /* Add some space from the title */
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.historical-list-button:hover {
+    background-color: deepskyblue; /* Darker shade on hover */
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 } 

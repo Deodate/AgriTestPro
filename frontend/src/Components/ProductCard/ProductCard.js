@@ -8,7 +8,11 @@ import "./ProductCard.css";
 const ProductCard = ({ product }) => {
     return (
         <div className="product-card">
+<<<<<<< HEAD
         <Link to={`/product/${product.productID}`}>
+=======
+        <Link to={`/markets/products?BatchNumber=${product.batchNumber}`}>
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
             <img src={product.image_url} alt={product.name} />
             <div className="product-card-details">
             <h3>{product.name}</h3>

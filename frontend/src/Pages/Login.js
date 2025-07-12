@@ -268,6 +268,7 @@ const Login = (props) => {
   // Handle login form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+<<<<<<< HEAD
     
     if (!validateForm()) {
       return;
@@ -279,6 +280,23 @@ const Login = (props) => {
     try {
       const response = await login(formData.username, formData.password);
       
+=======
+    console.log("Login form submitted.");
+
+    if (!validateForm()) {
+      console.log("Form validation failed.");
+      return;
+    }
+
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      console.log("Attempting login with username:", formData.username);
+      const response = await login(formData.username, formData.password);
+      console.log("Login successful. Response:", response);
+
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
       if (response.requiresVerification) {
         // Show 2FA form
         setRequires2FA(true);
@@ -293,6 +311,10 @@ const Login = (props) => {
         }, 1500);
       }
     } catch (error) {
+<<<<<<< HEAD
+=======
+      console.error("Login error:", error);
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
       // Handle specific error types from the backend with 1-minute persistence
       if (error.error) {
         switch (error.error) {
@@ -324,6 +346,10 @@ const Login = (props) => {
         }, 'login');
       }
     } finally {
+<<<<<<< HEAD
+=======
+      console.log("Login process finished. Setting isLoading to false.");
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
       setIsLoading(false);
     }
   };

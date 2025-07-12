@@ -2,11 +2,15 @@ package com.AgriTest.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+<<<<<<< HEAD
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+=======
+import java.time.LocalDateTime;
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 
 @Data
 @Entity
@@ -44,6 +48,7 @@ public class TrialPhase {
     @Column(name = "additional_comments", columnDefinition = "TEXT")
     private String additionalComments;
 
+<<<<<<< HEAD
     @Column(name = "status", nullable = false)
     private String status = "PENDING"; // PENDING, IN_PROGRESS, COMPLETED, CANCELLED
 
@@ -58,6 +63,13 @@ public class TrialPhase {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+=======
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 
     @Column(name = "created_by")
     private String createdBy;

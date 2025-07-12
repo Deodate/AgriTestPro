@@ -86,6 +86,7 @@
 
 .button-row button[type="button"]:hover {
     background-color: #c82333; /* Darker red on hover */
+<<<<<<< HEAD
 } 
 
 .calendar-management-table-container {
@@ -144,4 +145,6 @@
 
 .status-badge.on-hold {
     background-color: #F44336; /* Red */
+=======
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 } 

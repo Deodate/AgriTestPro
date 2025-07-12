@@ -1,6 +1,7 @@
 package com.AgriTest.controller;
 
 import com.AgriTest.dto.TrialPhaseRequest;
+<<<<<<< HEAD
 import com.AgriTest.dto.TrialPhaseResponse;
 import com.AgriTest.service.TrialPhaseService;
 import jakarta.validation.Valid;
@@ -13,19 +14,31 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+=======
+import com.AgriTest.model.TrialPhase;
+import com.AgriTest.service.TrialPhaseService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/trial-phases")
+<<<<<<< HEAD
 @PreAuthorize("isAuthenticated()")
 public class TrialPhaseController {
     private static final Logger logger = LoggerFactory.getLogger(TrialPhaseController.class);
+=======
+public class TrialPhaseController {
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 
     @Autowired
     private TrialPhaseService trialPhaseService;
 
+<<<<<<< HEAD
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN') or hasRole('TESTER')")
     public ResponseEntity<TrialPhaseResponse> createTrialPhase(
@@ -54,10 +67,25 @@ public class TrialPhaseController {
     public ResponseEntity<List<TrialPhaseResponse>> getTrialPhasesByTestCase(
             @PathVariable Long testCaseId) {
         logger.info("Fetching trial phases for test case: {}", testCaseId);
+=======
+    @PostMapping
+    public ResponseEntity<TrialPhase> createTrialPhase(@Valid @RequestBody TrialPhaseRequest request) {
+        return ResponseEntity.ok(trialPhaseService.createTrialPhase(request));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<TrialPhase> getTrialPhase(@PathVariable Long id) {
+        return ResponseEntity.ok(trialPhaseService.getTrialPhase(id));
+    }
+
+    @GetMapping("/test-case/{testCaseId}")
+    public ResponseEntity<List<TrialPhase>> getTrialPhasesByTestCase(@PathVariable Long testCaseId) {
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
         return ResponseEntity.ok(trialPhaseService.getTrialPhasesByTestCase(testCaseId));
     }
 
     @GetMapping
+<<<<<<< HEAD
     @PreAuthorize("hasAnyRole('ADMIN', 'TESTER', 'USER')")
     public ResponseEntity<List<TrialPhaseResponse>> getAllTrialPhases() {
         logger.info("Fetching all trial phases");
@@ -112,4 +140,22 @@ public class TrialPhaseController {
         trialPhaseService.deleteBulkTrialPhases(ids);
         return ResponseEntity.ok().build();
     }
+=======
+    public ResponseEntity<List<TrialPhase>> getAllTrialPhases() {
+        return ResponseEntity.ok(trialPhaseService.getAllTrialPhases());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TrialPhase> updateTrialPhase(
+            @PathVariable Long id,
+            @Valid @RequestBody TrialPhaseRequest request) {
+        return ResponseEntity.ok(trialPhaseService.updateTrialPhase(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTrialPhase(@PathVariable Long id) {
+        trialPhaseService.deleteTrialPhase(id);
+        return ResponseEntity.ok().build();
+    }
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 } 

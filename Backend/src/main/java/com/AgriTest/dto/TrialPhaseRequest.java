@@ -3,9 +3,13 @@ package com.AgriTest.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+<<<<<<< HEAD
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.List;
+=======
+import java.time.LocalDateTime;
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 
 @Data
 public class TrialPhaseRequest {
@@ -20,6 +24,7 @@ public class TrialPhaseRequest {
 
     private String observations;
     private String testDataEntry;
+<<<<<<< HEAD
     
     // Weather data
     private Double weatherTemperature;
@@ -31,4 +36,10 @@ public class TrialPhaseRequest {
     
     // Optional file attachments
     private List<MultipartFile> attachments;
+=======
+    private Double weatherTemperature;
+    private Double weatherHumidity;
+    private Double weatherRainfall;
+    private String additionalComments;
+>>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 } 
