@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/test-documentation")
@@ -18,20 +19,21 @@ public class TestDocumentationController {
 
     private final TestDocumentationService testDocumentationService;
 
+    @Autowired
     public TestDocumentationController(TestDocumentationService testDocumentationService) {
         this.testDocumentationService = testDocumentationService;
     }
 
     @PostMapping
     public ResponseEntity<TestDocumentationResponse> createTestDocumentation(
-            @Valid @RequestPart("testName") String testName,
-            @RequestPart("testType") String testType,
-            @RequestPart(value = "description", required = false) String description,
-            @RequestPart("testProcedure") String testProcedure,
-            @RequestPart("expectedResults") String expectedResults,
-            @RequestPart(value = "actualResults", required = false) String actualResults,
-            @RequestPart("testStatus") String testStatus,
-            @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments,
+            @RequestParam("testName") String testName,
+            @RequestParam("testType") String testType,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam("testProcedure") String testProcedure,
+            @RequestParam("expectedResults") String expectedResults,
+            @RequestParam(value = "actualResults", required = false) String actualResults,
+            @RequestParam("testStatus") String testStatus,
+            @RequestParam(value = "attachments", required = false) List<MultipartFile> attachments,
             Authentication authentication) {
         
         TestDocumentationRequest request = new TestDocumentationRequest();
