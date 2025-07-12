@@ -8,11 +8,14 @@ import com.AgriTest.model.TestSchedule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
 public class ExportService {
 
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    
     @Autowired
     private TestCaseService testCaseService;
     
@@ -107,19 +110,36 @@ public class ExportService {
     private byte[] exportSchedulesToCsv(List<TestSchedule> schedules) {
         StringBuilder csv = new StringBuilder();
         
-        // Add header
-        csv.append("ID,Test Name,Test Type,Scheduled Date,Assigned To,Priority,Status,Description\n");
+        // Add header with updated fields
+        csv.append("ID,Test Name,Schedule Name,Trial Phase,Assigned Personnel,Location,")
+           .append("Test Objective,Equipment Required,Notification Preference,")
+           .append("Frequency,Day of Month,Day of Week,Start Date,End Date,Next Execution,")
+           .append("Is Active,Test Case ID,Priority,Status,Notes,Created At,Updated At\n");
         
         // Add data
         for (TestSchedule schedule : schedules) {
             csv.append(schedule.getId()).append(",");
             csv.append("\"").append(escapeCSV(schedule.getTestName())).append("\",");
-            csv.append("\"").append(escapeCSV(schedule.getTestType())).append("\",");
-            csv.append(schedule.getScheduledDate()).append(",");
-            csv.append("\"").append(escapeCSV(schedule.getAssignedTo())).append("\",");
+            csv.append("\"").append(escapeCSV(schedule.getScheduleName())).append("\",");
+            csv.append("\"").append(escapeCSV(schedule.getTrialPhase())).append("\",");
+            csv.append("\"").append(escapeCSV(schedule.getAssignedPersonnel())).append("\",");
+            csv.append("\"").append(escapeCSV(schedule.getLocation())).append("\",");
+            csv.append("\"").append(escapeCSV(schedule.getTestObjective())).append("\",");
+            csv.append("\"").append(escapeCSV(schedule.getEquipmentRequired())).append("\",");
+            csv.append("\"").append(escapeCSV(schedule.getNotificationPreference())).append("\",");
+            csv.append("\"").append(escapeCSV(schedule.getFrequency())).append("\",");
+            csv.append(schedule.getDayOfMonth() != null ? schedule.getDayOfMonth() : "").append(",");
+            csv.append(schedule.getDayOfWeek() != null ? schedule.getDayOfWeek() : "").append(",");
+            csv.append(schedule.getStartDate() != null ? schedule.getStartDate().format(DATE_FORMATTER) : "").append(",");
+            csv.append(schedule.getEndDate() != null ? schedule.getEndDate().format(DATE_FORMATTER) : "").append(",");
+            csv.append(schedule.getNextExecution() != null ? schedule.getNextExecution().format(DATE_FORMATTER) : "").append(",");
+            csv.append(schedule.getIsActive()).append(",");
+            csv.append(schedule.getTestCase() != null ? schedule.getTestCase().getId() : "").append(",");
             csv.append("\"").append(escapeCSV(schedule.getPriority())).append("\",");
             csv.append("\"").append(escapeCSV(schedule.getStatus())).append("\",");
-            csv.append("\"").append(escapeCSV(schedule.getDescription())).append("\"");
+            csv.append("\"").append(escapeCSV(schedule.getNotes())).append("\",");
+            csv.append(schedule.getCreatedAt() != null ? schedule.getCreatedAt() : "").append(",");
+            csv.append(schedule.getUpdatedAt() != null ? schedule.getUpdatedAt() : "");
             csv.append("\n");
         }
         
