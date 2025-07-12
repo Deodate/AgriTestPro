@@ -40,7 +40,7 @@ const showNotification = (type, message) => {
 
 const TestCaseForm = ({ onBack, onSave, initialData }) => {
   // Get the API URL from config or use default
-  const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8089';
+  const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8888';
   console.log('Using API base URL:', apiBaseUrl);
 
   const [formData, setFormData] = useState({

@@ -9,7 +9,7 @@ const HistoricalDataList = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8089';
+    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8888';
 
     useEffect(() => {
         const fetchHistoricalData = async () => {

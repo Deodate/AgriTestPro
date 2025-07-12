@@ -26,14 +26,15 @@ const AllDataTable = ({ apiEndpoint }) => {
       }
 
       try {
-        const api = axios.create({
-          baseURL: API_CONFIG.BASE_URL || 'http://localhost:8089',
+        const axiosInstance = axios.create({
+          baseURL: API_CONFIG.BASE_URL || 'http://localhost:8888',
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
         });
         // Use the passed apiEndpoint, or fallback to a default if not provided
-        const response = await api.get(apiEndpoint || '/api/all-data'); 
+        const response = await axiosInstance.get(apiEndpoint || '/api/all-data'); 
         setData(response.data);
         setOriginalData(response.data);
       } catch (err) {

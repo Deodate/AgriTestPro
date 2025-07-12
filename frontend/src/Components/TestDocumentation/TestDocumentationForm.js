@@ -70,7 +70,7 @@ import { API_CONFIG, AUTH_SETTINGS } from '../../config';
 import './TestDocumentationForm.css';
 
 const TestDocumentationForm = ({ onBack, onSave, initialData }) => {
-    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8089';
+    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8888';
 
     const [formData, setFormData] = useState({
         testCaseId: '',

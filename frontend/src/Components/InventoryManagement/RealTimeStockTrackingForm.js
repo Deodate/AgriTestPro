@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG } from '../../config';
 import './RealTimeStockTrackingForm.css';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -21,7 +22,7 @@ const RealTimeStockTrackingForm = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_BASE_URL = 'http://localhost:8089/api/real-time-stock-tracking'; // Backend API URL
+  const API_BASE_URL = `${API_CONFIG.BASE_URL}/api/real-time-stock-tracking`; // Backend API URL
 
   useEffect(() => {
     fetchStockEntries();

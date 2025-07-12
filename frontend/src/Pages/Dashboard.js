@@ -6,6 +6,7 @@ import axios from 'axios';
 
 // Services
 import authService from '../services/authService';
+import API_CONFIG from '../config/apiConfig';
 
 // Components
 import DashboardHeader from '../Components/Dashboard/DashboardHeader';
@@ -233,7 +234,7 @@ const Dashboard = () => {
         return;
       }
       try {
-        const response = await axios.delete(`http://localhost:8089/api/test-case-trial-phases/${id}`, {
+        const response = await axios.delete(`${API_CONFIG.BASE_URL}/api/test-case-trial-phases/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (response.status === 204) {
@@ -292,7 +293,7 @@ const Dashboard = () => {
       return;
     }
     try {
-      const response = await axios.get(`http://localhost:8089/api/test-case-trial-phases/${id}`, {
+      const response = await axios.get(`${API_CONFIG.BASE_URL}/api/test-case-trial-phases/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data) {

@@ -40,7 +40,7 @@ import { API_CONFIG, AUTH_SETTINGS } from '../../config';
 import authService from '../../services/authService';
 
 const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
-    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8089';
+    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8888';
 
     const [entityId, setEntityId] = useState('');
     const [entityType, setEntityType] = useState(''); // e.g., 'TEST_CASE', 'TRIAL_PHASE'
