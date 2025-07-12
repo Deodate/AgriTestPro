@@ -6,7 +6,7 @@ import { API_CONFIG, AUTH_SETTINGS } from '../../config';
 import authService from '../../services/authService';
 
 const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
-    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8089';
+    const apiBaseUrl = API_CONFIG.BASE_URL;
 
     const [entityId, setEntityId] = useState('');
     const [entityType, setEntityType] = useState(''); // e.g., 'TEST_CASE', 'TRIAL_PHASE'
@@ -49,6 +49,7 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
           });
 
           try {
+            console.log('Fetching test cases from:', `${apiBaseUrl}/api/testcases`);
             const response = await api.get('/api/testcases');
             console.log('Frontend received test cases:', response.data);
             setTestCases(response.data || []);
@@ -66,6 +67,14 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log('Form submitted with values:', {
+            entityId,
+            mediaType,
+            selectedFile,
+            descriptionCaption,
+            takenBy,
+            dateCaptured
+        });
 
         if (!selectedFile || !entityId || !mediaType) {
             toast.error('Please select a test name, media type, and a file.');
@@ -107,11 +116,14 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
         };
 
         try {
+            console.log('Sending evidence upload request to:', `${apiBaseUrl}/api/evidence/upload`);
             const response = await axios.post(
                 `${apiBaseUrl}/api/evidence/upload`, // New endpoint
                 formData,
                 { headers }
             );
+
+            console.log('Upload response:', response);
 
             if (response.status === 200) {
                 toast.success('Evidence Uploaded successful!', {
