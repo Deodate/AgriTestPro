@@ -571,6 +571,7 @@ const Dashboard = () => {
     setShowTrialPhaseForm(false);
     setShowTestDocumentationForm(false);
     setShowBroadcastAnnouncementForm(false);
+    setShowProductRegistrationForm(false);
     // ... other form resets ...
 
     // Check for Trial Phase Tracking Form
@@ -587,6 +588,15 @@ const Dashboard = () => {
       setShowTestDocumentationForm(true);
       setActiveTab('testdocumentation');
       setActiveMenuItem('CreatingTestDocumentation');
+      setShowBroadcastAnnouncementForm(false); // Explicitly hide Broadcast Announcement form
+      return;
+    }
+
+    // Check for Product Registration Form
+    if (queryParams.get('ProductRegistrationForm') === 'create') {
+      setShowProductRegistrationForm(true);
+      setActiveTab('productregistration');
+      setActiveMenuItem('ProductRegistrationForm');
       setShowBroadcastAnnouncementForm(false); // Explicitly hide Broadcast Announcement form
       return;
     }
@@ -2232,35 +2242,48 @@ const Dashboard = () => {
             <div className="table-container">
               <div className="table-header-actions">
                 <h2>Create Test Documentation</h2>
-                {/* Optionally add a back button if needed */}
-                {/* <button onClick={() => navigate(-1)}>Back</button> */}
               </div>
-              <div className="dashboard-testdocumentation-wrapper"> {/* Use a wrapper class if needed for styling */}
+              <div className="dashboard-testdocumentation-wrapper">
                 <TestDocumentationForm />
               </div>
             </div>
           )}
+
+          {activeTab === 'broadcastannouncementform' && showBroadcastAnnouncementForm && (
+            <div className="table-container">
+              <div className="dashboard-broadcastannouncementform-wrapper">
+                <BroadcastAnnouncementForm />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'productregistration' && showProductRegistrationForm && (
+            <div className="table-container">
+              <div className="table-header-actions center-header">
+                <h2>Product Registration Form</h2>
+              </div>
+              <div className="centered-form-wrapper">
+                <ProductRegistrationForm />
+              </div>
+            </div>
+          )}
+
           {activeTab === 'productentry' && showProductEntryForm && (
             <div className="table-container">
               <div className="table-header-actions">
                 <h2>Product Entry Form</h2>
-                {/* Optionally add a back button if needed */}
-                {/* <button onClick={() => navigate(-1)}>Back</button> */}
               </div>
-              {/* Use a wrapper class if needed for styling */}
               <div className="dashboard-productentry-wrapper">
                 <ProductEntryForm />
               </div>
             </div>
           )}
+
           {activeTab === 'stockmovement' && showStockMovementForm && (
             <div className="table-container">
               <div className="table-header-actions">
                 <h2>Stock Movement Form</h2>
-                {/* Optionally add a back button if needed */}
-                {/* <button onClick={() => navigate(-1)}>Back</button> */}
               </div>
-              {/* Use a wrapper class if needed for styling */}
               <div className="dashboard-stockmovement-wrapper">
                 <StockMovementForm />
               </div>
@@ -2270,10 +2293,7 @@ const Dashboard = () => {
             <div className="table-container">
               <div className="table-header-actions">
                 <h2>Stock Monitoring Form</h2>
-                {/* Optionally add a back button if needed */}
-                {/* <button onClick={() => navigate(-1)}>Back</button> */}
               </div>
-              {/* Use a wrapper class if needed for styling */}
               <div className="dashboard-stockmonitoring-wrapper">
                 <StockMonitoringForm />
               </div>
@@ -2283,10 +2303,7 @@ const Dashboard = () => {
             <div className="table-container">
               <div className="table-header-actions">
                 <h2>Report Generation Form</h2>
-                {/* Optionally add a back button if needed */}
-                {/* <button onClick={() => navigate(-1)}>Back</button> */}
               </div>
-              {/* Use a wrapper class if needed for styling */}
               <div className="dashboard-reportgeneration-wrapper">
                 <ReportGenerationForm />
               </div>
@@ -2296,10 +2313,7 @@ const Dashboard = () => {
             <div className="table-container">
               <div className="table-header-actions">
                 <h2>Performance Analysis Form</h2>
-                {/* Optionally add a back button if needed */}
-                {/* <button onClick={() => navigate(-1)}>Back</button> */}
               </div>
-              {/* Use a wrapper class if needed for styling */}
               <div className="dashboard-performanceanalysis-wrapper">
                 <PerformanceAnalysisForm />
               </div>
