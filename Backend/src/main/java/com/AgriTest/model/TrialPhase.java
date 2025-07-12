@@ -2,7 +2,11 @@ package com.AgriTest.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -40,11 +44,20 @@ public class TrialPhase {
     @Column(name = "additional_comments", columnDefinition = "TEXT")
     private String additionalComments;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "status", nullable = false)
+    private String status = "PENDING"; // PENDING, IN_PROGRESS, COMPLETED, CANCELLED
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "trial_phase_id")
+    private List<FileAttachment> attachments = new ArrayList<>();
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
 
     @Column(name = "created_by")
     private String createdBy;

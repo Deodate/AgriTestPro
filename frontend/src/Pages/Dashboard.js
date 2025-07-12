@@ -925,7 +925,19 @@ const Dashboard = () => {
     return null; // Or a default dashboard view
   };
 
-    return (
+  // Add cleanup effect when activeTab changes
+  useEffect(() => {
+    // Reset all form states when switching tabs
+    if (activeTab !== 'trialphase') {
+      setShowTrialPhaseForm(false);
+      setTrialPhaseMode('list');
+    }
+    if (activeTab !== 'broadcastannouncementform') {
+      setShowBroadcastAnnouncementForm(false);
+    }
+  }, [activeTab]);
+
+  return (
     <div className="dashboard-container">
       <div className="twilio-header">
         <div className="header-left">
@@ -1040,6 +1052,7 @@ const Dashboard = () => {
                         setShowTrialPhaseForm(true);
                         setTrialPhaseMode('create');
                         setActiveTab('trialphase');
+                        setShowBroadcastAnnouncementForm(false); // Reset broadcast form
                         navigate('/dashboard?TrialPhaseTrackingForm=create', { replace: true });
                       }}>Trial Phase Tracking</div>
                       <div className="menu-item" onClick={() => {
@@ -2162,7 +2175,6 @@ const Dashboard = () => {
                             <button className="action-button delete">Delete</button>
                           </td>
                         </tr>
-                        {/* Add more sample rows as needed */}
                       </tbody>
                     </table>
                   </div>
