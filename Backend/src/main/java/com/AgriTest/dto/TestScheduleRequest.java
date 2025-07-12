@@ -1,6 +1,5 @@
 package com.AgriTest.dto;
 
-import com.AgriTest.model.ScheduleFrequency;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -15,49 +14,30 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestScheduleRequest {
-    @NotBlank(message = "Test name is required")
-    private String testName;
-
+    @NotNull(message = "Test Case ID is required")
+    private Long testCaseId;
+    
     @NotBlank(message = "Schedule name is required")
     private String scheduleName;
-
-    private String trialPhase;
-
-    @NotBlank(message = "Assigned personnel is required")
-    private String assignedPersonnel;
-
-    private String location;
-
-    private String testObjective;
-
-    private String equipmentRequired;
-
-    private String notificationPreference;
-
-    private String notes;
-
-    @NotNull(message = "Frequency is required")
-    private String frequency;
-
-    private Integer dayOfMonth;
-
-    private Integer dayOfWeek;
-
+    
     @NotNull(message = "Start date is required")
     private LocalDate startDate;
-
+    
     private LocalDate endDate;
+    
+    @NotBlank(message = "Frequency is required")
+    private String frequency; // DAILY, WEEKLY, BIWEEKLY, MONTHLY
+    
+    private Integer dayOfWeek; // 1-7 (Monday to Sunday)
+    
+    private Integer dayOfMonth;
 
-    private Boolean isActive;
-
-    @NotNull(message = "Test case ID is required")
-    private Long testCaseId;
-
-    private String description;
-
-    private String priority;
-
-    private String status;
-
-    private Long createdBy;
+    // Added fields from frontend form
+    private String trialPhase;
+    private String assignedPersonnel;
+    private String location;
+    private String testObjective;
+    private String equipmentRequired;
+    private String notificationPreference;
+    private String notes;
 }

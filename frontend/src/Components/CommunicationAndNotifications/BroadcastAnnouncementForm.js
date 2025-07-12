@@ -150,7 +150,7 @@ const BroadcastAnnouncementForm = () => {
                     />
                 </div>
 
-                <div className="form-group">
+                 <div className="form-group">
                     <label htmlFor="targetAudience">Target Audience</label>
                     <select 
                         id="targetAudience" 

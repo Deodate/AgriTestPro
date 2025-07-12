@@ -1,358 +1,348 @@
 import React, { useState, useEffect } from 'react';
 import './TestSchedulingForm.css';
-import { toast } from 'react-toastify';
-import { API_CONFIG, AUTH_SETTINGS } from '../../config';
-import axios from 'axios';
+import { AUTH_SETTINGS } from '../../config'; // Import AUTH_SETTINGS
+import axios from 'axios'; // Import axios for making HTTP requests
+import { API_CONFIG } from '../../config'; // Import API_CONFIG
+import { toast } from 'react-toastify'; // Import toast for notifications
 
 const TestSchedulingForm = () => {
-    const [formData, setFormData] = useState({
-        testName: '',
-        scheduleName: '',
-        trialPhase: '',
-        assignedPersonnel: '',
-        location: '',
-        testObjective: '',
-        equipmentRequired: '',
-        notificationPreference: '',
-        notes: '',
-        frequency: 'DAILY',
-        dayOfMonth: '',
-        dayOfWeek: '',
-        startDate: '',
-        endDate: '',
-        isActive: true,
-        testCaseId: '',
-        description: '',
-        priority: 'MEDIUM',
-        status: 'PENDING'
-    });
-
-    const [testCases, setTestCases] = useState([]);
+    const [productId, setProductId] = useState('');
+    const [trialPhase, setTrialPhase] = useState('');
+    const [scheduledDate, setScheduledDate] = useState('');
+    const [assignedPersonnel, setAssignedPersonnel] = useState('');
+    const [location, setLocation] = useState('');
+    const [testObjective, setTestObjective] = useState('');
+    const [equipmentRequired, setEquipmentRequired] = useState('');
+    const [notificationPreference, setNotificationPreference] = useState('');
+    const [notes, setNotes] = useState('');
+    const [scheduleName, setScheduleName] = useState('');
+    const [frequency, setFrequency] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [testCases, setTestCases] = useState([]); // State to hold fetched test cases
+    const [availableWorkers, setAvailableWorkers] = useState([]); // State to hold fetched workers
+    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8089'; // Define apiBaseUrl
 
+    // Fetch test cases on component mount
     useEffect(() => {
-        // Fetch test cases when component mounts
+        const fetchTestCases = async () => {
+          setIsLoading(true);
+
+          const token = localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY);
+          if (!token) {
+              console.error('Authentication token not found. Cannot fetch test cases.');
+              setIsLoading(false);
+              return;
+          }
+
+          const api = axios.create({
+            baseURL: apiBaseUrl,
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          try {
+            const response = await api.get('/api/testcases');
+            console.log('Frontend received test cases:', response.data);
+            // Filter out test cases with empty or null testName before setting state
+            const validTestCases = (response.data || []).filter(test => test.testName && test.testName.trim() !== '');
+            setTestCases(validTestCases);
+          } catch (err) {
+            console.error('Error fetching test cases:', err);
+             // Optionally set an error state to display a message to the user
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
         fetchTestCases();
-    }, []);
+    }, [apiBaseUrl]); // Re-run if apiBaseUrl changes
 
-    const fetchTestCases = async () => {
-        try {
-            const token = localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY);
-            const response = await axios.get(
-                `${API_CONFIG.BASE_URL}/api/test-cases`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
-            );
-            setTestCases(response.data);
-        } catch (error) {
-            console.error('Error fetching test cases:', error);
-            toast.error('Failed to fetch test cases');
-        }
-    };
+    // Fetch workers on component mount
+    useEffect(() => {
+        const fetchWorkers = async () => {
+          setIsLoading(true);
+          // No explicit error state for workers for now, using console.error
 
-    const handleChange = (e) => {
-        const { name, value, type } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: type === 'checkbox' ? e.target.checked : value
-        }));
-    };
+          const token = localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY);
+          if (!token) {
+              console.error('Authentication token not found. Cannot fetch workers.');
+              setIsLoading(false);
+              return;
+          }
+
+          const api = axios.create({
+            baseURL: apiBaseUrl,
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          try {
+            // First try to get users with ROLE_FIELD_WORKER
+            const fieldWorkerResponse = await api.get('/api/users/role/ROLE_FIELD_WORKER');
+            let workers = [];
+            if (fieldWorkerResponse.data && Array.isArray(fieldWorkerResponse.data)) {
+              workers = fieldWorkerResponse.data.map(user => ({
+                id: user.id,
+                name: user.fullName || user.username // Use fullName or username
+              }));
+            }
+
+            // Then try agronomists and combine the lists, avoiding duplicates if any
+            const agronomistResponse = await api.get('/api/users/role/ROLE_AGRONOMIST');
+            if (agronomistResponse.data && Array.isArray(agronomistResponse.data)) {
+                 const agronomistWorkers = agronomistResponse.data.map(user => ({
+                    id: user.id,
+                    name: user.fullName || user.username // Use fullName or username
+                 }));
+                 // Combine and remove potential duplicates based on id
+                 const combinedWorkers = [...workers, ...agronomistWorkers];
+                 const uniqueWorkers = Array.from(new Map(combinedWorkers.map(item => [item['id'], item])).values());
+                 setAvailableWorkers(uniqueWorkers);
+            } else {
+                // If no agronomists, just use field workers (or empty if none)
+                 setAvailableWorkers(workers);
+            }
+
+            console.log('Frontend received workers:', availableWorkers);
+
+          } catch (err) {
+            console.error('Error fetching workers:', err);
+            // Keep availableWorkers as empty or set a default/error state
+             setAvailableWorkers([]); // Set to empty array on error
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
+        fetchWorkers();
+    }, [apiBaseUrl]); // Re-run if apiBaseUrl changes
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsLoading(true);
+        console.log('Submit button clicked. Submitting form...');
+        // Handle form submission logic here
+        const formData = {
+            testCaseId: productId,
+            trialPhase: trialPhase,
+            scheduledDate: scheduledDate,
+            assignedPersonnel: assignedPersonnel,
+            location: location,
+            testObjective: testObjective,
+            equipmentRequired: equipmentRequired,
+            notificationPreference: notificationPreference,
+            notes: notes,
+            scheduleName: scheduleName,
+            startDate: scheduledDate,
+            frequency: frequency,
+            trialPhase: trialPhase,
+            assignedPersonnel: assignedPersonnel,
+            location: location,
+            testObjective: testObjective,
+            equipmentRequired: equipmentRequired,
+            notificationPreference: notificationPreference,
+            notes: notes
+        };
 
         try {
-            const token = localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY);
+            const token = localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY); // Get token from local storage
             if (!token) {
-                toast.error('Authentication token not found. Please log in again.');
-                return;
+                console.error('Authentication token not found.');
+                toast.error('You are not authenticated. Please log in.');
+                setIsLoading(false); // Assuming you have an isLoading state
+                return; // Stop the submission process if no token
             }
 
-            const response = await axios.post(
-                `${API_CONFIG.BASE_URL}/api/test-schedules`,
-                formData,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            const response = await fetch('http://localhost:8089/api/schedules', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, // Add Authorization header
+                },
+                body: JSON.stringify(formData),
+            });
 
-            if (response.status === 200 || response.status === 201) {
-                toast.success('Test Schedule created successfully!');
-                // Reset form
-                setFormData({
-                    testName: '',
-                    scheduleName: '',
-                    trialPhase: '',
-                    assignedPersonnel: '',
-                    location: '',
-                    testObjective: '',
-                    equipmentRequired: '',
-                    notificationPreference: '',
-                    notes: '',
-                    frequency: 'DAILY',
-                    dayOfMonth: '',
-                    dayOfWeek: '',
-                    startDate: '',
-                    endDate: '',
-                    isActive: true,
-                    testCaseId: '',
-                    description: '',
-                    priority: 'MEDIUM',
-                    status: 'PENDING'
-                });
+            if (!response.ok) {
+                // Handle HTTP errors
+                const errorData = await response.json();
+                console.error('Submission failed:', response.status, errorData);
+                toast.error(`Failed to schedule test: ${errorData.message || response.statusText}`);
+            } else {
+                // Handle successful submission
+                const result = await response.json();
+                console.log('Submission successful:', result);
+                toast.success('Test scheduled successfully!');
+                // Optionally clear the form
+                // setProductId('');
+                // setTrialPhase('');
+                // setScheduledDate('');
+                // setAssignedPersonnel('');
+                // setLocation('');
+                // setTestObjective('');
+                // setEquipmentRequired('');
+                // setNotificationPreference('');
+                // setNotes('');
             }
         } catch (error) {
-            console.error('Error creating test schedule:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'An error occurred while creating the test schedule.';
-            toast.error(`Failed to create test schedule: ${errorMessage}`);
+            console.error('Error submitting form:', error);
+            toast.error('An error occurred while scheduling the test.');
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Ensure isLoading is set to false after the submission attempt
         }
+    };
+
+    const handleCancel = () => {
+        // Handle cancel logic here, maybe close the form or clear fields
+        console.log('Form cancelled');
     };
 
     return (
         <div className="test-scheduling-form-container">
             <form className="test-scheduling-form" onSubmit={handleSubmit}>
                 <div className="form-row">
-                    <label htmlFor="testName">Test Name:</label>
-                    <input
-                        type="text"
-                        id="testName"
-                        name="testName"
-                        value={formData.testName}
-                        onChange={handleChange}
+                    <label htmlFor="productId">Test Name:</label>
+                    <select
+                        id="productId"
+                        value={productId}
+                        onChange={(e) => setProductId(e.target.value)}
                         required
-                    />
+                        disabled={isLoading} // Disable while loading test cases
+                    >
+                        <option value="">{isLoading ? 'Loading Test Cases...' : 'Select Test Name'}</option>
+                        {testCases.map(test => (
+                            <option key={test.id} value={test.id}>
+                                {test.testName}
+                            </option>
+                        ))}
+                    </select>
                 </div>
-
                 <div className="form-row">
                     <label htmlFor="scheduleName">Schedule Name:</label>
                     <input
                         type="text"
                         id="scheduleName"
-                        name="scheduleName"
-                        value={formData.scheduleName}
-                        onChange={handleChange}
+                        placeholder="Schedule Name"
+                        value={scheduleName}
+                        onChange={(e) => setScheduleName(e.target.value)}
                         required
                     />
                 </div>
-
-                <div className="form-row">
-                    <label htmlFor="testCaseId">Test Case:</label>
-                    <select
-                        id="testCaseId"
-                        name="testCaseId"
-                        value={formData.testCaseId}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">Select Test Case</option>
-                        {testCases.map(testCase => (
-                            <option key={testCase.id} value={testCase.id}>
-                                {testCase.testName}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
                 <div className="form-row">
                     <label htmlFor="trialPhase">Trial Phase:</label>
                     <input
                         type="text"
                         id="trialPhase"
-                        name="trialPhase"
-                        value={formData.trialPhase}
-                        onChange={handleChange}
+                        placeholder="Trial Phase"
+                        value={trialPhase}
+                        onChange={(e) => setTrialPhase(e.target.value)}
+                        required
                     />
                 </div>
-
                 <div className="form-row">
-                    <label htmlFor="assignedPersonnel">Assigned Personnel:</label>
+                    <label htmlFor="scheduledDate">Scheduled Date:</label>
                     <input
-                        type="text"
+                        type="date"
+                        id="scheduledDate"
+                        placeholder="Scheduled Date"
+                        value={scheduledDate}
+                        onChange={(e) => setScheduledDate(e.target.value)}
+                        required
+                    />
+                </div>
+                 {/* Assigned Personnel Dropdown */}
+                 <div className="form-row">
+                     <label htmlFor="assignedPersonnel">Assigned Personnel:</label>
+                     <select
                         id="assignedPersonnel"
-                        name="assignedPersonnel"
-                        value={formData.assignedPersonnel}
-                        onChange={handleChange}
-                    />
+                        value={assignedPersonnel}
+                        onChange={(e) => setAssignedPersonnel(e.target.value)}
+                        required
+                        disabled={isLoading} // Disable while loading workers
+                    >
+                        <option value="">{isLoading ? 'Loading Workers...' : 'Select Personnel'}</option>
+                        {availableWorkers.map(worker => (
+                            <option key={worker.id} value={worker.name}>
+                                {worker.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
-
-                <div className="form-row">
-                    <label htmlFor="location">Location:</label>
-                    <input
+                 <div className="form-row">
+                     <label htmlFor="location">Location:</label>
+                     <input
                         type="text"
                         id="location"
-                        name="location"
-                        value={formData.location}
-                        onChange={handleChange}
+                        placeholder="Location"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        required
                     />
                 </div>
-
-                <div className="form-row">
+                 <div className="form-row">
                     <label htmlFor="testObjective">Test Objective:</label>
                     <textarea
                         id="testObjective"
-                        name="testObjective"
-                        value={formData.testObjective}
-                        onChange={handleChange}
-                        rows="3"
+                        placeholder="Test Objective"
+                        value={testObjective}
+                        onChange={(e) => setTestObjective(e.target.value)}
+                        required
                     />
                 </div>
-
                 <div className="form-row">
                     <label htmlFor="equipmentRequired">Equipment Required:</label>
                     <textarea
                         id="equipmentRequired"
-                        name="equipmentRequired"
-                        value={formData.equipmentRequired}
-                        onChange={handleChange}
-                        rows="3"
+                        placeholder="Equipment Required"
+                        value={equipmentRequired}
+                        onChange={(e) => setEquipmentRequired(e.target.value)}
+                        required
                     />
                 </div>
-
+                 <div className="form-row">
+                    <label htmlFor="notificationPreference">Notification Preference:</label>
+                    <select
+                        id="notificationPreference"
+                        placeholder="Notification Preference"
+                        value={notificationPreference}
+                        onChange={(e) => setNotificationPreference(e.target.value)}
+                        required
+                    >
+                        <option value="">Select Preference</option>
+                        <option value="SMS">SMS</option>
+                        <option value="Email">Email</option>
+                    </select>
+                </div>
+                 <div className="form-row">
+                    <label htmlFor="notes">Notes:</label>
+                    <textarea
+                        id="notes"
+                        placeholder="Notes"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        required
+                    />
+                </div>
                 <div className="form-row">
                     <label htmlFor="frequency">Frequency:</label>
                     <select
                         id="frequency"
-                        name="frequency"
-                        value={formData.frequency}
-                        onChange={handleChange}
+                        placeholder="Frequency"
+                        value={frequency}
+                        onChange={(e) => setFrequency(e.target.value)}
                         required
                     >
+                        <option value="">Select Frequency</option>
                         <option value="DAILY">Daily</option>
                         <option value="WEEKLY">Weekly</option>
+                        <option value="BIWEEKLY">Bi-Weekly</option>
                         <option value="MONTHLY">Monthly</option>
                     </select>
                 </div>
 
-                {formData.frequency === 'WEEKLY' && (
-                    <div className="form-row">
-                        <label htmlFor="dayOfWeek">Day of Week (1-7):</label>
-                        <input
-                            type="number"
-                            id="dayOfWeek"
-                            name="dayOfWeek"
-                            value={formData.dayOfWeek}
-                            onChange={handleChange}
-                            min="1"
-                            max="7"
-                        />
-                    </div>
-                )}
-
-                {formData.frequency === 'MONTHLY' && (
-                    <div className="form-row">
-                        <label htmlFor="dayOfMonth">Day of Month (1-31):</label>
-                        <input
-                            type="number"
-                            id="dayOfMonth"
-                            name="dayOfMonth"
-                            value={formData.dayOfMonth}
-                            onChange={handleChange}
-                            min="1"
-                            max="31"
-                        />
-                    </div>
-                )}
-
-                <div className="form-row">
-                    <label htmlFor="startDate">Start Date:</label>
-                    <input
-                        type="date"
-                        id="startDate"
-                        name="startDate"
-                        value={formData.startDate}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="form-row">
-                    <label htmlFor="endDate">End Date:</label>
-                    <input
-                        type="date"
-                        id="endDate"
-                        name="endDate"
-                        value={formData.endDate}
-                        onChange={handleChange}
-                    />
-                </div>
-
-                <div className="form-row">
-                    <label htmlFor="notificationPreference">Notification Preference:</label>
-                    <input
-                        type="text"
-                        id="notificationPreference"
-                        name="notificationPreference"
-                        value={formData.notificationPreference}
-                        onChange={handleChange}
-                    />
-                </div>
-
-                <div className="form-row">
-                    <label htmlFor="priority">Priority:</label>
-                    <select
-                        id="priority"
-                        name="priority"
-                        value={formData.priority}
-                        onChange={handleChange}
-                    >
-                        <option value="LOW">Low</option>
-                        <option value="MEDIUM">Medium</option>
-                        <option value="HIGH">High</option>
-                        <option value="CRITICAL">Critical</option>
-                    </select>
-                </div>
-
-                <div className="form-row">
-                    <label htmlFor="status">Status:</label>
-                    <select
-                        id="status"
-                        name="status"
-                        value={formData.status}
-                        onChange={handleChange}
-                    >
-                        <option value="PENDING">Pending</option>
-                        <option value="IN_PROGRESS">In Progress</option>
-                        <option value="COMPLETED">Completed</option>
-                        <option value="CANCELLED">Cancelled</option>
-                    </select>
-                </div>
-
-                <div className="form-row">
-                    <label htmlFor="notes">Notes:</label>
-                    <textarea
-                        id="notes"
-                        name="notes"
-                        value={formData.notes}
-                        onChange={handleChange}
-                        rows="4"
-                    />
-                </div>
-
-                <div className="form-row">
-                    <label>
-                        <input
-                            type="checkbox"
-                            name="isActive"
-                            checked={formData.isActive}
-                            onChange={handleChange}
-                        />
-                        Active
-                    </label>
-                </div>
-
                 <div className="button-row">
-                    <button type="submit" disabled={isLoading}>
-                        {isLoading ? 'Creating...' : 'Create Schedule'}
-                    </button>
+                    <button type="submit">Submit</button>
+                    <button type="button" onClick={handleCancel}>Cancel</button>
                 </div>
             </form>
         </div>

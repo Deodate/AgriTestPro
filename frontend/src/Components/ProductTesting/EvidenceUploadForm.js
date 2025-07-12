@@ -41,21 +41,20 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
               return;
           }
 
-          const api = axios.create({
-            baseURL: apiBaseUrl,
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-
           try {
             console.log('Fetching test cases from:', `${apiBaseUrl}/api/testcases`);
-            const response = await api.get('/api/testcases');
+            const response = await axios.get(`${apiBaseUrl}/api/testcases`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             console.log('Frontend received test cases:', response.data);
             setTestCases(response.data || []);
           } catch (err) {
             console.error('Error fetching test cases:', err);
-            setError('Failed to load test cases');
+            const errorMessage = err.response?.data?.message || err.message || 'Failed to load test cases';
+            setError(errorMessage);
+            toast.error(errorMessage);
             setTestCases([]); // Set to empty array on error
           } finally {
             setIsLoading(false);
@@ -92,7 +91,7 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
         } else if (mediaType === 'VIDEO' && !fileType.startsWith('video/')) {
             isValid = false;
             errorMessage = 'Please select a video file for Video media type.';
-        } // Add more checks here for other media types if needed
+        }
 
         if (!isValid) {
             toast.error(errorMessage);
@@ -102,30 +101,36 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
         setIsLoading(true);
 
         const formData = new FormData();
-        formData.append('file', selectedFile); // Use 'file' as the parameter name
-        formData.append('testCaseId', entityId); // Use entityId (which is now testCaseId) as testCaseId
+        formData.append('file', selectedFile);
+        formData.append('testCaseId', entityId);
         formData.append('mediaType', mediaType);
         formData.append('description', descriptionCaption);
         formData.append('takenBy', takenBy);
-        formData.append('dateCaptured', dateCaptured); // Assuming dateCaptured is in a format the backend can parse
+        formData.append('dateCaptured', dateCaptured);
 
         const token = localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY);
-        const headers = {
-            'Authorization': `Bearer ${token}`,
-            // 'Content-Type': 'multipart/form-data' // Axios handles this automatically with FormData
-        };
+        if (!token) {
+            toast.error('Authentication token not found. Please log in again.');
+            setIsLoading(false);
+            return;
+        }
 
         try {
-            console.log('Sending evidence upload request to:', `${apiBaseUrl}/api/evidence/upload`);
+            console.log('Sending evidence upload request to:', `${apiBaseUrl}/api/files/upload-media`);
             const response = await axios.post(
-                `${apiBaseUrl}/api/evidence/upload`, // New endpoint
+                `${apiBaseUrl}/api/files/upload-media`,
                 formData,
-                { headers }
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        // Let axios set the correct Content-Type for FormData
+                    }
+                }
             );
 
             console.log('Upload response:', response);
 
-            if (response.status === 200) {
+            if (response.status === 200 || response.status === 201) {
                 toast.success('Evidence Uploaded successful!', {
                     position: "top-center",
                     autoClose: 5000,
@@ -142,31 +147,30 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
                         fontWeight: "bold"
                     }
                 });
-                // Optionally call a success handler passed from parent component
-                if (onUploadSuccess) {
-                    onUploadSuccess();
-                }
+
                 // Reset form fields
                 setEntityId('');
                 setEntityType('');
                 setSelectedFile(null);
                 setDescriptionCaption('');
-                setTakenBy('');
                 setDateCaptured('');
-                setMediaType(''); // Reset media type
+                setMediaType('');
 
-                // Reset the file input element's value
+                // Reset the file input
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
+
+                // Call success handler if provided
+                if (onUploadSuccess) {
+                    onUploadSuccess(response.data);
+                }
             } else {
-                 // Handle non-200 responses
-                 toast.error(`Upload failed: ${response.statusText}`);
-                 console.error('Upload failed:', response.status, response.statusText, response.data);
+                throw new Error(`Upload failed with status: ${response.status}`);
             }
         } catch (error) {
             console.error('Error uploading file:', error);
-             const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred during upload.';
+            const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred during upload.';
             toast.error(`Upload failed: ${errorMessage}`);
         } finally {
             setIsLoading(false);
@@ -174,23 +178,40 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
     };
 
     const handleCancelClick = () => {
-        // Call the onCancel handler passed from parent component
         if (onCancel) {
             onCancel();
         }
-        // Clear form fields on cancel
+        // Clear form fields
         setEntityId('');
         setEntityType('');
         setSelectedFile(null);
         setDescriptionCaption('');
         setTakenBy('');
         setDateCaptured('');
-        setMediaType(''); // Clear media type
+        setMediaType('');
+        // Reset file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     };
 
     const handleFileChange = (e) => {
-        setSelectedFile(e.target.files[0]);
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file size (10MB limit)
+            const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+            if (file.size > maxSize) {
+                toast.error('File size exceeds 10MB limit');
+                e.target.value = ''; // Reset file input
+                return;
+            }
+            setSelectedFile(file);
+        }
     };
+
+    if (error) {
+        return <div className="error-message">{error}</div>;
+    }
 
     return (
         <div className="evidence-upload-form-container">
@@ -203,7 +224,7 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
                         value={entityId}
                         onChange={(e) => {
                             setEntityId(e.target.value);
-                            setEntityType('TEST_CASE'); // Set entityType to TEST_CASE when a test is selected
+                            setEntityType('TEST_CASE');
                         }}
                         required
                     >
@@ -228,7 +249,6 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
                         <option value="">Select Media Type</option>
                         <option value="PHOTO">Photo</option>
                         <option value="VIDEO">Video</option>
-                         {/* Add other relevant media types as needed */}
                     </select>
                 </div>
 
@@ -239,8 +259,9 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
                         type="file"
                         id="fileUpload"
                         onChange={handleFileChange}
-                         required // Make file selection required
-                        ref={fileInputRef} // Attach the ref to the input
+                        required
+                        ref={fileInputRef}
+                        accept={mediaType === 'PHOTO' ? 'image/*' : mediaType === 'VIDEO' ? 'video/*' : undefined}
                     />
                 </div>
 
@@ -274,6 +295,7 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
                         placeholder="Date Captured"
                         value={dateCaptured}
                         onChange={(e) => setDateCaptured(e.target.value)}
+                        required
                     />
                 </div>
 

@@ -1,54 +1,79 @@
 // File: src/main/java/com/AgriTest/service/TestScheduleService.java
 package com.AgriTest.service;
 
+import com.AgriTest.dto.TestPhaseRequest;
 import com.AgriTest.dto.TestScheduleRequest;
 import com.AgriTest.dto.TestScheduleResponse;
+
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface TestScheduleService {
     /**
-     * Create a new test schedule
-     * @param request The test schedule request
-     * @return The created test schedule response
-     */
-    TestScheduleResponse createTestSchedule(TestScheduleRequest request);
-
-    /**
      * Get all test schedules
-     * @return List of test schedule responses
      */
     List<TestScheduleResponse> getAllTestSchedules();
-
+    
     /**
      * Get a test schedule by ID
-     * @param id The test schedule ID
-     * @return The test schedule response
      */
-    TestScheduleResponse getTestScheduleById(Long id);
-
+    Optional<TestScheduleResponse> getTestScheduleById(Long id);
+    
+    /**
+     * Create a new test schedule
+     */
+    TestScheduleResponse createTestSchedule(TestScheduleRequest testScheduleRequest, Long userId);
+    
     /**
      * Update an existing test schedule
-     * @param id The test schedule ID
-     * @param request The updated test schedule request
-     * @return The updated test schedule response
      */
-    TestScheduleResponse updateTestSchedule(Long id, TestScheduleRequest request);
-
+    TestScheduleResponse updateTestSchedule(Long id, TestScheduleRequest testScheduleRequest);
+    
     /**
      * Delete a test schedule
-     * @param id The test schedule ID
      */
     void deleteTestSchedule(Long id);
-
+    
     /**
-     * Get test schedules by IDs
-     * @param scheduleIds List of schedule IDs
-     * @return List of test schedule responses
+     * Get test schedules by test case ID
      */
-    List<TestScheduleResponse> getTestSchedulesByIds(List<Long> scheduleIds);
-
+    List<TestScheduleResponse> getTestSchedulesByTestCase(Long testCaseId);
+    
+    /**
+     * Get all active test schedules
+     */
+    List<TestScheduleResponse> getActiveTestSchedules();
+    
+    /**
+     * Get test schedules scheduled for today
+     */
+    List<TestScheduleResponse> getTestSchedulesForToday();
+    
+    /**
+     * Activate a test schedule
+     */
+    TestScheduleResponse activateTestSchedule(Long id);
+    
+    /**
+     * Deactivate a test schedule
+     */
+    TestScheduleResponse deactivateTestSchedule(Long id);
+    
+    /**
+     * Execute a specific test schedule
+     */
+    void executeSchedule(Long scheduleId);
+    
     /**
      * Execute all due test schedules
      */
     void executeAllDueSchedules();
+    
+    /**
+     * Get test schedules by specific IDs
+     * @param scheduleIds List of schedule IDs to retrieve
+     * @return List of test schedule responses
+     */
+    List<TestScheduleResponse> getTestSchedulesByIds(List<Long> scheduleIds);
 }
