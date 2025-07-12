@@ -258,7 +258,14 @@ const ProductRegistrationForm = () => {
                 console.log('Product registration successful. Response received:', response);
                 const result = await response.json();
                 console.log('Product registered successfully:', result);
-                toast.success('Product registered successfully!');
+                toast.success('Product Registered successful!', {
+                    position: "top-center",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
                 resetForm(); // Reset the form after successful submission
                 // Fetch the next batch number after successful registration
                 fetchNextBatchNumber();
