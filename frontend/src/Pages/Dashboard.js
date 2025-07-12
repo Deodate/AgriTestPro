@@ -572,6 +572,7 @@ const Dashboard = () => {
     setShowTestDocumentationForm(false);
     setShowBroadcastAnnouncementForm(false);
     setShowProductRegistrationForm(false);
+    setShowEvidenceUploadForm(false);
     // ... other form resets ...
 
     // Check for Trial Phase Tracking Form
@@ -598,6 +599,22 @@ const Dashboard = () => {
       setActiveTab('productregistration');
       setActiveMenuItem('ProductRegistrationForm');
       setShowBroadcastAnnouncementForm(false); // Explicitly hide Broadcast Announcement form
+      return;
+    }
+
+    // Check for Evidence Upload Form
+    if (queryParams.get('EvidenceUploadForm') === 'create') {
+      // Reset all form states
+      setShowComplianceForm(false);
+      setShowTestCaseForm(false);
+      setShowTrialPhaseForm(false);
+      setShowTestDocumentationForm(false);
+      setShowBroadcastAnnouncementForm(false);
+      setShowProductRegistrationForm(false);
+      // Set Evidence Upload form state
+      setShowEvidenceUploadForm(true);
+      setActiveTab('evidenceupload');
+      setActiveMenuItem('EvidenceUploadForm');
       return;
     }
 
@@ -940,6 +957,14 @@ const Dashboard = () => {
                         navigate('/dashboard?ProductRegistrationForm=create', { replace: true });
                       }}>Product Registration</div>
                       <div className={`menu-item ${activeMenuItem === 'EvidenceUploadForm' ? 'active' : ''}`} onClick={() => {
+                        // Reset all form states
+                        setShowComplianceForm(false);
+                        setShowTestCaseForm(false);
+                        setShowTrialPhaseForm(false);
+                        setShowTestDocumentationForm(false);
+                        setShowBroadcastAnnouncementForm(false);
+                        setShowProductRegistrationForm(false);
+                        // Set Evidence Upload form state
                         setShowEvidenceUploadForm(true);
                         setActiveTab('evidenceupload');
                         setActiveMenuItem('EvidenceUploadForm');
