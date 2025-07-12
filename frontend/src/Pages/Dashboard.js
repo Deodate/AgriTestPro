@@ -2298,9 +2298,6 @@ const Dashboard = () => {
           )}
 
             <div className="table-container">
-              <div className="table-header-actions">
-                <h2>Broadcast Announcement Form</h2>
-              </div>
               <div className="dashboard-broadcastannouncementform-wrapper">
                 <BroadcastAnnouncementForm />
               </div>
