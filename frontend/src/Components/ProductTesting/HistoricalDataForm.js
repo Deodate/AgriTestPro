@@ -4,7 +4,6 @@ import { AUTH_SETTINGS } from '../../config'; // Import AUTH_SETTINGS
 import { toast, ToastContainer } from 'react-toastify'; // Import toast and ToastContainer
 import 'react-toastify/dist/ReactToastify.css'; // Import toastify CSS
 import axios from 'axios'; // Import axios
-import { API_CONFIG } from '../../config'; // Import API_CONFIG
 
 const HistoricalDataForm = () => {
     const [testName, setTestName] = useState('');
@@ -31,7 +30,7 @@ const HistoricalDataForm = () => {
                 }
 
                 const api = axios.create({
-                    baseURL: AUTH_SETTINGS.API_BASE_URL || 'http://localhost:8888', // Use base URL from AUTH_SETTINGS or default
+                    baseURL: AUTH_SETTINGS.API_BASE_URL || 'http://localhost:8089', // Use base URL from AUTH_SETTINGS or default
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -99,17 +98,19 @@ const HistoricalDataForm = () => {
         }
 
         try {
-            console.log('Sending POST request to historical data endpoint...');
-            const response = await axios.post(`${API_CONFIG.BASE_URL}/api/historical-data`, formData, {
+            console.log('Sending POST request to http://localhost:8089/api/historical-data...');
+            const response = await fetch('http://localhost:8089/api/historical-data', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
+                    'Authorization': `Bearer ${token}`, // Add Authorization header
+                },
+                body: JSON.stringify(formData),
             });
 
             console.log('API Response:', response);
 
-            if (response.data && response.data.success) {
+            if (response.ok) {
                 console.log('Historical data submitted successfully!');
                 toast.success('Historical data submitted successfully!'); // Use toast.success
                 // alert('Historical data submitted successfully!'); // Removed alert
@@ -121,7 +122,7 @@ const HistoricalDataForm = () => {
                 setResultStatus('');
                 setKeywords('');
             } else {
-                const errorData = response.data;
+                const errorData = await response.json();
                 console.error('Failed to submit historical data:', response.status, errorData);
                 console.log('API Error Response Body:', errorData);
                 toast.error(`Failed to submit historical data: ${errorData.message || response.statusText}`); // Use toast.error
@@ -138,12 +139,12 @@ const HistoricalDataForm = () => {
     const handleCancel = () => {
         // Handle cancel logic here, maybe close the form or clear fields
         console.log('Form cancelled');
-        setTestName('');
-        setTrialPhase('');
-        setDateRange('');
-        setProductType('');
-        setResultStatus('');
-        setKeywords('');
+         setTestName('');
+         setTrialPhase('');
+         setDateRange('');
+         setProductType('');
+         setResultStatus('');
+         setKeywords('');
     };
 
     return (

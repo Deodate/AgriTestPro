@@ -1,13 +1,8 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-import './ProductRegistrationForm.css';
-=======
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './ProductRegistrationForm.css';
 import authService from '../../services/authService';
 import { API_CONFIG } from '../../config';
 import { toast } from 'react-toastify';
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 
 const ProductRegistrationForm = () => {
     const [productName, setProductName] = useState('');
@@ -20,29 +15,6 @@ const ProductRegistrationForm = () => {
     const [intendedUse, setIntendedUse] = useState('');
     const [cropTarget, setCropTarget] = useState('');
     const [comments, setComments] = useState('');
-<<<<<<< HEAD
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Handle form submission logic here
-        console.log({
-            productName,
-            productType,
-            manufacturerName,
-            batchNumber,
-            activeIngredients,
-            dateOfRegistration,
-            registeredBy,
-            intendedUse,
-            cropTarget,
-            comments
-        });
-        // Clear form or show success message
-    };
-
-    const handleCancel = () => {
-        // Handle cancel logic here, maybe close the form or clear fields
-=======
     const [productImage, setProductImage] = useState(null);
 
     // State for validation errors
@@ -310,7 +282,6 @@ const ProductRegistrationForm = () => {
     };
 
     const handleCancel = () => {
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
         console.log('Form cancelled');
     };
 
@@ -322,11 +293,6 @@ const ProductRegistrationForm = () => {
                         type="text"
                         placeholder="Product Name"
                         value={productName}
-<<<<<<< HEAD
-                        onChange={(e) => setProductName(e.target.value)}
-                        required
-                    />
-=======
                         onChange={(e) => {
                             setProductName(e.target.value);
                             setProductNameError(validateCharactersOnly(e.target.value) ? '' : 'Product Name must contain only characters.');
@@ -335,18 +301,12 @@ const ProductRegistrationForm = () => {
                         required
                     />
                      {productNameError && <div className="error-message">{productNameError}</div>}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                 </div>
                 <div className="form-row">
                     <input
                         type="text"
                         placeholder="Product Type"
                         value={productType}
-<<<<<<< HEAD
-                        onChange={(e) => setProductType(e.target.value)}
-                        required
-                    />
-=======
                         onChange={(e) => {
                             setProductType(e.target.value);
                             setProductTypeError(validateCharactersOnly(e.target.value) ? '' : 'Product Type must contain only characters.');
@@ -355,34 +315,12 @@ const ProductRegistrationForm = () => {
                         required
                     />
                      {productTypeError && <div className="error-message">{productTypeError}</div>}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                 </div>
                 <div className="form-row">
                     <input
                         type="text"
                         placeholder="Manufacturer Name"
                         value={manufacturerName}
-<<<<<<< HEAD
-                        onChange={(e) => setManufacturerName(e.target.value)}
-                        required
-                    />
-                </div>
-                 <div className="form-row">
-                     <input
-                        type="text"
-                        placeholder="Batch Number"
-                        value={batchNumber}
-                        onChange={(e) => setBatchNumber(e.target.value)}
-                        required
-                    />
-                </div>
-                 <div className="form-row">
-                     <input
-                        type="text"
-                        placeholder="Active Ingredients"
-                        value={activeIngredients}
-                        onChange={(e) => setActiveIngredients(e.target.value)}
-=======
                         onChange={(e) => {
                             setManufacturerName(e.target.value);
                             setManufacturerNameError(validateCharactersOnly(e.target.value) ? '' : 'Manufacturer Name must contain only characters.');
@@ -425,7 +363,6 @@ const ProductRegistrationForm = () => {
                         onChange={(e) => {
                             setActiveIngredients(e.target.value);
                         }}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                         required
                     />
                 </div>
@@ -443,11 +380,6 @@ const ProductRegistrationForm = () => {
                         type="text"
                         placeholder="Registered By (User ID)"
                         value={registeredBy}
-<<<<<<< HEAD
-                        onChange={(e) => setRegisteredBy(e.target.value)}
-                        required
-                    />
-=======
                         onChange={(e) => {
                             setRegisteredBy(e.target.value);
                             setRegisteredByError(validateNumbersOnly(e.target.value) ? '' : 'Registered By (User ID) must contain only numbers.');
@@ -459,17 +391,11 @@ const ProductRegistrationForm = () => {
                      {registeredByFullName && (
                         <div style={{ fontSize: '6px', color: '#333', marginTop: '2px' }}>{registeredByFullName}</div>
                      )}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                 </div>
                 <div className="form-row">
                      <textarea
                         placeholder="Intended Use"
                         value={intendedUse}
-<<<<<<< HEAD
-                        onChange={(e) => setIntendedUse(e.target.value)}
-                        required
-                    />
-=======
                         onChange={(e) => {
                             setIntendedUse(e.target.value);
                             setIntendedUseError(validateCharactersOnly(e.target.value) ? '' : 'Intended Use must contain only characters.');
@@ -478,18 +404,12 @@ const ProductRegistrationForm = () => {
                         required
                     />
                     {intendedUseError && <div className="error-message">{intendedUseError}</div>}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                 </div>
                 <div className="form-row">
                      <input
                         type="text"
                         placeholder="Crop Target (potato, maize, etc.)"
                         value={cropTarget}
-<<<<<<< HEAD
-                        onChange={(e) => setCropTarget(e.target.value)}
-                        required
-                    />
-=======
                         onChange={(e) => {
                             setCropTarget(e.target.value);
                             setCropTargetError(validateCharactersOnly(e.target.value) ? '' : 'Crop Target must contain only characters.');
@@ -498,7 +418,6 @@ const ProductRegistrationForm = () => {
                         required
                     />
                     {cropTargetError && <div className="error-message">{cropTargetError}</div>}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                 </div>
                 <div className="form-row">
                      <textarea
@@ -508,12 +427,6 @@ const ProductRegistrationForm = () => {
                         required
                     />
                 </div>
-<<<<<<< HEAD
-
-                <div className="button-row">
-                    <button type="submit">Submit</button>
-                    <button type="button" onClick={handleCancel}>Cancel</button>
-=======
                 <div className="form-row">
                     <label htmlFor="productImage">Product Image (JPG/PNG):</label>
                      <input
@@ -533,7 +446,6 @@ const ProductRegistrationForm = () => {
                     <button type="button" onClick={handleCancel} disabled={isSubmitting}>
                         Cancel
                     </button>
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                 </div>
             </form>
         </div>

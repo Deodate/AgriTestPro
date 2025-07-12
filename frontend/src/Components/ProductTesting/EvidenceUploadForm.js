@@ -1,37 +1,3 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-import './EvidenceUploadForm.css';
-
-const EvidenceUploadForm = () => {
-    const [testCaseOrTrialPhaseId, setTestCaseOrTrialPhaseId] = useState('');
-    const [mediaType, setMediaType] = useState('');
-    const [fileUpload, setFileUpload] = useState(null);
-    const [descriptionCaption, setDescriptionCaption] = useState('');
-    const [takenBy, setTakenBy] = useState('');
-    const [dateCaptured, setDateCaptured] = useState('');
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Handle form submission logic here
-        console.log({
-            testCaseOrTrialPhaseId,
-            mediaType,
-            fileUpload,
-            descriptionCaption,
-            takenBy,
-            dateCaptured
-        });
-        // Clear form or show success message
-    };
-
-    const handleCancel = () => {
-        // Handle cancel logic here, maybe close the form or clear fields
-        console.log('Form cancelled');
-    };
-
-    const handleFileChange = (e) => {
-        setFileUpload(e.target.files[0]);
-=======
 import React, { useState, useEffect, useRef } from 'react';
 import './EvidenceUploadForm.css';
 import axios from 'axios';
@@ -40,7 +6,7 @@ import { API_CONFIG, AUTH_SETTINGS } from '../../config';
 import authService from '../../services/authService';
 
 const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
-    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8888';
+    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8089';
 
     const [entityId, setEntityId] = useState('');
     const [entityType, setEntityType] = useState(''); // e.g., 'TEST_CASE', 'TRIAL_PHASE'
@@ -197,26 +163,11 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
 
     const handleFileChange = (e) => {
         setSelectedFile(e.target.files[0]);
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     };
 
     return (
         <div className="evidence-upload-form-container">
             <form className="evidence-upload-form" onSubmit={handleSubmit}>
-<<<<<<< HEAD
-                <div className="form-row">
-                    <input
-                        type="text"
-                        placeholder="Test Case ID or Trial Phase ID (FK)"
-                        value={testCaseOrTrialPhaseId}
-                        onChange={(e) => setTestCaseOrTrialPhaseId(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="form-row">
-                    <select
-                        placeholder="Media Type"
-=======
                 {/* Test Name Input */}
                 <div className="form-row">
                      <label htmlFor="entityId">Test Name:</label>
@@ -243,48 +194,11 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
                     <label htmlFor="mediaType">Media Type:</label>
                     <select
                         id="mediaType"
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                         value={mediaType}
                         onChange={(e) => setMediaType(e.target.value)}
                         required
                     >
                         <option value="">Select Media Type</option>
-<<<<<<< HEAD
-                        <option value="Photo">Photo</option>
-                        <option value="Video">Video</option>
-                    </select>
-                </div>
-                 <div className="form-row">
-                     <input
-                        type="file"
-                        onChange={handleFileChange}
-                    />
-                </div>
-                 <div className="form-row">
-                    <textarea
-                        placeholder="Description/Caption"
-                        value={descriptionCaption}
-                        onChange={(e) => setDescriptionCaption(e.target.value)}
-                        required
-                    />
-                </div>
-                 <div className="form-row">
-                     <input
-                        type="text"
-                        placeholder="Taken By (User ID)"
-                        value={takenBy}
-                        onChange={(e) => setTakenBy(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="form-row">
-                     <input
-                        type="date"
-                        placeholder="Date Captured"
-                        value={dateCaptured}
-                        onChange={(e) => setDateCaptured(e.target.value)}
-                        required
-=======
                         <option value="PHOTO">Photo</option>
                         <option value="VIDEO">Video</option>
                          {/* Add other relevant media types as needed */}
@@ -333,20 +247,14 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
                         placeholder="Date Captured"
                         value={dateCaptured}
                         onChange={(e) => setDateCaptured(e.target.value)}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                     />
                 </div>
 
                 <div className="button-row">
-<<<<<<< HEAD
-                    <button type="submit">Submit</button>
-                    <button type="button" onClick={handleCancel}>Cancel</button>
-=======
                     <button type="submit" disabled={isLoading}>
                         {isLoading ? 'Uploading...' : 'Upload'}
                     </button>
                     <button type="button" className="cancel" onClick={handleCancelClick} disabled={isLoading}>Cancel</button>
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                 </div>
             </form>
         </div>

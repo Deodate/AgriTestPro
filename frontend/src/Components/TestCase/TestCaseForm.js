@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import React, { useState, useEffect } from 'react';
-=======
 import React, { useState, useEffect, useCallback } from 'react';
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 import { FaArrowLeft, FaCalendarAlt, FaSave, FaMapMarkerAlt } from 'react-icons/fa';
 import './TestCaseForm.css';
 import { API_CONFIG, AUTH_SETTINGS } from '../../config';
@@ -40,7 +36,7 @@ const showNotification = (type, message) => {
 
 const TestCaseForm = ({ onBack, onSave, initialData }) => {
   // Get the API URL from config or use default
-  const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8888';
+  const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8089';
   console.log('Using API base URL:', apiBaseUrl);
 
   const [formData, setFormData] = useState({
@@ -48,10 +44,6 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
     testDescription: '',
     testObjectives: '',
     productType: '',
-<<<<<<< HEAD
-    productBatchNumber: 'SEED-2025-001', // Default batch number
-=======
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     testingLocation: '',
     assignedWorkerId: '',
     startDate: new Date().toISOString().split('T')[0],
@@ -60,84 +52,6 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
     receiveUpdates: false
   });
 
-<<<<<<< HEAD
-  // For available assigned workers
-  const [availableWorkers, setAvailableWorkers] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [lastUsedBatchNumber, setLastUsedBatchNumber] = useState(1);
-  const [fetchingBatchNumber, setFetchingBatchNumber] = useState(true);
-
-  // Function to generate a batch number
-  const generateBatchNumber = (lastNumber) => {
-    // Make sure lastNumber is valid, fallback to 1 if it's not
-    const numberToUse = (lastNumber && !isNaN(lastNumber) && lastNumber > 0) ? lastNumber : 1;
-    
-    // Format with leading zeros to ensure 3 digits
-    const formattedNumber = String(numberToUse).padStart(3, '0');
-    return `SEED-2025-${formattedNumber}`;
-  };
-
-  // Fetch the last used batch number
-  useEffect(() => {
-    const fetchLastBatchNumber = async () => {
-      setFetchingBatchNumber(true);
-      console.log('Fetching latest batch number from API...');
-      
-      // Create axios instance with auth headers
-      const api = axios.create({
-        baseURL: apiBaseUrl,
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY)}`
-        }
-      });
-      
-      try {
-        // Try to fetch all test cases to find the last batch number
-        const response = await api.get('/api/testcases');
-        
-        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-          // Find the highest batch number
-          let highestNumber = 0;
-          
-          response.data.forEach(testCase => {
-            if (testCase.productBatchNumber) {
-              const matches = testCase.productBatchNumber.match(/SEED-\d+-(\d+)/);
-              if (matches && matches[1]) {
-                const batchNumber = parseInt(matches[1], 10);
-                highestNumber = Math.max(highestNumber, batchNumber);
-              }
-            }
-          });
-          
-          // Increment the highest number for the next batch
-          const nextNumber = highestNumber + 1;
-          console.log('Next batch number will be:', nextNumber);
-          setLastUsedBatchNumber(nextNumber);
-          
-          // Update the form data with the new batch number
-          setFormData(prev => ({
-            ...prev,
-            productBatchNumber: generateBatchNumber(nextNumber)
-          }));
-        } else {
-          console.log('No existing test cases found. Starting with batch number 001.');
-          setFormData(prev => ({
-            ...prev,
-            productBatchNumber: generateBatchNumber(1)
-          }));
-        }
-      } catch (err) {
-        console.error('Error fetching test cases for batch number:', err);
-        // If there's an error, we'll use the default batch number already set
-        console.log('Using default batch number due to error:', generateBatchNumber(1));
-      } finally {
-        setFetchingBatchNumber(false);
-      }
-    };
-    
-    fetchLastBatchNumber();
-=======
   // For available assigned workers and product types
   const [availableWorkers, setAvailableWorkers] = useState([]);
   const [productTypes, setProductTypes] = useState([]);
@@ -256,7 +170,6 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
     } finally {
       setFetchingProductBatchNumbers(false);
     }
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
   }, [apiBaseUrl]);
 
   // Fetch workers from API
@@ -291,11 +204,7 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
         console.log('No field workers found, fetching agronomists instead');
         const agronomistResponse = await api.get('/api/users/role/ROLE_AGRONOMIST');
         
-<<<<<<< HEAD
-        if (agronomistResponse.data && agronomistResponse.data.length > 0) {
-=======
         if (agronomistResponse.data && agronomistResponse.length > 0) {
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
           const workers = agronomistResponse.data.map(user => ({
             id: user.id,
             name: user.fullName || user.username
@@ -336,25 +245,6 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
 
   // Initialize with provided data if any
   useEffect(() => {
-<<<<<<< HEAD
-    if (initialData) {
-      setFormData(initialData);
-      
-      // If we're editing an existing test case, extract its batch number information
-      if (initialData.productBatchNumber) {
-        const batchNumberString = initialData.productBatchNumber;
-        const matches = batchNumberString.match(/SEED-\d+-(\d+)/);
-        
-        if (matches && matches[1]) {
-          // Set the last used batch number to the current one
-          // (we won't increment this since we're editing an existing record)
-          const currentNumber = parseInt(matches[1], 10);
-          setLastUsedBatchNumber(currentNumber);
-        }
-      }
-    }
-  }, [initialData]);
-=======
     const fetchTestCase = async (id) => {
       setIsLoading(true);
       setError(null);
@@ -404,7 +294,6 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
       resetForm(); // Reset form if no initialData
     }
   }, [initialData, apiBaseUrl]);
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -412,8 +301,6 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-<<<<<<< HEAD
-=======
     
     // If the product type changes, fetch available product batch numbers
     if (name === 'productType' && value) {
@@ -426,7 +313,6 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
         setAvailableProductBatchNumbers([]);
         setFormData(prev => ({ ...prev, productBatchNumber: '' }));
     }
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -434,27 +320,15 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-<<<<<<< HEAD
-    // Ensure we're using the current batch number and convert assignedWorkerId to a number before sending to API
-    const formDataToSubmit = {
-      ...formData,
-      productBatchNumber: generateBatchNumber(lastUsedBatchNumber),
-=======
     // Ensure convert assignedWorkerId to a number before sending to API
     const formDataToSubmit = {
       ...formData,
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
       assignedWorkerId: formData.assignedWorkerId ? Number(formData.assignedWorkerId) : null
     };
     
     setIsSubmitting(true);
     
     try {
-<<<<<<< HEAD
-      console.log('Submitting test case with batch number:', formDataToSubmit.productBatchNumber);
-      
-      // Create axios instance with auth headers
-=======
       const token = localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY);
       if (!token) {
         console.error('No authentication token found.');
@@ -463,70 +337,10 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
         return;
       }
       
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
       const api = axios.create({
         baseURL: apiBaseUrl,
         headers: {
           'Content-Type': 'application/json',
-<<<<<<< HEAD
-          'Authorization': `Bearer ${localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY)}`
-        }
-      });
-      
-      // Send data to API
-      const response = await api.post('/api/testcases', formDataToSubmit);
-      
-      console.log('Test case created:', response.data);
-      
-      // Increment the batch number for next submission
-      const newBatchNumber = lastUsedBatchNumber + 1;
-      setLastUsedBatchNumber(newBatchNumber);
-      console.log('Incrementing batch number to:', newBatchNumber);
-      
-      // Show success notification using our custom function
-      showNotification('success', 'Test case created successfully!');
-      
-      // Reset form while keeping the new batch number
-      setFormData({
-        testName: '',
-        testDescription: '',
-        testObjectives: '',
-        productType: '',
-        productBatchNumber: generateBatchNumber(newBatchNumber),
-        testingLocation: '',
-        assignedWorkerId: '',
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: '',
-        notes: '',
-        receiveUpdates: false
-      });
-      
-      // Important: Don't navigate away from the form
-      // Only call onSave if needed, and make sure it doesn't navigate away
-      if (onSave && typeof onSave === 'function') {
-        try {
-          // Some implementations might expect a callback, so we'll handle both cases
-          if (onSave.length >= 2) {
-            // If onSave accepts 2 or more parameters, second is options
-            onSave(response.data, { preventNavigation: true });
-          } else {
-            // Otherwise just pass the data and handle staying on page here
-            onSave(response.data);
-          }
-        } catch (err) {
-          console.warn('Error in onSave callback, but continuing:', err);
-        }
-      }
-      
-    } catch (error) {
-      console.error('Error creating test case:', error);
-      
-      // Show error notification using our custom function
-      showNotification(
-        'error', 
-        error.response?.data?.message || 'Failed to create test case. Please try again.'
-      );
-=======
           'Authorization': `Bearer ${token}`
         }
       });
@@ -584,7 +398,6 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
       }
       
       showNotification('error', errorMessage);
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     } finally {
       setIsSubmitting(false);
     }
@@ -673,19 +486,9 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
               required
             >
               <option value="">Please Select</option>
-<<<<<<< HEAD
-              <option value="Seeds">Seeds</option>
-              <option value="Fungicide">Fungicide</option>
-              <option value="Herbicide">Herbicide</option>
-              <option value="Insecticide">Insecticide</option>
-              <option value="Fertilizer">Fertilizer</option>
-              <option value="Growth Enhancer">Growth Enhancer</option>
-              <option value="Soil Conditioner">Soil Conditioner</option>
-=======
               {productTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
             </select>
           </div>
 
@@ -693,24 +496,6 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
             <label htmlFor="productBatchNumber">
               Product Batch Number<span className="required">*</span>
             </label>
-<<<<<<< HEAD
-            <input
-              type="text"
-              id="productBatchNumber"
-              name="productBatchNumber"
-              className="form-input"
-              value={fetchingBatchNumber ? "Loading..." : formData.productBatchNumber}
-              readOnly
-              required
-              style={{ 
-                backgroundColor: '#f0f0f0', 
-                cursor: 'not-allowed',
-                fontStyle: fetchingBatchNumber ? 'italic' : 'normal'
-              }}
-              title="Batch number is automatically generated"
-            />
-            {fetchingBatchNumber && <div className="info-message">Determining next available batch number...</div>}
-=======
             <select
               id="productBatchNumber"
               name="productBatchNumber"
@@ -730,24 +515,12 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
             {!formData.productType && <div className="info-message">Please select a Product Type first.</div>}
             {formData.productType && fetchingProductBatchNumbers && <div className="info-message">Loading available batch numbers...</div>}
             {formData.productType && !fetchingProductBatchNumbers && availableProductBatchNumbers.length === 0 && <div className="info-message">No products found for this type.</div>}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
           </div>
 
           <div className="field-group">
             <label htmlFor="testingLocation">
               Testing Location<span className="required">*</span>
             </label>
-<<<<<<< HEAD
-            <input
-              type="text"
-              id="testingLocation"
-              name="testingLocation"
-              className="form-input"
-              value={formData.testingLocation}
-              onChange={handleInputChange}
-              required
-            />
-=======
             <select
               id="testingLocation"
               name="testingLocation"
@@ -765,7 +538,6 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
                 );
               })}
             </select>
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
           </div>
 
           <div className="field-group">
@@ -848,11 +620,7 @@ const TestCaseForm = ({ onBack, onSave, initialData }) => {
               className="save-btn"
               disabled={isSubmitting}
             >
-<<<<<<< HEAD
-              {isSubmitting ? 'Submitting...' : 'Submit'}
-=======
               {isSubmitting ? (initialData ? 'Updating...' : 'Submitting...') : (initialData ? 'Update' : 'Submit')}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
             </button>
             <button 
               type="button" 

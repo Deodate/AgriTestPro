@@ -155,6 +155,9 @@ const SignUp = (props) => {
       // Handle successful registration
       setSuccessMessage("Registration successful! Redirecting to login...");
       
+      // Clear form (optional, depending on desired UX)
+      // setFormData({ ... }); 
+      
       // Redirect after a delay
       setTimeout(() => {
         navigate('/login');

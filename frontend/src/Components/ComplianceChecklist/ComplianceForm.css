@@ -84,8 +84,6 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
 }
 
-<<<<<<< HEAD
-=======
 .form-input.input-error, 
 .form-select.input-error,
 .form-textarea.input-error {
@@ -101,7 +99,6 @@
   margin-bottom: 8px;
 }
 
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 .form-input::placeholder,
 .form-textarea::placeholder {
   color: #9ca3af;

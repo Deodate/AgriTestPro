@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const EvidenceListTable = () => {
     const navigate = useNavigate(); // Initialize navigate
-    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8888';
+    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8089';
     const [evidenceList, setEvidenceList] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);

@@ -20,72 +20,16 @@ const ComplianceChecklistList = () => {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(10); // Reverted to default 10 items per page
   const [totalPages, setTotalPages] = useState(0);
   
   useEffect(() => {
-    // Fetch compliance checklists from API
+    // Original mock data for ComplianceChecklistList.js (if any, otherwise empty array)
+    // This ensures this component is clean if it's not the primary display for the table
     const fetchChecklists = async () => {
       setLoading(true);
       try {
-        // Mock data for now - replace with API call
-        const mockData = [
-          {
-            id: 1,
-            productId: 101,
-            productName: "Fungicide X-500",
-            checklistItems: {
-              "Toxicity Test": true,
-              "Environmental Impact": true,
-              "Application Safety": true,
-              "Storage Requirements": true,
-              "Disposal Guidelines": true
-            },
-            reviewerName: "John Smith",
-            reviewDate: "2023-06-05",
-            comments: "All requirements met. Product is safe for use when guidelines are followed.",
-            overallStatus: "COMPLIANT",
-            createdAt: "2023-06-05T10:30:00",
-            updatedAt: "2023-06-05T10:30:00"
-          },
-          {
-            id: 2,
-            productId: 102,
-            productName: "Organic Fertilizer B-200",
-            checklistItems: {
-              "Toxicity Test": true,
-              "Environmental Impact": true,
-              "Application Safety": true,
-              "Storage Requirements": false,
-              "Disposal Guidelines": true
-            },
-            reviewerName: "Emily Johnson",
-            reviewDate: "2023-06-10",
-            comments: "Storage requirements not met. Need proper containment solutions.",
-            overallStatus: "PARTIALLY_COMPLIANT",
-            createdAt: "2023-06-10T14:20:00",
-            updatedAt: "2023-06-10T14:20:00"
-          },
-          {
-            id: 3,
-            productId: 103,
-            productName: "Insecticide Z-100",
-            checklistItems: {
-              "Toxicity Test": false,
-              "Environmental Impact": false,
-              "Application Safety": true,
-              "Storage Requirements": true,
-              "Disposal Guidelines": false
-            },
-            reviewerName: "Michael Brown",
-            reviewDate: "2023-06-12",
-            comments: "Multiple compliance issues. Product needs reformulation.",
-            overallStatus: "NON_COMPLIANT",
-            createdAt: "2023-06-12T09:15:00",
-            updatedAt: "2023-06-12T09:15:00"
-          }
-        ];
-        
+        const mockData = []; // Start with empty data as the table will be in ComplianceChecklistTable.js
         setChecklists(mockData);
         setFilteredChecklists(mockData);
         setTotalPages(Math.ceil(mockData.length / itemsPerPage));
@@ -246,27 +190,38 @@ const ComplianceChecklistList = () => {
           </div>
         ) : (
           <>
-            <div className="checklist-cards">
-              {currentItems.map(checklist => (
-                <div key={checklist.id} className="checklist-card">
-                  <div className="card-header">
-                    <h3>{checklist.productName}</h3>
-                    {renderStatusBadge(checklist.overallStatus)}
-                  </div>
-                  
-                  <div className="card-info">
-                    <p><strong>Reviewer:</strong> {checklist.reviewerName}</p>
-                    <p><strong>Date:</strong> {new Date(checklist.reviewDate).toLocaleDateString()}</p>
-                    <p><strong>Compliance:</strong> {calculateCompliancePercentage(checklist.checklistItems)}%</p>
-                  </div>
-                  
-                  <div className="card-footer">
-                    <Link to={`/compliance-checklist/${checklist.id}`} className="view-button">
-                      View Details
-                    </Link>
-                  </div>
-                </div>
-              ))}
+            <div className="compliance-checklist-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Product</th>
+                    <th>Reviewer</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentItems.map(checklist => (
+                    <tr key={checklist.id}>
+                      <td>{`CL-${checklist.id < 1000 ? `100${checklist.id}` : checklist.id}`}</td>
+                      <td>{checklist.productName}</td>
+                      <td>{checklist.reviewerName}</td>
+                      <td>{new Date(checklist.reviewDate).toLocaleDateString()}</td>
+                      <td>{renderStatusBadge(checklist.overallStatus)}</td>
+                      <td>
+                        <Link to={`/dashboard?ComplianceChecklist=view&id=${checklist.id}`} className="view-button">
+                          View
+                        </Link>
+                        <button className="delete-button" onClick={() => { /* handleDelete(checklist.id) */ }}>
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
             
             {renderPagination()}

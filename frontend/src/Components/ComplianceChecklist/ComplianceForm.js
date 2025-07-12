@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-import React, { useState, useEffect } from 'react';
-import { FaArrowLeft, FaCalendarAlt, FaPlus, FaTrash, FaSave } from 'react-icons/fa';
-import './ComplianceForm.css';
-
-const ComplianceForm = ({ onBack, onSave, initialData }) => {
-=======
 import React, { useState, useEffect, useRef } from 'react';
 import { FaArrowLeft, FaCalendarAlt, FaPlus, FaTrash, FaSave } from 'react-icons/fa';
 import './ComplianceForm.css';
@@ -16,19 +9,11 @@ import 'react-toastify/dist/ReactToastify.css';
 const ComplianceForm = ({ onBack, onSave, initialData }) => {
   const newItemInputRef = useRef(null); // Create a ref for the new item input
 
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
   const [formData, setFormData] = useState({
     productId: '',
     reviewerName: '',
     reviewDate: new Date().toISOString().split('T')[0],
     comments: '',
-<<<<<<< HEAD
-    checklistItems: {}
-  });
-
-  // For adding new items
-  const [newItem, setNewItem] = useState('');
-=======
     checklistItems: [], // Initialize as an array
     productName: '' // Add productName to state
   });
@@ -40,26 +25,10 @@ const ComplianceForm = ({ onBack, onSave, initialData }) => {
   // For adding new items
   const [newItem, setNewItem] = useState('Regulatory documentations completes'); // Default value
   const [newItemError, setNewItemError] = useState(''); // New state for validation error
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 
   // Initialize with default checklist items or from initialData
   useEffect(() => {
     if (initialData) {
-<<<<<<< HEAD
-      setFormData(initialData);
-    } else {
-      // Default checklist items
-      setFormData(prev => ({
-        ...prev,
-        checklistItems: {
-          "Regulatory Documentation Complete": false,
-          "Safety Data Sheet Available": false,
-          "Ingredient List Compliant": false,
-          "Warning Labels Adequate": false,
-          "Packaging Meets Standards": false,
-          "Environmental Impact Assessment": false
-        }
-=======
       // Transform initialData.checklistItems (which is a Map/Object) into an array of {name, status} objects
       const transformedChecklistItems = initialData.checklistItems
         ? Object.entries(initialData.checklistItems).map(([name, status]) => ({ name, status }))
@@ -79,13 +48,10 @@ const ComplianceForm = ({ onBack, onSave, initialData }) => {
           { name: 'Packaging Meets Standards', status: false },
         ],
         productName: '' // Ensure productName is empty for new forms
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
       }));
     }
   }, [initialData]);
 
-<<<<<<< HEAD
-=======
   // Effect to fetch products on component mount
   useEffect(() => {
     const fetchProducts = async () => {
@@ -120,7 +86,6 @@ const ComplianceForm = ({ onBack, onSave, initialData }) => {
     fetchProducts();
   }, []);
 
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -129,15 +94,6 @@ const ComplianceForm = ({ onBack, onSave, initialData }) => {
     }));
   };
 
-<<<<<<< HEAD
-  const handleCheckboxChange = (itemName) => {
-    setFormData(prev => ({
-      ...prev,
-      checklistItems: {
-        ...prev.checklistItems,
-        [itemName]: !prev.checklistItems[itemName]
-      }
-=======
   const handleChecklistItemChange = (index) => {
     const newChecklistItems = formData.checklistItems.map((item, i) => {
       if (i === index) {
@@ -151,46 +107,10 @@ const ComplianceForm = ({ onBack, onSave, initialData }) => {
     setFormData(prevState => ({
       ...prevState,
       checklistItems: newChecklistItems
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     }));
   };
 
   const addChecklistItem = () => {
-<<<<<<< HEAD
-    if (!newItem.trim()) return;
-    
-    // Don't add if it already exists
-    if (formData.checklistItems.hasOwnProperty(newItem)) {
-      alert("This item already exists in the checklist");
-      return;
-    }
-    
-    setFormData(prev => ({
-      ...prev,
-      checklistItems: {
-        ...prev.checklistItems,
-        [newItem]: false
-      }
-    }));
-    
-    setNewItem('');
-  };
-
-  const removeChecklistItem = (itemName) => {
-    const updatedChecklistItems = { ...formData.checklistItems };
-    delete updatedChecklistItems[itemName];
-    
-    setFormData(prev => ({
-      ...prev,
-      checklistItems: updatedChecklistItems
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (onSave) {
-      onSave(formData);
-=======
     if (!newItem.trim()) {
       setNewItemError('Checklist item cannot be empty.');
       return;
@@ -309,16 +229,12 @@ const ComplianceForm = ({ onBack, onSave, initialData }) => {
     if (onSave) {
           onSave(null, error);
       }
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     }
   };
 
   return (
     <div className="compliance-form-container">
-<<<<<<< HEAD
-=======
       <ToastContainer />
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
       <div className="compliance-form-header">
         <h1>Create Compliance Checklist</h1>
         <button className="back-button" onClick={onBack}>
@@ -334,35 +250,19 @@ const ComplianceForm = ({ onBack, onSave, initialData }) => {
             </label>
             <select
               id="productId"
-<<<<<<< HEAD
-              name="productId"
-              className="form-select"
-              value={formData.productId}
-=======
               name="productName" // Change name to productName
               className="form-select"
               value={formData.productName} // Bind to productName
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
               onChange={handleInputChange}
               required
             >
               <option value="">Select a product</option>
-<<<<<<< HEAD
-              <option value="1">Product A</option>
-              <option value="2">Product B</option>
-              <option value="101">Fungicide X-500</option>
-              <option value="102">Organic Fertilizer B-200</option>
-              <option value="103">Insecticide Z-100</option>
-              <option value="104">Growth Enhancer G-300</option>
-            </select>
-=======
               {products.map(product => (
                 <option key={product.id} value={product.name}>{product.name}</option> // Send product.name as value
               ))}
             </select>
             {isLoadingProducts && <p>Loading products...</p>}
             {productError && <p className="error-message">{productError}</p>}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
           </div>
 
           <div className="form-field">
@@ -416,14 +316,6 @@ const ComplianceForm = ({ onBack, onSave, initialData }) => {
             <h2>Checklist Items <span className="required">*</span></h2>
             
             <div className="add-item">
-<<<<<<< HEAD
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Enter a checklist item"
-                value={newItem}
-                onChange={(e) => setNewItem(e.target.value)}
-=======
               {newItemError && <p className="error-text">{newItemError}</p>}
               <input
                 type="text"
@@ -435,7 +327,6 @@ const ComplianceForm = ({ onBack, onSave, initialData }) => {
                   setNewItem(e.target.value);
                   if (newItemError) setNewItemError(''); // Clear error on typing
                 }}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
               />
               <button 
                 type="button" 
@@ -447,20 +338,6 @@ const ComplianceForm = ({ onBack, onSave, initialData }) => {
             </div>
 
             <div className="checklist-items">
-<<<<<<< HEAD
-              {Object.entries(formData.checklistItems).map(([itemName, isChecked]) => (
-                <div key={itemName} className="checklist-item">
-                  <div className="item-content">
-                    <input
-                      type="checkbox"
-                      id={`item-${itemName}`}
-                      checked={isChecked}
-                      onChange={() => handleCheckboxChange(itemName)}
-                      className="item-checkbox"
-                    />
-                    <label htmlFor={`item-${itemName}`} className="item-label">
-                      {itemName}
-=======
               {formData.checklistItems.map((item, index) => (
                 <div key={item.name} className="checklist-item">
                   <div className="item-content">
@@ -473,27 +350,18 @@ const ComplianceForm = ({ onBack, onSave, initialData }) => {
                     />
                     <label htmlFor={`item-${item.name}`} className="item-label">
                       {item.name}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                     </label>
                   </div>
                   <button
                     type="button"
                     className="remove-item-btn"
-<<<<<<< HEAD
-                    onClick={() => removeChecklistItem(itemName)}
-=======
                     onClick={() => removeChecklistItem(index)}
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                   >
                     <FaTrash />
                   </button>
                 </div>
               ))}
-<<<<<<< HEAD
-              {Object.keys(formData.checklistItems).length === 0 && (
-=======
               {formData.checklistItems.length === 0 && (
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
                 <div className="no-items">No checklist items added yet</div>
               )}
             </div>

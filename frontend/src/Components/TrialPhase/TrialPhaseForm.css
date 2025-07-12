@@ -129,20 +129,12 @@
 
 .submit-button,
 .cancel-btn {
-<<<<<<< HEAD
-  padding: 10px 24px;
-=======
   padding: 8px 16px;
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
   border: none;
   border-radius: 4px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-<<<<<<< HEAD
-  width: 120px;
-=======
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
   transition: background-color 0.3s ease;
 }
 
@@ -163,13 +155,10 @@
 .cancel-btn {
   background-color: #dc3545;
   color: white;
-<<<<<<< HEAD
-=======
   width: 50px;
   border-radius: 4px;
   padding: 8px 16px;
   transition: background-color 0.3s ease;
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 }
 
 .cancel-btn:hover {
@@ -252,8 +241,6 @@
   .cancel-btn {
     width: 100%;
   }
-<<<<<<< HEAD
-=======
 }
 
 /* Styles for the view mode using cards */
@@ -339,5 +326,4 @@
 /* Add spacing for the back button */
 .trial-phase-details-view .form-actions {
   margin-top: 30px;
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 } 

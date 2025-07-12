@@ -268,33 +268,68 @@ const Login = (props) => {
   // Handle login form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    console.log("Login form submitted.");
+
     if (!validateForm()) {
+      console.log("Form validation failed.");
       return;
     }
-    
+
     setIsLoading(true);
     setErrors({});
-    
+
     try {
-      // This would be your API call to register the user
+      console.log("Attempting login with username:", formData.username);
       const response = await login(formData.username, formData.password);
-      
-      if (response.requires2FA) {
+      console.log("Login successful. Response:", response);
+
+      if (response.requiresVerification) {
+        // Show 2FA form
         setRequires2FA(true);
         setUserId(response.userId);
+        setMaskedPhone(response.phoneNumber ? response.phoneNumber.slice(-3) : "xxx");
+        setSuccessMessage(`Code sent to ****${response.phoneNumber ? response.phoneNumber.slice(-3) : "xxx"}`);
       } else {
-        // Successful login without 2FA
-        setSuccessMessage("Login successful!");
+        // Normal login success
+        setSuccessMessage("Login successful! Redirecting...");
         setTimeout(() => {
           navigate('/dashboard');
         }, 1500);
       }
     } catch (error) {
-      setPersistentError(setErrors, {
-        form: error.message || "Login failed. Please check your credentials."
-      }, 'login');
+      console.error("Login error:", error);
+      // Handle specific error types from the backend with 1-minute persistence
+      if (error.error) {
+        switch (error.error) {
+          case 'user_not_found':
+            setPersistentError(setErrors, {
+              username: error.message || "Username not found",
+              form: "Account not found. Please check your username or register a new account."
+            }, 'login');
+            break;
+          case 'invalid_password':
+            setPersistentError(setErrors, {
+              password: "Incorrect password",
+              form: error.message || "Incorrect password. Please try again."
+            }, 'login');
+            break;
+          case 'account_disabled':
+            setPersistentError(setErrors, {
+              form: error.message || "This account has been disabled. Please contact administration."
+            }, 'login');
+            break;
+          default:
+            setPersistentError(setErrors, {
+              form: error.message || "Login failed. Please try again."
+            }, 'login');
+        }
+      } else {
+        setPersistentError(setErrors, {
+        form: error.message || "Login failed. Please try again."
+        }, 'login');
+      }
     } finally {
+      console.log("Login process finished. Setting isLoading to false.");
       setIsLoading(false);
     }
   };

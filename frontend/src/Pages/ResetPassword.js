@@ -52,10 +52,6 @@ const ResetPassword = () => {
       if (response.debug) {
         setMaskedPhone(response.debug.phoneNumber ? 
           `****${response.debug.phoneNumber.slice(-3)}` : "***");
-        // For development purposes, auto-fill the reset code
-        if (process.env.NODE_ENV === 'development') {
-          setResetCode(response.debug.resetCode);
-        }
       }
     } catch (error) {
       console.error('Reset password error:', error);
@@ -235,7 +231,7 @@ const ResetPassword = () => {
                   id="resetCode"
                   value={resetCode}
                   onChange={(e) => setResetCode(e.target.value)}
-                  placeholder="Enter verification code"
+                  placeholder={`Please enter code sent on ${maskedPhone}`}
                   className={errors.resetCode ? 'error' : ''}
                   maxLength="4"
                   required

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import './TimeTrackingForm.css';
-import axios from 'axios';
-import { AUTH_SETTINGS, API_CONFIG } from '../../config';
-import { toast } from 'react-toastify';
+import './TimeTrackingForm.css'; // Optional: for specific form styling
+import axios from 'axios'; // Import axios for API calls
+import { AUTH_SETTINGS, API_CONFIG } from '../../config'; // Import auth settings and API config
+import { toast } from 'react-toastify'; // Import toast for notifications
 
 const TimeTrackingForm = () => {
   const [staffName, setStaffName] = useState('');
@@ -10,93 +10,110 @@ const TimeTrackingForm = () => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [totalHours, setTotalHours] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true); // Set loading to true on submission
 
-    // Validate time range
-    const calculatedHours = calculateTotalHours(startTime, endTime);
-    if (calculatedHours === 'Invalid time range' || calculatedHours === 'Invalid Date(s)') {
-      setError('Please enter a valid time range');
-      setIsLoading(false);
-      return;
+    // Prepare data to match backend model
+    const timeTrackingData = {
+      staffName,
+      activity,
+      startTime: startTime ? new Date(startTime).toISOString() : null, // Convert to ISO string
+      endTime: endTime ? new Date(endTime).toISOString() : null, // Convert to ISO string
+      totalHours: totalHours ? parseFloat(totalHours) : null, // Convert to number
+    };
+
+    console.log('Submitting time tracking data:', timeTrackingData);
+
+    const token = localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY); // Get auth token
+
+    if (!token) {
+      console.error('Authentication token not found. Please log in.');
+      toast.error('Authentication required to submit time tracking data.');
+      setIsLoading(false); // Stop loading
+      return; // Stop submission if no token
     }
 
-    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8888';
+    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8089'; // Get API base URL
 
     try {
-      const token = localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY);
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-
-      const response = await axios.post(`${apiBaseUrl}/api/time-tracking`, {
-        staffName,
-        activity,
-        startTime,
-        endTime,
-        totalHours: calculatedHours
-      }, {
+      const response = await axios.post(`${apiBaseUrl}/api/time-tracking`, timeTrackingData, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
 
-      if (response.data) {
-        toast.success('Time tracking entry saved successfully!');
-        handleCancel(); // Clear form after successful submission
-      }
+      console.log('Time tracking data saved successfully:', response.data);
+      toast.success('Time tracking data saved successfully!');
+      
+      // Clear the form after successful submission
+      setStaffName('');
+      setActivity('');
+      setStartTime('');
+      setEndTime('');
+      setTotalHours(''); // totalHours will be recalculated by useEffect
+
     } catch (error) {
-      console.error('Error saving time tracking:', error);
-      setError(error.response?.data?.message || error.message || 'Failed to save time tracking entry');
-      toast.error('Failed to save time tracking entry');
+      console.error('Error saving time tracking data:', error);
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+        alert(`Failed to save time tracking data: ${error.response.data.message || error.response.statusText}`);
+      } else if (error.request) {
+        console.error('Error request:', error.request);
+        alert('No response received from the server. Please try again.');
+      } else {
+        console.error('Error message:', error.message);
+        alert(`An error occurred: ${error.message}`);
+      }
+      toast.error('Failed to save time tracking data.');
+
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Stop loading regardless of success or failure
     }
   };
 
   const handleCancel = () => {
+    // Handle cancel logic here, maybe close the form or clear fields
+    console.log('Form cancelled');
+    // Clear the form fields
     setStaffName('');
     setActivity('');
     setStartTime('');
     setEndTime('');
     setTotalHours('');
-    setError(null);
   };
 
+  // Helper to calculate total hours (basic implementation, can be refined)
   const calculateTotalHours = (start, end) => {
     if (!start || !end) return '';
     try {
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-      
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+      // Check for valid dates
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-        return 'Invalid Date(s)';
+          return 'Invalid Date(s)';
       }
-      
-      const diffMs = endDate - startDate;
-      if (diffMs < 0) return 'Invalid time range';
-      const diffHours = diffMs / (1000 * 60 * 60);
-      return diffHours.toFixed(2);
+    const diffMs = endDate - startDate;
+    if (diffMs < 0) return 'Invalid time range';
+    const diffHours = diffMs / (1000 * 60 * 60);
+    return diffHours.toFixed(2);
     } catch (error) {
-      console.error('Error calculating total hours:', error);
-      return 'Calculation Error';
+        console.error('Error calculating total hours:', error);
+        return 'Calculation Error';
     }
   };
 
-  // Update total hours whenever start or end time changes
   React.useEffect(() => {
-    const hours = calculateTotalHours(startTime, endTime);
-    setTotalHours(hours);
+    setTotalHours(calculateTotalHours(startTime, endTime));
   }, [startTime, endTime]);
 
   return (
     <div className="time-tracking-form-container">
-      {isLoading && <div className="loading-overlay">Saving...</div>}
+      {isLoading && <div className="loading-overlay">Saving...</div>} {/* Loading overlay */}
       <form className="time-tracking-form" onSubmit={handleSubmit}>
         <div className="form-row">
           <label htmlFor="staffName">Staff Name:</label>
@@ -106,10 +123,8 @@ const TimeTrackingForm = () => {
             value={staffName}
             onChange={(e) => setStaffName(e.target.value)}
             required
-            disabled={isLoading}
           />
         </div>
-
         <div className="form-row">
           <label htmlFor="activity">Activity:</label>
           <input
@@ -118,10 +133,8 @@ const TimeTrackingForm = () => {
             value={activity}
             onChange={(e) => setActivity(e.target.value)}
             required
-            disabled={isLoading}
           />
         </div>
-
         <div className="form-row">
           <label htmlFor="startTime">Start Time:</label>
           <input
@@ -130,10 +143,8 @@ const TimeTrackingForm = () => {
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
             required
-            disabled={isLoading}
           />
         </div>
-
         <div className="form-row">
           <label htmlFor="endTime">End Time:</label>
           <input
@@ -142,30 +153,21 @@ const TimeTrackingForm = () => {
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
             required
-            disabled={isLoading}
           />
         </div>
-
-        <div className="form-row">
+         <div className="form-row">
           <label htmlFor="totalHours">Total Hours:</label>
           <input
             type="text"
             id="totalHours"
             value={totalHours}
-            readOnly
-            disabled
+            readOnly // Calculated field
           />
         </div>
 
-        {error && <div className="error-message">{error}</div>}
-
         <div className="button-row">
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? 'Saving...' : 'Save Time Entry'}
-          </button>
-          <button type="button" onClick={handleCancel} disabled={isLoading}>
-            Cancel
-          </button>
+          <button type="submit">Submit</button>
+          <button type="button" onClick={handleCancel}>Cancel</button>
         </div>
       </form>
     </div>

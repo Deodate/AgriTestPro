@@ -6,14 +6,6 @@
 }
 
 .test-documentation-form {
-<<<<<<< HEAD
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 600px; /* Limit form width */
-=======
     padding: 20px;
     background: #fff;
     border-radius: 12px;
@@ -21,43 +13,10 @@
     max-width: 800px;
     margin: 20px auto;
     font-family: Arial, sans-serif;
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 }
 
 .test-documentation-form h2 {
     text-align: center;
-<<<<<<< HEAD
-    margin-bottom: 25px;
-    color: #333;
-}
-
-.form-group {
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center; /* Vertically align label and input */
-}
-
-.form-group label {
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #555;
-    margin-right: 10px; /* Add some space between label and input */
-    flex-shrink: 0; /* Prevent label from shrinking */
-    width: 150px; /* Give labels a fixed width for alignment, adjust as needed */
-}
-
-.form-group input[type="text"],
-.form-group input[type="date"],
-.form-group select,
-.form-group textarea {
-    flex-grow: 1; /* Allow input to take remaining space */
-    max-width: 400px; /* Limit the maximum width of the input */
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1rem;
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
-=======
     color: #333;
     margin-bottom: 20px;
 }
@@ -96,24 +55,14 @@
     outline: none;
     border-color: #007bff;
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 }
 
 .form-group textarea {
     resize: vertical; /* Allow vertical resizing */
-<<<<<<< HEAD
-    min-height: 100px;
-=======
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 }
 
 .form-buttons {
     display: flex;
-<<<<<<< HEAD
-    justify-content: flex-start; /* Align buttons to the left */
-    gap: 10px; /* Add space between buttons */
-    margin-top: 25px; /* Add space above the buttons */
-=======
     justify-content: flex-end;
     gap: 10px;
     margin-top: 20px;
@@ -160,7 +109,6 @@
     border: 1px solid #f5c6cb;
     border-radius: 4px;
     text-align: center;
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 }
 
 .test-documentation-form button[type="submit"] {

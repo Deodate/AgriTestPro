@@ -24,8 +24,6 @@
     margin-bottom: 20px;
     display: flex;
     align-items: center; /* Vertically align label and input */
-<<<<<<< HEAD
-=======
     justify-content: center; /* Center the content horizontally */
 }
 
@@ -44,7 +42,6 @@
     justify-content: center; /* Keep centering of items within this group */
     gap: 10px; /* Add a small gap between the batch number and the checkbox */
     margin-left: 5px; /* Add a small space to the left of the control group */
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 }
 
 /* Adjust styling for inputs and selects */
@@ -66,8 +63,6 @@
     min-height: 100px;
 }
 
-<<<<<<< HEAD
-=======
 /* Styles for validation feedback */
 .form-row input.is-invalid,
 .form-row textarea.is-invalid {
@@ -85,7 +80,6 @@
     margin-top: 5px;
 }
 
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 .button-row {
     display: flex;
     justify-content: flex-start; /* Align buttons to the left */
@@ -127,8 +121,6 @@
 
 .button-row button[type="button"]:hover {
     background-color: #c82333; /* Darker red on hover */
-<<<<<<< HEAD
-=======
 }
 
 /* Style for the Batch Number input to reduce its width within the new group */
@@ -189,5 +181,4 @@
 
 .product-registration-form .button-row button:disabled {
     /* Add styles for disabled button */
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 } 
