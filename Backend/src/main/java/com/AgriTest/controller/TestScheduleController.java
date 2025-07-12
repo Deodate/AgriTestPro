@@ -38,6 +38,7 @@ public class TestScheduleController {
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TESTER')")
     public TestScheduleResponse createTestSchedule(@Valid @RequestBody TestScheduleRequest testScheduleRequest) {
+        System.out.println("Received a POST request to /api/schedules");
         Long userId = SecurityUtils.getCurrentUserId();
         return testScheduleService.createTestSchedule(testScheduleRequest, userId);
     }

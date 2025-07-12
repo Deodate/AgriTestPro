@@ -31,21 +31,23 @@ public class TestCaseTrialPhase {
     @Column(name = "phase_date", nullable = false)
     private LocalDate phaseDate;
 
-    @ElementCollection
-    @CollectionTable(name = "trial_phase_observations", joinColumns = @JoinColumn(name = "trial_phase_id"))
-    @Column(name = "observation")
-    private List<String> observations;
+    @Column(name = "test_name")
+    private String testName;
 
-    @ElementCollection
-    @CollectionTable(name = "trial_phase_test_data", joinColumns = @JoinColumn(name = "trial_phase_id"))
-    @Column(name = "data_entry")
-    private List<String> testDataEntries;
+    @Column(name = "observations", columnDefinition = "TEXT")
+    private String observations;
+
+    @Column(name = "test_data_entry", columnDefinition = "TEXT")
+    private String testDataEntry;
 
     @Embedded
     private WeatherData weatherData;
 
     @Column(name = "additional_comments", length = 1000)
     private String additionalComments;
+
+    @Column(name = "image_video")
+    private String imageVideo;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "trial_phase_id")

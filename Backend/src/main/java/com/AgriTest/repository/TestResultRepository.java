@@ -10,4 +10,6 @@ import java.util.List;
 public interface TestResultRepository extends JpaRepository<TestResult, Long> {
     List<TestResult> findByTestPhase_TestCase_Id(Long testCaseId);
     List<TestResult> findByProductId(Long productId);
+
+    Long countByFinalVerdictIgnoreCase(String finalVerdict);
 }

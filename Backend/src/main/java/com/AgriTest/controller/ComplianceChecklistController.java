@@ -29,7 +29,7 @@ public class ComplianceChecklistController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('RESEARCH_MANAGER')")
     public ResponseEntity<ComplianceChecklistResponse> createComplianceChecklist(
             @Valid @RequestBody ComplianceChecklistRequest request) {
-        logger.info("Creating new compliance checklist for product ID: {}", request.getProductId());
+        logger.info("Creating new compliance checklist for product name: {}", request.getProductName());
         ComplianceChecklistResponse response = complianceChecklistService.createComplianceChecklist(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }

@@ -12,8 +12,9 @@ public class TestCaseTrialPhaseResponse {
     private Long testCaseId;
     private String phaseName;
     private LocalDate phaseDate;
-    private List<String> observations;
-    private List<String> testDataEntries;
+    private String testName;
+    private String observations;
+    private String testDataEntry;
     private WeatherDataDto weatherData;
     private String additionalComments;
     private List<FileAttachmentDto> attachments;
@@ -32,5 +33,6 @@ public class TestCaseTrialPhaseResponse {
         private Long id;
         private String fileName;
         private String fileType;
+        private String filePath;
     }
 }

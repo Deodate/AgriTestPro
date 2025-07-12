@@ -1,13 +1,14 @@
 package com.AgriTest.service;
 
 import com.AgriTest.dto.*;
+import com.AgriTest.model.TestCase;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface TestCaseService {
     /**
-     * Get all test cases
+     * Get all test cases that have at least one phase defined
      */
     List<TestCaseResponse> getAllTestCases();
     
@@ -69,4 +70,6 @@ public interface TestCaseService {
      * @return List of test result responses
      */
     List<TestResultResponse> getTestResultsByTestCase(Long testCaseId);
+
+    long getTotalTestCaseCount();
 }

@@ -22,6 +22,9 @@ public class TestSchedule {
     @JoinColumn(name = "test_case_id", nullable = false)
     private TestCase testCase;
     
+    @Column(name = "test_name", nullable = false)
+    private String testName;
+    
     @Column(name = "schedule_name", nullable = false)
     private String scheduleName;
     
@@ -45,6 +48,27 @@ public class TestSchedule {
     
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
+    
+    @Column(name = "trial_phase")
+    private String trialPhase;
+    
+    @Column(name = "assigned_personnel")
+    private String assignedPersonnel;
+    
+    @Column(name = "location")
+    private String location;
+    
+    @Column(name = "test_objective", columnDefinition = "TEXT")
+    private String testObjective;
+    
+    @Column(name = "equipment_required", columnDefinition = "TEXT")
+    private String equipmentRequired;
+    
+    @Column(name = "notification_preference")
+    private String notificationPreference;
+    
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
     
     @Column(name = "created_by")
     private Long createdBy;

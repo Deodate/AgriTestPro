@@ -15,6 +15,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+// Add imports for file handling and media type
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.MediaType;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 @RestController
 @RequestMapping("/api/test-case-trial-phases")
 public class TestCaseTrialPhaseController {
@@ -76,6 +83,19 @@ public class TestCaseTrialPhaseController {
         }
     }
 
+    @GetMapping
+    public ResponseEntity<List<TestCaseTrialPhaseResponse>> getAllTrialPhases() {
+        logger.info("Received request to fetch all Trial Phases.");
+        try {
+            List<TestCaseTrialPhaseResponse> responses = service.getAllTrialPhases();
+            logger.info("Fetched {} trial phases.", responses.size());
+            return ResponseEntity.ok(responses);
+        } catch (Exception e) {
+            logger.error("Error fetching all trial phases", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTrialPhase(@PathVariable Long id) {
         try {
@@ -84,6 +104,39 @@ public class TestCaseTrialPhaseController {
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             logger.error("Error deleting trial phase", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/images/{filename:.+}")
+    public ResponseEntity<Resource> serveTrialPhaseImage(@PathVariable String filename) {
+        try {
+            // ** IMPORTANT: Update this path to the actual directory where your trial phase images are stored **
+            Path file = Paths.get("uploads/trial-phases/images").resolve(filename);
+            Resource resource = new UrlResource(file.toUri());
+
+            if (resource.exists() || resource.isReadable()) {
+                // Determine content type dynamically if possible, or set a default
+                String contentType = "application/octet-stream"; // Default
+                try {
+                    contentType = java.nio.file.Files.probeContentType(file);
+                    if (contentType == null) {
+                         contentType = "application/octet-stream";
+                    }
+                } catch (java.io.IOException e) {
+                    logger.warn("Could not determine file type for {}", filename, e);
+                }
+
+                logger.info("Serving image file: {}", filename);
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .body(resource);
+            } else {
+                logger.warn("Image file not found or not readable: {}", filename);
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            logger.error("Error serving image file: {}", filename, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

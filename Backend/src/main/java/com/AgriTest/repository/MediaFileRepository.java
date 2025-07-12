@@ -80,4 +80,7 @@ public interface MediaFileRepository extends JpaRepository<MediaFile, Long> {
         Long uploadedBy,
         String associationType
     );
+
+    // Add method to find by TestCaseTrialPhase
+    List<MediaFile> findByTestCaseTrialPhase(TestCaseTrialPhase testCaseTrialPhase);
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -40,22 +41,25 @@ public class MediaFile {
     @JoinColumn(name = "test_result_id", nullable = true)
     private TestResult testResult;
     
-    @ManyToOne(optional = true)
-    @JoinColumn(name = "incident_report_id", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "incident_report_id")
     private QualityIncidentReport incidentReport;
 
-    @ManyToOne(optional = true)
-    @JoinColumn(name = "announcement_id", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "announcement_id")
     private Announcement announcement;
     
-    @ManyToOne(optional = true)
-    @JoinColumn(name = "expense_id", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "expense_id")
     private Expense expense;
     
-    // Add this new relationship for Field Activity
-    @ManyToOne(optional = true)
-    @JoinColumn(name = "field_activity_id", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "field_activity_id")
     private FieldActivity fieldActivity;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trial_phase_id")
+    private TestCaseTrialPhase testCaseTrialPhase;
     
     @Column(name = "uploaded_by")
     private Long uploadedBy;
@@ -66,5 +70,17 @@ public class MediaFile {
     @PrePersist
     protected void onCreate() {
         this.uploadedAt = LocalDateTime.now();
+    }
+
+    public void setFieldActivity(FieldActivity fieldActivity) {
+        this.fieldActivity = fieldActivity;
+    }
+
+    public void setTestCaseTrialPhase(TestCaseTrialPhase testCaseTrialPhase) {
+        this.testCaseTrialPhase = testCaseTrialPhase;
+    }
+
+    public Long getUploadedBy() {
+        return uploadedBy;
     }
 }

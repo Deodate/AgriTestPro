@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class TestResultRequest {
@@ -42,4 +44,9 @@ public class TestResultRequest {
     private String unit;
     
     private String notes;
+
+    private String updatedBy;
+
+    // Add list of MultipartFiles for attachments
+    private List<MultipartFile> attachments;
 }

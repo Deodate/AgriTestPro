@@ -13,6 +13,7 @@ import com.AgriTest.security.service.UserDetailsServiceImpl;
 import com.AgriTest.service.SmsService;
 import com.AgriTest.service.TwoFactorAuthService;
 import com.AgriTest.service.UserService;
+import com.AgriTest.service.UserDetailsImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -359,7 +360,9 @@ public class TwoFactorAuthServiceImpl implements TwoFactorAuthService {
     public String verifyCodeAndGenerateToken(TwoFactorVerificationRequest request) {
         if (verifyCode(request.getUserId(), request.getCode())) {
             // Load user details and generate a JWT token
-            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+            User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserId()));
+            UserDetails userDetails = UserDetailsImpl.build(user);
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());
             

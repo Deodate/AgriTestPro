@@ -22,12 +22,15 @@ public class TestScheduleMapper {
         
         return TestScheduleResponse.builder()
                 .id(testSchedule.getId())
-                .testCaseId(testSchedule.getTestCase().getId())
-                .testCaseTitle(testSchedule.getTestCase().getTestName()) // Changed from getTitle() to getTestName()
+                .testCaseId(testSchedule.getTestCase() != null ? testSchedule.getTestCase().getId() : null)
+                .testCaseTitle(testSchedule.getTestCase() != null ? testSchedule.getTestCase().getTestName() : null)
                 .scheduleName(testSchedule.getScheduleName())
                 .startDate(testSchedule.getStartDate())
+                .trialPhase(testSchedule.getTrialPhase())
+                .assignedPersonnel(testSchedule.getAssignedPersonnel())
                 .endDate(testSchedule.getEndDate())
                 .frequency(testSchedule.getFrequency())
+                .location(testSchedule.getLocation())
                 .dayOfWeek(testSchedule.getDayOfWeek())
                 .dayOfMonth(testSchedule.getDayOfMonth())
                 .nextExecution(testSchedule.getNextExecution())
@@ -54,6 +57,7 @@ public class TestScheduleMapper {
         
         TestSchedule testSchedule = new TestSchedule();
         testSchedule.setTestCase(testCase);
+        testSchedule.setTestName(testCase.getTestName());
         testSchedule.setScheduleName(request.getScheduleName());
         testSchedule.setStartDate(request.getStartDate());
         testSchedule.setEndDate(request.getEndDate());
@@ -61,6 +65,15 @@ public class TestScheduleMapper {
         testSchedule.setDayOfWeek(request.getDayOfWeek());
         testSchedule.setDayOfMonth(request.getDayOfMonth());
         testSchedule.setCreatedBy(userId);
+
+        // Map added fields from request to entity
+        testSchedule.setTrialPhase(request.getTrialPhase());
+        testSchedule.setAssignedPersonnel(request.getAssignedPersonnel());
+        testSchedule.setLocation(request.getLocation());
+        testSchedule.setTestObjective(request.getTestObjective());
+        testSchedule.setEquipmentRequired(request.getEquipmentRequired());
+        testSchedule.setNotificationPreference(request.getNotificationPreference());
+        testSchedule.setNotes(request.getNotes());
         
         // Calculate next execution date
         testSchedule.setNextExecution(calculateNextExecution(

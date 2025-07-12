@@ -10,11 +10,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.context.annotation.Primary;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@Primary
 public class InfobipSmsServiceImpl implements SmsService {
 
     private static final Logger logger = LoggerFactory.getLogger(InfobipSmsServiceImpl.class);

@@ -1,4 +1,3 @@
-
 // File: src/main/java/com/AgriTest/mapper/ProductMapper.java
 package com.AgriTest.mapper;
 
@@ -22,8 +21,15 @@ public class ProductMapper {
                 .id(product.getId())
                 .name(product.getName())
                 .description(product.getDescription())
-                .category(product.getCategory())
                 .manufacturer(product.getManufacturer())
+                .productType(product.getProductType())
+                .activeIngredients(product.getActiveIngredients())
+                .batchNumber(product.getBatchNumber())
+                .imageUrl(product.getImageUrl())
+                .dateOfRegistration(product.getDateOfRegistration() != null ? product.getDateOfRegistration().toString() : null)
+                .intendedUse(product.getIntendedUse())
+                .cropTarget(product.getCropTarget())
+                .comments(product.getComments())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .build();
@@ -43,8 +49,14 @@ public class ProductMapper {
         Product product = new Product();
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
-        product.setCategory(productRequest.getCategory());
         product.setManufacturer(productRequest.getManufacturer());
+        product.setProductType(productRequest.getProductType());
+        product.setActiveIngredients(productRequest.getActiveIngredients());
+        product.setDateOfRegistration(productRequest.getDateOfRegistration());
+        product.setIntendedUse(productRequest.getIntendedUse());
+        product.setCropTarget(productRequest.getCropTarget());
+        product.setComments(productRequest.getComments());
+        product.setBatchNumber(productRequest.getBatchNumber());
         
         return product;
     }
@@ -56,7 +68,13 @@ public class ProductMapper {
         
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
-        product.setCategory(productRequest.getCategory());
         product.setManufacturer(productRequest.getManufacturer());
+        product.setProductType(productRequest.getProductType());
+        product.setActiveIngredients(productRequest.getActiveIngredients());
+        product.setDateOfRegistration(productRequest.getDateOfRegistration());
+        product.setIntendedUse(productRequest.getIntendedUse());
+        product.setCropTarget(productRequest.getCropTarget());
+        product.setComments(productRequest.getComments());
+        product.setBatchNumber(productRequest.getBatchNumber());
     }
 }

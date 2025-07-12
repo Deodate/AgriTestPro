@@ -31,4 +31,13 @@ public class TestScheduleRequest {
     private Integer dayOfWeek; // 1-7 (Monday to Sunday)
     
     private Integer dayOfMonth;
+
+    // Added fields from frontend form
+    private String trialPhase;
+    private String assignedPersonnel;
+    private String location;
+    private String testObjective;
+    private String equipmentRequired;
+    private String notificationPreference;
+    private String notes;
 }

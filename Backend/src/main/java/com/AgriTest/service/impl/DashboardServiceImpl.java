@@ -76,13 +76,6 @@ public class DashboardServiceImpl implements DashboardService {
         Map<String, Long> statusCounts = testCases.stream()
                 .collect(Collectors.groupingBy(TestCase::getStatus, Collectors.counting()));
         
-        // Calculate category counts by aggregating products' categories
-        Map<String, Long> categoryCounts = new HashMap<>();
-        for (TestCase testCase : testCases) {
-            String category = testCase.getProduct().getCategory();
-            categoryCounts.put(category, categoryCounts.getOrDefault(category, 0L) + 1);
-        }
-        
         // Calculate average test duration (days)
         double avgDuration = testCases.stream()
                 .filter(tc -> tc.getEndDate() != null)
@@ -90,34 +83,9 @@ public class DashboardServiceImpl implements DashboardService {
                 .average()
                 .orElse(0.0);
         
-        // Calculate success rate by category
-        Map<String, Double> successRateByCategory = new HashMap<>();
-        Map<String, Integer> totalByCategory = new HashMap<>();
-        Map<String, Integer> successByCategory = new HashMap<>();
-        
-        for (TestCase testCase : testCases) {
-            if ("COMPLETED".equals(testCase.getStatus())) {
-                String category = testCase.getProduct().getCategory();
-                totalByCategory.put(category, totalByCategory.getOrDefault(category, 0) + 1);
-                
-                // Consider a test successful if status is "COMPLETED" (simplified logic)
-                successByCategory.put(category, successByCategory.getOrDefault(category, 0) + 1);
-            }
-        }
-        
-        for (Map.Entry<String, Integer> entry : totalByCategory.entrySet()) {
-            String category = entry.getKey();
-            int total = entry.getValue();
-            int success = successByCategory.getOrDefault(category, 0);
-            double rate = (double) success / total * 100;
-            successRateByCategory.put(category, rate);
-        }
-        
         return TestCaseStatisticsResponse.builder()
                 .statusCounts(statusCounts)
-                .categoryCounts(categoryCounts)
                 .averageTestDuration(avgDuration)
-                .successRateByCategory(successRateByCategory)
                 .build();
     }
 
@@ -140,20 +108,10 @@ public class DashboardServiceImpl implements DashboardService {
                 .mapToDouble(inventory -> inventory.getQuantity() * 100) // Placeholder for actual price
                 .sum();
         
-        // Calculate value by category
-        Map<String, Double> valueByCategory = new HashMap<>();
-        for (Inventory inventory : inventoryItems) {
-            Product product = inventory.getProduct();
-            String category = product.getCategory();
-            double itemValue = inventory.getQuantity() * 100; // Placeholder for actual price
-            valueByCategory.put(category, valueByCategory.getOrDefault(category, 0.0) + itemValue);
-        }
-        
         return InventoryStatisticsResponse.builder()
                 .productCounts(productCounts)
                 .locationCounts(locationCounts)
                 .totalInventoryValue(totalValue)
-                .valueByCategory(valueByCategory)
                 .build();
     }
 }

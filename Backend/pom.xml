@@ -100,6 +100,21 @@
             <version>1.10.0</version>
         </dependency>
         
+        <!-- Add iText 7 Core for PDF generation -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itext7-core</artifactId>
+            <version>8.0.2</version>
+            <type>pom</type>
+        </dependency>
+        
+        <!-- Add commons-fileupload for CommonsMultipartResolver -->
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.5</version>
+        </dependency>
+        
         <!-- For statistical calculations in forecasting -->
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -192,6 +207,13 @@
             <artifactId>mockito-junit-jupiter</artifactId>
             <version>5.10.0</version>
             <scope>test</scope>
+        </dependency>
+
+        <!-- iText 7 Layout module -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>layout</artifactId>
+            <version>7.2.5</version>
         </dependency>
     </dependencies>
 

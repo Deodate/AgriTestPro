@@ -40,7 +40,7 @@ const TestSchedulingForm = () => {
                 <div className="form-row">
                     <input
                         type="text"
-                        placeholder="Product ID"
+                        placeholder="Test Name"
                         value={productId}
                         onChange={(e) => setProductId(e.target.value)}
                         required

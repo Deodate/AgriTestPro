@@ -11,5 +11,6 @@ public interface TestCaseTrialPhaseService {
     TestCaseTrialPhaseResponse updateTrialPhase(Long id, TestCaseTrialPhaseRequest request);
     TestCaseTrialPhaseResponse getTrialPhaseById(Long id);
     List<TestCaseTrialPhaseResponse> getTrialPhasesByTestCase(Long testCaseId);
+    List<TestCaseTrialPhaseResponse> getAllTrialPhases();
     void deleteTrialPhase(Long id);
 }

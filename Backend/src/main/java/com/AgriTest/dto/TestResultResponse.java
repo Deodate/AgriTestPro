@@ -22,4 +22,19 @@ public class TestResultResponse {
     private Long recordedBy;
     private LocalDateTime recordedAt;
     private List<MediaFileResponse> mediaFiles;
+
+    // Add missing fields from TestResult entity
+    private Long productId;
+    private String trialPhase;
+    private Double growthRate;
+    private Double yield;
+    private Double pestResistance;
+    private String finalVerdict;
+    private String recommendations;
+    private String approvedBy;
+    private LocalDateTime dateOfApproval;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private String createdBy;
+    private String updatedBy;
 }

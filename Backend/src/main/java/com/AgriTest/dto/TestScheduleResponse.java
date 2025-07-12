@@ -18,8 +18,15 @@ public class TestScheduleResponse {
     private String testCaseTitle;
     private String scheduleName;
     private LocalDate startDate;
+    private String trialPhase;
+    private String assignedPersonnel;
     private LocalDate endDate;
     private String frequency;
+    private String location;
+    private String testObjective;
+    private String equipmentRequired;
+    private String notificationPreference;
+    private String notes;
     private Integer dayOfWeek;
     private Integer dayOfMonth;
     private LocalDate nextExecution;

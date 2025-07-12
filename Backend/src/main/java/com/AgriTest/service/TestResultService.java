@@ -2,6 +2,8 @@ package com.AgriTest.service;
 
 import com.AgriTest.dto.TestResultRequest;
 import com.AgriTest.model.TestResult;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 public interface TestResultService {
@@ -12,4 +14,5 @@ public interface TestResultService {
     List<TestResult> getAllTestResults();
     TestResult updateTestResult(Long id, TestResultRequest request);
     void deleteTestResult(Long id);
+    Long countFailedTestResults();
 } 

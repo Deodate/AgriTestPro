@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "compliance_checklists")
@@ -31,12 +31,8 @@ public class ComplianceChecklist {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
     
-    @ElementCollection
-    @CollectionTable(name = "compliance_checklist_items", 
-                    joinColumns = @JoinColumn(name = "checklist_id"))
-    @MapKeyColumn(name = "item_name")
-    @Column(name = "item_status")
-    private Map<String, Boolean> checklistItems = new HashMap<>();
+    @OneToMany(mappedBy = "complianceChecklist", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ComplianceChecklistItem> checklistItems = new ArrayList<>();
     
     @Column(name = "reviewer_name", nullable = false)
     private String reviewerName;
@@ -54,12 +50,13 @@ public class ComplianceChecklist {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
     
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
     
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
         calculateOverallStatus();
     }
     
@@ -76,8 +73,8 @@ public class ComplianceChecklist {
         }
         
         long totalItems = checklistItems.size();
-        long passedItems = checklistItems.values().stream()
-                .filter(Boolean::booleanValue)
+        long passedItems = checklistItems.stream()
+                .filter(ComplianceChecklistItem::isChecked)
                 .count();
         
         if (passedItems == totalItems) {
@@ -87,5 +84,15 @@ public class ComplianceChecklist {
         } else {
             this.overallStatus = ComplianceStatus.NON_COMPLIANT;
         }
+    }
+
+    public void addChecklistItem(ComplianceChecklistItem item) {
+        checklistItems.add(item);
+        item.setComplianceChecklist(this);
+    }
+
+    public void removeChecklistItem(ComplianceChecklistItem item) {
+        checklistItems.remove(item);
+        item.setComplianceChecklist(null);
     }
 }

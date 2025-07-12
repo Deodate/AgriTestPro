@@ -11,8 +11,8 @@ import java.util.Map;
 @Data
 public class ComplianceChecklistRequest {
     
-    @NotNull(message = "Product ID is required")
-    private Long productId;
+    @NotBlank(message = "Product name is required")
+    private String productName;
     
     @NotEmpty(message = "Checklist items are required")
     private Map<String, Boolean> checklistItems;

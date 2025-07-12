@@ -20,8 +20,8 @@ public class TestCaseTrialPhaseRequest {
     @NotNull(message = "Phase Date is required")
     private LocalDate phaseDate;
 
-    private List<String> observations;
-    private List<String> testDataEntries;
+    private String observations;
+    private String testData;
 
     private WeatherDataDto weatherData;
     private String additionalComments;

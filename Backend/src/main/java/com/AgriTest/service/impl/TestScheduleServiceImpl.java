@@ -50,10 +50,18 @@ public class TestScheduleServiceImpl implements TestScheduleService {
     @Override
     @Transactional
     public TestScheduleResponse createTestSchedule(TestScheduleRequest testScheduleRequest, Long userId) {
+        // Find the TestCase by ID
         TestCase testCase = testCaseRepository.findById(testScheduleRequest.getTestCaseId())
                 .orElseThrow(() -> new ResourceNotFoundException("Test case not found with id: " + testScheduleRequest.getTestCaseId()));
         
+        // Log the test case name retrieved
+        System.out.println("Fetched TestCase with ID: " + testCase.getId() + " and testName: " + testCase.getTestName());
+        
         TestSchedule testSchedule = testScheduleMapper.toEntity(testScheduleRequest, testCase, userId);
+
+        // Log the TestSchedule entity before saving
+        System.out.println("Saving TestSchedule entity with testName: " + testSchedule.getTestName());
+
         TestSchedule savedTestSchedule = testScheduleRepository.save(testSchedule);
         
         return testScheduleMapper.toDto(savedTestSchedule);
@@ -65,10 +73,15 @@ public class TestScheduleServiceImpl implements TestScheduleService {
         TestSchedule existingSchedule = testScheduleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Test schedule not found with id: " + id));
         
+        // Find the TestCase by ID
         TestCase testCase = testCaseRepository.findById(testScheduleRequest.getTestCaseId())
                 .orElseThrow(() -> new ResourceNotFoundException("Test case not found with id: " + testScheduleRequest.getTestCaseId()));
         
+        // Log the test case name retrieved
+        System.out.println("Fetched TestCase with ID: " + testCase.getId() + " and testName: " + testCase.getTestName());
+        
         existingSchedule.setTestCase(testCase);
+        existingSchedule.setTestName(testCase.getTestName()); // Ensure testName is updated on the existing entity
         existingSchedule.setScheduleName(testScheduleRequest.getScheduleName());
         existingSchedule.setStartDate(testScheduleRequest.getStartDate());
         existingSchedule.setEndDate(testScheduleRequest.getEndDate());
@@ -83,6 +96,9 @@ public class TestScheduleServiceImpl implements TestScheduleService {
                 testScheduleRequest.getDayOfWeek(),
                 testScheduleRequest.getDayOfMonth()
         ));
+        
+        // Log the TestSchedule entity before saving
+        System.out.println("Updating TestSchedule entity with testName: " + existingSchedule.getTestName());
         
         TestSchedule updatedSchedule = testScheduleRepository.save(existingSchedule);
         return testScheduleMapper.toDto(updatedSchedule);

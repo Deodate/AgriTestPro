@@ -13,6 +13,11 @@ import com.AgriTest.repository.TestPhaseRepository;
 import com.AgriTest.repository.TestResultRepository;
 import com.AgriTest.repository.UserRepository;
 import com.AgriTest.service.TestCaseService;
+import com.AgriTest.util.SecurityUtils;
+import com.AgriTest.mapper.TestCaseMapper;
+import com.AgriTest.mapper.MediaFileMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +35,9 @@ public class TestCaseServiceImpl implements TestCaseService {
     private final TestResultRepository testResultRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final TestCaseMapper testCaseMapper;
+    private final MediaFileMapper mediaFileMapper;
+    private static final Logger logger = LoggerFactory.getLogger(TestCaseServiceImpl.class);
 
     @Autowired
     public TestCaseServiceImpl(
@@ -37,19 +45,24 @@ public class TestCaseServiceImpl implements TestCaseService {
             TestPhaseRepository testPhaseRepository,
             TestResultRepository testResultRepository,
             ProductRepository productRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            TestCaseMapper testCaseMapper,
+            MediaFileMapper mediaFileMapper) {
         this.testCaseRepository = testCaseRepository;
         this.testPhaseRepository = testPhaseRepository;
         this.testResultRepository = testResultRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.testCaseMapper = testCaseMapper;
+        this.mediaFileMapper = mediaFileMapper;
     }
 
     @Override
     public List<TestCaseResponse> getAllTestCases() {
-        return testCaseRepository.findAll().stream()
-                .map(this::mapTestCaseToTestCaseResponse)
-                .collect(Collectors.toList());
+        List<TestCase> allTestCases = testCaseRepository.findAll();
+        return allTestCases.stream()
+                                .map(testCaseMapper::toDto)
+                                .collect(Collectors.toList());
     }
 
     @Override
@@ -69,8 +82,6 @@ public class TestCaseServiceImpl implements TestCaseService {
                     // Create new product if not found
                     Product newProduct = new Product();
                     newProduct.setName(request.getProductType());
-                    // If Product has category field, store productType there as well
-                    newProduct.setCategory(request.getProductType());
                     // Store status if your Product entity has this field
                     newProduct.setStatus("TESTING");
                     // Store createdBy if your Product entity has this field
@@ -116,7 +127,6 @@ public class TestCaseServiceImpl implements TestCaseService {
                         // Create new product if not found
                         Product newProduct = new Product();
                         newProduct.setName(request.getProductType());
-                        newProduct.setCategory(request.getProductType());
                         newProduct.setStatus("TESTING");
                         newProduct.setCreatedBy(existingTestCase.getCreatedBy());
                         return productRepository.save(newProduct);
@@ -297,17 +307,42 @@ public class TestCaseServiceImpl implements TestCaseService {
     }
     
     private TestResultResponse mapTestResultToTestResultResponse(TestResult testResult) {
-        // You will need to define TestResultResponse based on your requirements
+        // Map all fields from TestResult entity to TestResultResponse DTO
+        List<MediaFileResponse> mediaFileResponses = null;
+        if (testResult.getMediaFiles() != null) {
+            mediaFileResponses = testResult.getMediaFiles().stream()
+                .map(mediaFileMapper::toDto)
+                .collect(Collectors.toList());
+        }
+
         return TestResultResponse.builder()
                 .id(testResult.getId())
-                .testPhaseId(testResult.getTestPhase().getId())
+                .testPhaseId(testResult.getTestPhase().getId()) // Assuming testPhase is not null
                 .parameterName(testResult.getParameterName())
                 .value(testResult.getValue())
                 .unit(testResult.getUnit())
                 .notes(testResult.getNotes())
                 .recordedBy(testResult.getRecordedBy())
                 .recordedAt(testResult.getRecordedAt())
-                // Add other fields as needed
+                .productId(testResult.getProductId())
+                .trialPhase(testResult.getTrialPhase())
+                .growthRate(testResult.getGrowthRate())
+                .yield(testResult.getYield())
+                .pestResistance(testResult.getPestResistance())
+                .finalVerdict(testResult.getFinalVerdict())
+                .recommendations(testResult.getRecommendations())
+                .approvedBy(testResult.getApprovedBy())
+                .dateOfApproval(testResult.getDateOfApproval())
+                .createdAt(testResult.getCreatedAt())
+                .updatedAt(testResult.getUpdatedAt())
+                .createdBy(testResult.getCreatedBy())
+                .updatedBy(testResult.getUpdatedBy())
+                .mediaFiles(mediaFileResponses)
                 .build();
+    }
+
+    @Override
+    public long getTotalTestCaseCount() {
+        return testCaseRepository.count();
     }
 }

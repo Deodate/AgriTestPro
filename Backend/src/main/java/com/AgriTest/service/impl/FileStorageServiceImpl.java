@@ -58,6 +58,9 @@ public class FileStorageServiceImpl implements FileStorageService {
     private MediaFileMapper mediaFileMapper;
 
     @Autowired
+    private TestCaseTrialPhaseRepository testCaseTrialPhaseRepository;
+
+    @Autowired
     public FileStorageServiceImpl(
             @Value("${file.upload-dir}") String uploadDir) {
         
@@ -79,6 +82,7 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     public MediaFileResponse storeFile(MultipartFile file, Long associatedId, Long userId, String associationType) {
         // Validate file
+        log.info("Storing file with associationType: {}", associationType);
         if (file.isEmpty()) {
             throw new FileStorageException("Failed to store empty file.");
         }
@@ -113,6 +117,11 @@ public class FileStorageServiceImpl implements FileStorageService {
                             .orElseThrow(() -> new ResourceNotFoundException("Test Result not found"));
                     mediaFile.setTestResult(testResult);
                     break;
+                case "TEST_CASE":
+                    TestResult testCase = testResultRepository.findById(associatedId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Test Case not found"));
+                    mediaFile.setTestResult(testCase);
+                    break;
                 case "INCIDENT_REPORT":
                     QualityIncidentReport incidentReport = qualityIncidentReportRepository.findById(associatedId)
                             .orElseThrow(() -> new ResourceNotFoundException("Incident Report not found"));
@@ -132,6 +141,11 @@ public class FileStorageServiceImpl implements FileStorageService {
                     FieldActivity fieldActivity = fieldActivityRepository.findById(associatedId)
                             .orElseThrow(() -> new ResourceNotFoundException("Field Activity not found"));
                     mediaFile.setFieldActivity(fieldActivity);
+                    break;
+                case "TRIAL_PHASE":
+                    TestCaseTrialPhase trialPhase = testCaseTrialPhaseRepository.findById(associatedId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Trial Phase not found"));
+                    mediaFile.setTestCaseTrialPhase(trialPhase);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported association type: " + associationType);
@@ -268,6 +282,11 @@ public class FileStorageServiceImpl implements FileStorageService {
                         .orElseThrow(() -> new ResourceNotFoundException("Test Result not found"));
                 return mediaFileRepository.findByTestResult(testResult);
             
+            case "TEST_CASE":
+                TestResult testCase = testResultRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Test Case not found"));
+                return mediaFileRepository.findByTestResult(testCase);
+            
             case "INCIDENT_REPORT":
                 QualityIncidentReport incidentReport = qualityIncidentReportRepository.findById(entityId)
                         .orElseThrow(() -> new ResourceNotFoundException("Incident Report not found"));
@@ -287,6 +306,11 @@ public class FileStorageServiceImpl implements FileStorageService {
                 FieldActivity fieldActivity = fieldActivityRepository.findById(entityId)
                         .orElseThrow(() -> new ResourceNotFoundException("Field Activity not found"));
                 return mediaFileRepository.findByFieldActivity(fieldActivity);
+            
+            case "TRIAL_PHASE":
+                TestCaseTrialPhase trialPhase = testCaseTrialPhaseRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Trial Phase not found"));
+                return mediaFileRepository.findByTestCaseTrialPhase(trialPhase);
             
             default:
                 throw new IllegalArgumentException("Unsupported entity type: " + entityType);

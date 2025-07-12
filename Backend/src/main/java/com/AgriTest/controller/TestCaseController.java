@@ -5,6 +5,8 @@ import com.AgriTest.dto.*;
 import com.AgriTest.service.TestCaseService;
 import com.AgriTest.util.SecurityUtils;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,12 +18,16 @@ import java.util.List;
 @RequestMapping("/api/testcases")
 public class TestCaseController {
 
+    private static final Logger logger = LoggerFactory.getLogger(TestCaseController.class);
+
     @Autowired
     private TestCaseService testCaseService;
 
     @GetMapping
     public List<TestCaseResponse> getAllTestCases() {
-        return testCaseService.getAllTestCases();
+        List<TestCaseResponse> testCases = testCaseService.getAllTestCases();
+        logger.info("Returning {} test cases", testCases.size());
+        return testCases;
     }
 
     @GetMapping("/{id}")
@@ -78,5 +84,11 @@ public class TestCaseController {
     public TestResultResponse addTestResult(@PathVariable Long phaseId, @Valid @RequestBody TestResultRequest testResultRequest) {
         Long userId = SecurityUtils.getCurrentUserId();
         return testCaseService.addTestResult(phaseId, testResultRequest, userId);
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<Long> getTotalTestCaseCount() {
+        long count = testCaseService.getTotalTestCaseCount();
+        return ResponseEntity.ok(count);
     }
 }

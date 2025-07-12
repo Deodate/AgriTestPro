@@ -9,10 +9,17 @@ import java.util.Optional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    List<Product> findByCategory(String category);
-    
     List<Product> findByManufacturer(String manufacturer);
     
     List<Product> findByNameContainingIgnoreCase(String name);
     
+    Optional<Product> findByBatchNumber(String batchNumber);
+
+    List<Product> findByName(String name);
+
+    Optional<Product> findTopByOrderByBatchNumberDesc();
+
+    List<Product> findByBatchNumberNotNull();
+
+    List<Product> findByProductType(String productType);
 }

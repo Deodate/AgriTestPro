@@ -49,6 +49,7 @@ import FeedbackCollectionForm from '../Components/FeedbackCollectionForm/Feedbac
 import BroadcastMessageForm from '../Components/CommunicationAndNotifications/BroadcastMessageForm';
 import ResourceAllocationForm from '../Components/OperationalTools/ResourceAllocationForm';
 import TimeTrackingForm from '../Components/OperationalTools/TimeTrackingForm';
+import axios from 'axios';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -103,15 +104,11 @@ const Dashboard = () => {
   const [equipment, setEquipment] = useState([]);
   const [scheduledTests, setScheduledTests] = useState([]);
   
-  // Animated stat counters
-  const [animatedSoilCount, setAnimatedSoilCount] = useState(0);
-  const [animatedWaterCount, setAnimatedWaterCount] = useState(0);
-  const [animatedEquipmentCount, setAnimatedEquipmentCount] = useState(0);
-  const [animatedScheduledCount, setAnimatedScheduledCount] = useState(0);
+  // State variables for fetched counts
+  const [totalTestCases, setTotalTestCases] = useState(0);
+  const [failedTestResults, setFailedTestResults] = useState(0);
   
-  // Track when numbers reach their maximum
-  const [isSoilMax, setIsSoilMax] = useState(false);
-  const [isWaterMax, setIsWaterMax] = useState(false);
+  // Track when numbers reach their maximum (only for remaining animated counters)
   const [isEquipmentMax, setIsEquipmentMax] = useState(false);
   const [isScheduledMax, setIsScheduledMax] = useState(false);
   
@@ -251,83 +248,6 @@ const Dashboard = () => {
     setNotifications(updatedNotifications);
     setNotificationCount(0);
   };
-  
-  useEffect(() => {
-    if (soilTests.length > 0) {
-      let count = 1;
-      const finalValue = soilTests.length;
-      const speed = 700; // milliseconds to show each number
-      const pauseAtMax = 10000; // pause for 10 seconds at max value
-      
-      const animateCounter = () => {
-        // If at final value, set max flag and schedule the next increment with delay
-        if (count === finalValue) {
-          setIsSoilMax(true);
-          setTimeout(() => {
-            count = 1;
-            setIsSoilMax(false);
-            setAnimatedSoilCount(count);
-            timeoutRef.current = setTimeout(animateCounter, speed);
-          }, pauseAtMax);
-        } else {
-          // Regular increment
-          count++;
-          setAnimatedSoilCount(count);
-          timeoutRef.current = setTimeout(animateCounter, speed);
-        }
-      };
-      
-      setAnimatedSoilCount(count);
-      const timeoutRef = { current: setTimeout(animateCounter, speed) };
-      
-      return () => {
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-      };
-    }
-  }, [soilTests]);
-  
-  useEffect(() => {
-    if (waterTests.length > 0) {
-      // Slight delay for the second card
-      const startDelay = setTimeout(() => {
-        let count = 1;
-        const finalValue = waterTests.length;
-        const speed = 900; // Slightly slower
-        const pauseAtMax = 10000; // pause for 10 seconds at max value
-        
-        const animateCounter = () => {
-          // If at final value, set max flag and schedule the next increment with delay
-          if (count === finalValue) {
-            setIsWaterMax(true);
-            setTimeout(() => {
-              count = 1;
-              setIsWaterMax(false);
-              setAnimatedWaterCount(count);
-              timeoutRef.current = setTimeout(animateCounter, speed);
-            }, pauseAtMax);
-          } else {
-            // Regular increment
-            count++;
-            setAnimatedWaterCount(count);
-            timeoutRef.current = setTimeout(animateCounter, speed);
-          }
-        };
-        
-        setAnimatedWaterCount(count);
-        const timeoutRef = { current: setTimeout(animateCounter, speed) };
-        
-        return () => {
-          if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-          }
-        };
-      }, 200);
-      
-      return () => clearTimeout(startDelay);
-    }
-  }, [waterTests]);
   
   useEffect(() => {
     if (equipment.length > 0) {
@@ -636,7 +556,15 @@ const Dashboard = () => {
         // Log user data for debugging purposes
         console.log('Current user:', currentUser);
         
-        // Mock data for dashboard tables
+        // Fetch total test case count
+        const testCaseCountResponse = await axios.get('/api/testcases/count');
+        setTotalTestCases(testCaseCountResponse.data);
+
+        // Fetch failed test results count
+        const failedTestResultCountResponse = await axios.get('/api/testresults/failed/count');
+        setFailedTestResults(failedTestResultCountResponse.data);
+
+        // Mock data for dashboard tables (KEEP FOR TABLES)
         setSoilTests([
           { id: 'ST-1001', farmName: 'Green Valley Farm', date: '2023-06-15', pH: 6.8, status: 'Completed' },
           { id: 'ST-1002', farmName: 'Sunshine Acres', date: '2023-06-17', pH: 7.2, status: 'Completed' },
@@ -1133,7 +1061,7 @@ const Dashboard = () => {
                         setShowTestSchedulingForm(true);
                         setActiveTab('testschedulingform');
                         navigate('/dashboard?TestSchedulingForm=create', { replace: true });
-                      }}>Test Scheduling</div>
+                      }}>Total Product</div>
                       <div className="menu-item" onClick={() => {
                         setShowHistoricalDataForm(true);
                         setActiveTab('historicaldataform');
