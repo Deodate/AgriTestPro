@@ -24,6 +24,15 @@
     font-weight: 600;
 }
 
+.broadcast-announcement-form h2.success-message {
+    color: #4caf50;
+    font-weight: 600;
+    padding: 15px;
+    border-radius: 4px;
+    background-color: rgba(76, 175, 80, 0.1);
+    border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
 .error-message {
     background-color: #fee;
     color: #d32f2f;

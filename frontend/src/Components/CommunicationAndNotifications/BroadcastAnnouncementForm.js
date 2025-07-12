@@ -16,6 +16,7 @@ const BroadcastAnnouncementForm = () => {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
+    const [isSubmitted, setIsSubmitted] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -67,6 +68,7 @@ const BroadcastAnnouncementForm = () => {
                 }
             );
 
+            setIsSubmitted(true);
             toast.success('Announcement created successfully!');
 
             // Reset form
@@ -97,7 +99,11 @@ const BroadcastAnnouncementForm = () => {
     return (
         <div className="broadcast-announcement-form-container">
             <form className="broadcast-announcement-form" onSubmit={handleSubmit}>
-                <h2>Create Broadcast Announcement</h2>
+                {isSubmitted ? (
+                    <h2 className="success-message">Successful submission!</h2>
+                ) : (
+                    <h2>Create Broadcast Announcement</h2>
+                )}
                 
                 {error && <div className="error-message">{error}</div>}
                 
@@ -191,6 +197,7 @@ const BroadcastAnnouncementForm = () => {
                                 priorityLevel: 'NORMAL',
                                 attachments: []
                             });
+                            setIsSubmitted(false);
                             const fileInput = document.getElementById('attachments');
                             if (fileInput) {
                                 fileInput.value = '';
