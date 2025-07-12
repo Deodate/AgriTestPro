@@ -10,14 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.StringJoiner;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 @Slf4j
 @Service
@@ -28,7 +24,6 @@ public class ExportService {
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final String CSV_DELIMITER = ",";
     private static final String LINE_SEPARATOR = "\n";
-    private static final int BATCH_SIZE = 1000;
     
     private final TestCaseService testCaseService;
     private final TestScheduleService testScheduleService;
@@ -54,14 +49,8 @@ public class ExportService {
             if (testCases.isEmpty()) {
                 throw new ExportException("No test cases found for export");
             }
-
-            byte[] exportData;
-            switch (format) {
-                case CSV -> exportData = exportTestCasesToCsv(testCases);
-                case ZIP -> exportData = exportTestCasesToZip(testCases);
-                default -> throw new ExportException("Unsupported export format: " + format);
-            }
             
+            byte[] exportData = exportTestCasesToCsv(testCases);
             log.info("Successfully exported {} test cases", testCases.size());
             return exportData;
         } catch (Exception e) {
@@ -91,14 +80,8 @@ public class ExportService {
             if (schedules.isEmpty()) {
                 throw new ExportException("No schedules found for export");
             }
-
-            byte[] exportData;
-            switch (format) {
-                case CSV -> exportData = exportSchedulesToCsv(schedules);
-                case ZIP -> exportData = exportSchedulesToZip(schedules);
-                default -> throw new ExportException("Unsupported export format: " + format);
-            }
             
+            byte[] exportData = exportSchedulesToCsv(schedules);
             log.info("Successfully exported {} schedules", schedules.size());
             return exportData;
         } catch (Exception e) {
@@ -167,35 +150,6 @@ public class ExportService {
         
         return csv.toString().getBytes(StandardCharsets.UTF_8);
     }
-
-    private byte[] exportTestCasesToZip(List<TestCaseResponse> testCases) throws Exception {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ZipOutputStream zos = new ZipOutputStream(baos)) {
-            // Add CSV file
-            zos.putNextEntry(new ZipEntry("test_cases.csv"));
-            zos.write(exportTestCasesToCsv(testCases));
-            zos.closeEntry();
-
-            // Add summary file
-            zos.putNextEntry(new ZipEntry("summary.txt"));
-            String summary = String.format("""
-                Export Summary
-                -------------
-                Total Test Cases: %d
-                Export Date: %s
-                
-                Status Breakdown:
-                %s
-                """, 
-                testCases.size(),
-                DATETIME_FORMATTER.format(java.time.LocalDateTime.now()),
-                generateStatusBreakdown(testCases)
-            );
-            zos.write(summary.getBytes(StandardCharsets.UTF_8));
-            zos.closeEntry();
-        }
-        return baos.toByteArray();
-    }
     
     private byte[] exportSchedulesToCsv(List<TestScheduleResponse> schedules) {
         StringBuilder csv = new StringBuilder();
@@ -257,88 +211,6 @@ public class ExportService {
         }
         
         return csv.toString().getBytes(StandardCharsets.UTF_8);
-    }
-
-    private byte[] exportSchedulesToZip(List<TestScheduleResponse> schedules) throws Exception {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ZipOutputStream zos = new ZipOutputStream(baos)) {
-            // Add CSV file
-            zos.putNextEntry(new ZipEntry("schedules.csv"));
-            zos.write(exportSchedulesToCsv(schedules));
-            zos.closeEntry();
-
-            // Add summary file
-            zos.putNextEntry(new ZipEntry("summary.txt"));
-            String summary = String.format("""
-                Export Summary
-                -------------
-                Total Schedules: %d
-                Active Schedules: %d
-                Export Date: %s
-                
-                Frequency Breakdown:
-                %s
-                """, 
-                schedules.size(),
-                schedules.stream().filter(TestScheduleResponse::getIsActive).count(),
-                DATETIME_FORMATTER.format(java.time.LocalDateTime.now()),
-                generateFrequencyBreakdown(schedules)
-            );
-            zos.write(summary.getBytes(StandardCharsets.UTF_8));
-            zos.closeEntry();
-        }
-        return baos.toByteArray();
-    }
-
-    private String generateStatusBreakdown(List<TestCaseResponse> testCases) {
-        return testCases.stream()
-            .collect(java.util.stream.Collectors.groupingBy(
-                TestCaseResponse::getStatus,
-                java.util.stream.Collectors.counting()
-            ))
-            .entrySet().stream()
-            .map(entry -> String.format("%s: %d", entry.getKey(), entry.getValue()))
-            .collect(java.util.stream.Collectors.joining("\n"));
-    }
-
-    private String generateFrequencyBreakdown(List<TestScheduleResponse> schedules) {
-        return schedules.stream()
-            .collect(java.util.stream.Collectors.groupingBy(
-                TestScheduleResponse::getFrequency,
-                java.util.stream.Collectors.counting()
-            ))
-            .entrySet().stream()
-            .map(entry -> String.format("%s: %d", entry.getKey(), entry.getValue()))
-            .collect(java.util.stream.Collectors.joining("\n"));
-    }
-
-    private byte[] exportLargeDatasetInBatches(List<?> data, String filename, 
-            java.util.function.Function<List<?>, byte[]> exportFunction) throws Exception {
-        if (data.size() <= BATCH_SIZE) {
-            return exportFunction.apply(data);
-        }
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ZipOutputStream zos = new ZipOutputStream(baos)) {
-            AtomicInteger batchNumber = new AtomicInteger(1);
-            
-            for (int i = 0; i < data.size(); i += BATCH_SIZE) {
-                int end = Math.min(i + BATCH_SIZE, data.size());
-                List<?> batch = data.subList(i, end);
-                
-                String batchFilename = String.format("%s_batch_%d.csv", 
-                    filename, batchNumber.getAndIncrement());
-                
-                zos.putNextEntry(new ZipEntry(batchFilename));
-                zos.write(exportFunction.apply(batch));
-                zos.closeEntry();
-                
-                log.debug("Exported batch {} ({} records)", 
-                    batchNumber.get() - 1, batch.size());
-            }
-        }
-        
-        return baos.toByteArray();
     }
     
     private byte[] exportTestResultsToCsv(List<TestResultResponse> results) {
