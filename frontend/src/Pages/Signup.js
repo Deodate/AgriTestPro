@@ -105,29 +105,6 @@ const SignUp = (props) => {
     }
     
     setIsLoading(true);
-<<<<<<< HEAD
-    
-    try {
-      // This would be your API call to register the user
-      // For now, we'll simulate it with a timeout
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setSuccessMessage("Registration successful! Redirecting to login...");
-      
-      // Clear form
-      setFormData({
-        username: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        fullName: "",
-        phoneNumber: "",
-        jobTitle: "",
-        company: "",
-        twoFactorEnabled: false,
-        role: "USER"
-      });
-=======
     setErrors({}); // Clear previous errors
     setSuccessMessage(""); // Clear previous success messages
     
@@ -178,24 +155,15 @@ const SignUp = (props) => {
       // Handle successful registration
       setSuccessMessage("Registration successful! Redirecting to login...");
       
-      // Clear form (optional, depending on desired UX)
-      // setFormData({ ... }); 
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
-      
       // Redirect after a delay
       setTimeout(() => {
         navigate('/login');
       }, 2000);
       
     } catch (error) {
-<<<<<<< HEAD
-      setErrors({
-        form: error.message || "Registration failed. Please try again."
-=======
       console.error('Network or unexpected error:', error);
       setErrors({
         form: "An unexpected error occurred. Please try again later."
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
       });
     } finally {
       setIsLoading(false);

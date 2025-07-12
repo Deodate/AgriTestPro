@@ -284,6 +284,29 @@ const Dashboard = () => {
     }
   }, [location.search]);
 
+  // Fetch trial phase data
+  const fetchTrialPhaseData = async (id) => {
+    const token = authService.getToken();
+    if (!token) {
+      toast.error('Authentication token not found. Cannot fetch trial phase data.');
+      return;
+    }
+    try {
+      const response = await axios.get(`http://localhost:8089/api/test-case-trial-phases/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data) {
+        setDataStates(prev => ({
+          ...prev,
+          viewedTrialPhaseData: response.data
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching trial phase data:', error);
+      toast.error('Failed to fetch trial phase data.');
+    }
+  };
+
   // Render helpers
   const renderStatusBadge = (status) => {
     let className = 'status-badge';

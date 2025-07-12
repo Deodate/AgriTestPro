@@ -20,7 +20,6 @@ const ComplianceChecklistList = () => {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-<<<<<<< HEAD
   const [itemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   
@@ -87,18 +86,6 @@ const ComplianceChecklistList = () => {
           }
         ];
         
-=======
-  const [itemsPerPage] = useState(10); // Reverted to default 10 items per page
-  const [totalPages, setTotalPages] = useState(0);
-  
-  useEffect(() => {
-    // Original mock data for ComplianceChecklistList.js (if any, otherwise empty array)
-    // This ensures this component is clean if it's not the primary display for the table
-    const fetchChecklists = async () => {
-      setLoading(true);
-      try {
-        const mockData = []; // Start with empty data as the table will be in ComplianceChecklistTable.js
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
         setChecklists(mockData);
         setFilteredChecklists(mockData);
         setTotalPages(Math.ceil(mockData.length / itemsPerPage));
@@ -259,7 +246,6 @@ const ComplianceChecklistList = () => {
           </div>
         ) : (
           <>
-<<<<<<< HEAD
             <div className="checklist-cards">
               {currentItems.map(checklist => (
                 <div key={checklist.id} className="checklist-card">
@@ -281,40 +267,6 @@ const ComplianceChecklistList = () => {
                   </div>
                 </div>
               ))}
-=======
-            <div className="compliance-checklist-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Product</th>
-                    <th>Reviewer</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentItems.map(checklist => (
-                    <tr key={checklist.id}>
-                      <td>{`CL-${checklist.id < 1000 ? `100${checklist.id}` : checklist.id}`}</td>
-                      <td>{checklist.productName}</td>
-                      <td>{checklist.reviewerName}</td>
-                      <td>{new Date(checklist.reviewDate).toLocaleDateString()}</td>
-                      <td>{renderStatusBadge(checklist.overallStatus)}</td>
-                      <td>
-                        <Link to={`/dashboard?ComplianceChecklist=view&id=${checklist.id}`} className="view-button">
-                          View
-                        </Link>
-                        <button className="delete-button" onClick={() => { /* handleDelete(checklist.id) */ }}>
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
             </div>
             
             {renderPagination()}

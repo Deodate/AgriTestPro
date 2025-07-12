@@ -1,10 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
-<<<<<<< HEAD
     BASE_URL: 'http://localhost:8089',
-=======
-    BASE_URL: 'http://localhost:8888',
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
     AUTH: {
         SIGNIN: '/api/auth/signin',
         SIGNUP: '/api/auth/signup',

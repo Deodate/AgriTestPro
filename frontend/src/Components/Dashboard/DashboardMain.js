@@ -20,6 +20,7 @@ const DashboardMain = ({
   renderPagination
 }) => {
   const navigate = useNavigate();
+  const { productSearchTerm, setProductSearchTerm } = productStates;
 
   const renderStats = () => (
     <div className="dashboard-stats">
@@ -94,7 +95,7 @@ const DashboardMain = ({
                     type="text"
                     placeholder="Search products..."
                     className="search-input"
-                    value={productStates.productSearchTerm}
+                    value={productSearchTerm}
                     onChange={(e) => setProductSearchTerm(e.target.value)}
                   />
                   <FaSearch className="search-icon" />

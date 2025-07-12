@@ -838,29 +838,24 @@
 /* Print Styles */
 @media print {
   .compliance-checklist-container {
-    background-color: white;
-  }
-  
-  .back-link,
-  .checklist-actions,
-  header,
-  footer {
-    display: none !important;
-  }
-  
-  .checklist-detail {
-    box-shadow: none;
     padding: 0;
   }
-<<<<<<< HEAD
-=======
-} 
+  .back-link,
+  .checklist-actions,
+  .action-button {
+    display: none;
+  }
+  .checklist-detail {
+    padding: 0;
+    box-shadow: none;
+  }
+}
 
 .compliance-checklist-table th {
-  background-color: red;
-  color: white;
-  padding: 12px 15px;
+  padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid #ddd;
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+  color: #495057;
 } 

@@ -1,8 +1,9 @@
-import React from 'react';
-import { FaBell, FaUserCircle } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaBell, FaUserCircle, FaHome, FaSignOutAlt } from 'react-icons/fa';
 
 const DashboardHeader = ({ userInfo, notificationStates, handleLogout }) => {
-  const { notificationCount, notificationsOpen, notifications } = notificationStates;
+  const { notificationCount, notificationsOpen, notifications, toggleNotifications, markAllAsRead } = notificationStates;
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   return (
     <div className="twilio-header">
