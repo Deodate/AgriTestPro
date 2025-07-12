@@ -913,6 +913,8 @@ const Dashboard = () => {
                         setActiveTab('testdocumentation');
                         setActiveMenuItem('CreatingTestDocumentation');
                         navigate('/dashboard?CreatingTestDocumentation=create', { replace: true });
+                        // Reset other forms
+                        setShowBroadcastAnnouncementForm(false);
                       }}>Test Documentation</div>
                       <div className={`menu-item ${activeMenuItem === 'ProductRegistrationForm' ? 'active' : ''}`} onClick={() => {
                         setShowProductRegistrationForm(true);
