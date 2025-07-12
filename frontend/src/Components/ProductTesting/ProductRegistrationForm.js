@@ -259,13 +259,15 @@ const ProductRegistrationForm = () => {
                 console.log('Product registration successful. Response received:', response);
                 const result = await response.json();
                 console.log('Product registered successfully:', result);
-                toast.success('Product Registered successful!', {
+                // Show success message and force close after 5 seconds
+                const toastId = toast.success('Product Registered successful!', {
                     position: "top-center",
-                    autoClose: 5000,
+                    autoClose: false, // Disable auto close
                     hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
+                    closeOnClick: false, // Prevent manual closing
+                    pauseOnHover: false, // Don't pause on hover
+                    draggable: false, // Prevent dragging
+                    closeButton: false, // Hide close button
                     theme: "colored",
                     style: {
                         background: "#4CAF50",
@@ -275,6 +277,11 @@ const ProductRegistrationForm = () => {
                         fontWeight: "bold"
                     }
                 });
+                
+                // Force close the toast after exactly 5 seconds
+                setTimeout(() => {
+                    toast.dismiss(toastId);
+                }, 5000);
                 resetForm(); // Reset the form after successful submission
                 // Fetch the next batch number after successful registration
                 fetchNextBatchNumber();
