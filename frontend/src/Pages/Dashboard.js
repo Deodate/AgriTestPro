@@ -582,6 +582,15 @@ const Dashboard = () => {
       return;
     }
 
+    // Check for Test Documentation Form
+    if (queryParams.get('CreatingTestDocumentation') === 'create') {
+      setShowTestDocumentationForm(true);
+      setActiveTab('testdocumentation');
+      setActiveMenuItem('CreatingTestDocumentation');
+      setShowBroadcastAnnouncementForm(false); // Explicitly hide Broadcast Announcement form
+      return;
+    }
+
     // Check for Broadcast Announcement Form
     if (queryParams.get('BroadcastAnnouncementForm') === 'create') {
       setShowBroadcastAnnouncementForm(true);
@@ -913,8 +922,6 @@ const Dashboard = () => {
                         setActiveTab('testdocumentation');
                         setActiveMenuItem('CreatingTestDocumentation');
                         navigate('/dashboard?CreatingTestDocumentation=create', { replace: true });
-                        // Reset other forms
-                        setShowBroadcastAnnouncementForm(false);
                       }}>Test Documentation</div>
                       <div className={`menu-item ${activeMenuItem === 'ProductRegistrationForm' ? 'active' : ''}`} onClick={() => {
                         setShowProductRegistrationForm(true);
