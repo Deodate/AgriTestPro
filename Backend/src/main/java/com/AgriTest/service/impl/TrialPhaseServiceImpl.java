@@ -1,7 +1,7 @@
 package com.AgriTest.service.impl;
 
 import com.AgriTest.dto.TrialPhaseRequest;
-import com.AgriTest.dto.TrialPhaseResponse;
+import com.AgriTest.dto.TestCaseTrialPhaseResponse;
 import com.AgriTest.exception.ResourceNotFoundException;
 import com.AgriTest.model.FileAttachment;
 import com.AgriTest.model.TestCase;
@@ -39,7 +39,7 @@ public class TrialPhaseServiceImpl implements TrialPhaseService {
 
     @Override
     @Transactional
-    public TrialPhaseResponse createTrialPhase(TrialPhaseRequest request) {
+    public TestCaseTrialPhaseResponse createTrialPhase(TrialPhaseRequest request) {
         logger.info("Creating new trial phase for test case: {}", request.getTestCaseId());
         
         TestCase testCase = testCaseRepository.findById(request.getTestCaseId())
@@ -48,7 +48,7 @@ public class TrialPhaseServiceImpl implements TrialPhaseService {
         TrialPhase trialPhase = new TrialPhase();
         updateTrialPhaseFromRequest(trialPhase, request);
         trialPhase.setTestCase(testCase);
-        trialPhase.setCreatedBy(SecurityUtils.getCurrentUsername());
+        trialPhase.setCreatedBy(SecurityUtils.getCurrentUsername().orElse(null));
         
         // Handle file attachments
         if (request.getAttachments() != null && !request.getAttachments().isEmpty()) {
@@ -62,14 +62,14 @@ public class TrialPhaseServiceImpl implements TrialPhaseService {
 
     @Override
     @Transactional
-    public TrialPhaseResponse updateTrialPhase(Long id, TrialPhaseRequest request) {
+    public TestCaseTrialPhaseResponse updateTrialPhase(Long id, TrialPhaseRequest request) {
         logger.info("Updating trial phase: {}", id);
         
         TrialPhase existingPhase = trialPhaseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Trial phase not found with id: " + id));
 
         updateTrialPhaseFromRequest(existingPhase, request);
-        existingPhase.setUpdatedBy(SecurityUtils.getCurrentUsername());
+        existingPhase.setUpdatedBy(SecurityUtils.getCurrentUsername().orElse(null));
 
         // Handle file attachments
         if (request.getAttachments() != null && !request.getAttachments().isEmpty()) {
@@ -83,7 +83,7 @@ public class TrialPhaseServiceImpl implements TrialPhaseService {
 
     @Override
     @Transactional(readOnly = true)
-    public TrialPhaseResponse getTrialPhaseById(Long id) {
+    public TestCaseTrialPhaseResponse getTrialPhaseById(Long id) {
         logger.info("Fetching trial phase: {}", id);
         TrialPhase trialPhase = trialPhaseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Trial phase not found with id: " + id));
@@ -98,9 +98,9 @@ public class TrialPhaseServiceImpl implements TrialPhaseService {
                 .orElseThrow(() -> new ResourceNotFoundException("Trial phase not found with id: " + id));
         
         // Delete associated files first
-        if (!trialPhase.getAttachments().isEmpty()) {
+        if (trialPhase.getAttachments() != null && !trialPhase.getAttachments().isEmpty()) {
             trialPhase.getAttachments().forEach(attachment -> 
-                fileStorageService.deleteFile(attachment.getFilePath()));
+                fileStorageService.deleteFile(attachment.getId()));
         }
         
         trialPhaseRepository.delete(trialPhase);
@@ -108,7 +108,7 @@ public class TrialPhaseServiceImpl implements TrialPhaseService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TrialPhaseResponse> getAllTrialPhases() {
+    public List<TestCaseTrialPhaseResponse> getAllTrialPhases() {
         logger.info("Fetching all trial phases");
         return trialPhaseRepository.findAll().stream()
                 .map(this::mapToResponse)
@@ -117,14 +117,14 @@ public class TrialPhaseServiceImpl implements TrialPhaseService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<TrialPhaseResponse> getTrialPhasesPaginated(Pageable pageable) {
+    public Page<TestCaseTrialPhaseResponse> getTrialPhasesPaginated(Pageable pageable) {
         return trialPhaseRepository.findAll(pageable)
                 .map(this::mapToResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<TrialPhaseResponse> getTrialPhasesByTestCase(Long testCaseId) {
+    public List<TestCaseTrialPhaseResponse> getTrialPhasesByTestCase(Long testCaseId) {
         logger.info("Fetching trial phases for test case: {}", testCaseId);
         return trialPhaseRepository.findByTestCaseId(testCaseId).stream()
                 .map(this::mapToResponse)
@@ -133,7 +133,7 @@ public class TrialPhaseServiceImpl implements TrialPhaseService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TrialPhaseResponse> getTrialPhasesByStatus(String status) {
+    public List<TestCaseTrialPhaseResponse> getTrialPhasesByStatus(String status) {
         logger.info("Fetching trial phases with status: {}", status);
         return trialPhaseRepository.findByStatus(status).stream()
                 .map(this::mapToResponse)
@@ -142,20 +142,20 @@ public class TrialPhaseServiceImpl implements TrialPhaseService {
 
     @Override
     @Transactional
-    public TrialPhaseResponse updateTrialPhaseStatus(Long id, String status) {
+    public TestCaseTrialPhaseResponse updateTrialPhaseStatus(Long id, String status) {
         logger.info("Updating status of trial phase {} to: {}", id, status);
         TrialPhase trialPhase = trialPhaseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Trial phase not found with id: " + id));
         
         trialPhase.setStatus(status);
-        trialPhase.setUpdatedBy(SecurityUtils.getCurrentUsername());
+        trialPhase.setUpdatedBy(SecurityUtils.getCurrentUsername().orElse(null));
         
         return mapToResponse(trialPhaseRepository.save(trialPhase));
     }
 
     @Override
     @Transactional
-    public List<TrialPhaseResponse> createBulkTrialPhases(List<TrialPhaseRequest> requests) {
+    public List<TestCaseTrialPhaseResponse> createBulkTrialPhases(List<TrialPhaseRequest> requests) {
         logger.info("Creating {} trial phases in bulk", requests.size());
         return requests.stream()
                 .map(this::createTrialPhase)
@@ -186,41 +186,47 @@ public class TrialPhaseServiceImpl implements TrialPhaseService {
     private List<FileAttachment> handleFileAttachments(List<MultipartFile> files) {
         List<FileAttachment> attachments = new ArrayList<>();
         for (MultipartFile file : files) {
-            String filePath = fileStorageService.storeFile(file);
+            // Store the file and get the response
+            com.AgriTest.dto.MediaFileResponse response = fileStorageService.storeFile(file, null, null);
             FileAttachment attachment = new FileAttachment();
-            attachment.setFileName(file.getOriginalFilename());
-            attachment.setFilePath(filePath);
-            attachment.setFileType(file.getContentType());
+            attachment.setFileName(response.getFileName());
+            attachment.setFileType(response.getFileType());
+            // fileData is not set here; assume handled elsewhere or not needed for this context
             attachments.add(attachment);
         }
         return attachments;
     }
 
-    private TrialPhaseResponse mapToResponse(TrialPhase trialPhase) {
-        TrialPhaseResponse response = new TrialPhaseResponse();
+    private TestCaseTrialPhaseResponse mapToResponse(TrialPhase trialPhase) {
+        TestCaseTrialPhaseResponse response = new TestCaseTrialPhaseResponse();
         response.setId(trialPhase.getId());
-        response.setTestCaseId(trialPhase.getTestCase().getId());
-        response.setTestCaseName(trialPhase.getTestCase().getTestName());
+        response.setTestCaseId(trialPhase.getTestCase() != null ? trialPhase.getTestCase().getId() : null);
         response.setPhaseName(trialPhase.getPhaseName());
-        response.setDateOfPhase(trialPhase.getDateOfPhase());
+        response.setPhaseDate(trialPhase.getDateOfPhase() != null ? trialPhase.getDateOfPhase().toLocalDate() : null);
+        response.setTestName(trialPhase.getTestCase() != null ? trialPhase.getTestCase().getTestName() : null);
         response.setObservations(trialPhase.getObservations());
         response.setTestDataEntry(trialPhase.getTestDataEntry());
-        response.setWeatherTemperature(trialPhase.getWeatherTemperature());
-        response.setWeatherHumidity(trialPhase.getWeatherHumidity());
-        response.setWeatherRainfall(trialPhase.getWeatherRainfall());
         response.setAdditionalComments(trialPhase.getAdditionalComments());
-        response.setStatus(trialPhase.getStatus());
         response.setCreatedAt(trialPhase.getCreatedAt());
         response.setUpdatedAt(trialPhase.getUpdatedAt());
-        response.setCreatedBy(trialPhase.getCreatedBy());
-        response.setUpdatedBy(trialPhase.getUpdatedBy());
-        
+        // Map weather data
+        TestCaseTrialPhaseResponse.WeatherDataDto weatherData = new TestCaseTrialPhaseResponse.WeatherDataDto();
+        weatherData.setTemperature(trialPhase.getWeatherTemperature());
+        weatherData.setHumidity(trialPhase.getWeatherHumidity());
+        weatherData.setRainfall(trialPhase.getWeatherRainfall());
+        response.setWeatherData(weatherData);
+        // Map attachments
         if (trialPhase.getAttachments() != null) {
-            response.setAttachmentUrls(trialPhase.getAttachments().stream()
-                    .map(FileAttachment::getFilePath)
-                    .collect(Collectors.toList()));
+            List<TestCaseTrialPhaseResponse.FileAttachmentDto> attachmentDtos = trialPhase.getAttachments().stream().map(att -> {
+                TestCaseTrialPhaseResponse.FileAttachmentDto dto = new TestCaseTrialPhaseResponse.FileAttachmentDto();
+                dto.setId(att.getId());
+                dto.setFileName(att.getFileName());
+                dto.setFileType(att.getFileType());
+                // No filePath available, so skip
+                return dto;
+            }).collect(Collectors.toList());
+            response.setAttachments(attachmentDtos);
         }
-        
         return response;
     }
 } 

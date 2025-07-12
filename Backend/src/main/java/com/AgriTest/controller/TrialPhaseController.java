@@ -1,8 +1,7 @@
 package com.AgriTest.controller;
 
 import com.AgriTest.dto.TrialPhaseRequest;
-<<<<<<< HEAD
-import com.AgriTest.dto.TrialPhaseResponse;
+import com.AgriTest.dto.TestCaseTrialPhaseResponse;
 import com.AgriTest.service.TrialPhaseService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -14,34 +13,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-=======
-import com.AgriTest.model.TrialPhase;
-import com.AgriTest.service.TrialPhaseService;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/trial-phases")
-<<<<<<< HEAD
 @PreAuthorize("isAuthenticated()")
 public class TrialPhaseController {
     private static final Logger logger = LoggerFactory.getLogger(TrialPhaseController.class);
-=======
-public class TrialPhaseController {
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 
     @Autowired
     private TrialPhaseService trialPhaseService;
 
-<<<<<<< HEAD
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN') or hasRole('TESTER')")
-    public ResponseEntity<TrialPhaseResponse> createTrialPhase(
+    public ResponseEntity<TestCaseTrialPhaseResponse> createTrialPhase(
             @Valid @ModelAttribute TrialPhaseRequest request) {
         logger.info("Creating new trial phase for test case: {}", request.getTestCaseId());
         return new ResponseEntity<>(trialPhaseService.createTrialPhase(request), HttpStatus.CREATED);
@@ -49,7 +36,7 @@ public class TrialPhaseController {
 
     @PostMapping("/bulk")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<TrialPhaseResponse>> createBulkTrialPhases(
+    public ResponseEntity<List<TestCaseTrialPhaseResponse>> createBulkTrialPhases(
             @Valid @RequestBody List<TrialPhaseRequest> requests) {
         logger.info("Creating {} trial phases in bulk", requests.size());
         return new ResponseEntity<>(trialPhaseService.createBulkTrialPhases(requests), HttpStatus.CREATED);
@@ -57,51 +44,36 @@ public class TrialPhaseController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TESTER', 'USER')")
-    public ResponseEntity<TrialPhaseResponse> getTrialPhase(@PathVariable Long id) {
+    public ResponseEntity<TestCaseTrialPhaseResponse> getTrialPhase(@PathVariable Long id) {
         logger.info("Fetching trial phase: {}", id);
         return ResponseEntity.ok(trialPhaseService.getTrialPhaseById(id));
     }
 
     @GetMapping("/test-case/{testCaseId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TESTER', 'USER')")
-    public ResponseEntity<List<TrialPhaseResponse>> getTrialPhasesByTestCase(
+    public ResponseEntity<List<TestCaseTrialPhaseResponse>> getTrialPhasesByTestCase(
             @PathVariable Long testCaseId) {
         logger.info("Fetching trial phases for test case: {}", testCaseId);
-=======
-    @PostMapping
-    public ResponseEntity<TrialPhase> createTrialPhase(@Valid @RequestBody TrialPhaseRequest request) {
-        return ResponseEntity.ok(trialPhaseService.createTrialPhase(request));
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<TrialPhase> getTrialPhase(@PathVariable Long id) {
-        return ResponseEntity.ok(trialPhaseService.getTrialPhase(id));
-    }
-
-    @GetMapping("/test-case/{testCaseId}")
-    public ResponseEntity<List<TrialPhase>> getTrialPhasesByTestCase(@PathVariable Long testCaseId) {
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
         return ResponseEntity.ok(trialPhaseService.getTrialPhasesByTestCase(testCaseId));
     }
 
     @GetMapping
-<<<<<<< HEAD
     @PreAuthorize("hasAnyRole('ADMIN', 'TESTER', 'USER')")
-    public ResponseEntity<List<TrialPhaseResponse>> getAllTrialPhases() {
+    public ResponseEntity<List<TestCaseTrialPhaseResponse>> getAllTrialPhases() {
         logger.info("Fetching all trial phases");
         return ResponseEntity.ok(trialPhaseService.getAllTrialPhases());
     }
 
     @GetMapping("/paginated")
     @PreAuthorize("hasAnyRole('ADMIN', 'TESTER', 'USER')")
-    public ResponseEntity<Page<TrialPhaseResponse>> getTrialPhasesPaginated(Pageable pageable) {
+    public ResponseEntity<Page<TestCaseTrialPhaseResponse>> getTrialPhasesPaginated(Pageable pageable) {
         logger.info("Fetching paginated trial phases");
         return ResponseEntity.ok(trialPhaseService.getTrialPhasesPaginated(pageable));
     }
 
     @GetMapping("/status/{status}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TESTER', 'USER')")
-    public ResponseEntity<List<TrialPhaseResponse>> getTrialPhasesByStatus(
+    public ResponseEntity<List<TestCaseTrialPhaseResponse>> getTrialPhasesByStatus(
             @PathVariable String status) {
         logger.info("Fetching trial phases with status: {}", status);
         return ResponseEntity.ok(trialPhaseService.getTrialPhasesByStatus(status));
@@ -109,7 +81,7 @@ public class TrialPhaseController {
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN') or hasRole('TESTER')")
-    public ResponseEntity<TrialPhaseResponse> updateTrialPhase(
+    public ResponseEntity<TestCaseTrialPhaseResponse> updateTrialPhase(
             @PathVariable Long id,
             @Valid @ModelAttribute TrialPhaseRequest request) {
         logger.info("Updating trial phase: {}", id);
@@ -118,7 +90,7 @@ public class TrialPhaseController {
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN') or hasRole('TESTER')")
-    public ResponseEntity<TrialPhaseResponse> updateTrialPhaseStatus(
+    public ResponseEntity<TestCaseTrialPhaseResponse> updateTrialPhaseStatus(
             @PathVariable Long id,
             @RequestParam String status) {
         logger.info("Updating status of trial phase {} to: {}", id, status);
@@ -140,22 +112,4 @@ public class TrialPhaseController {
         trialPhaseService.deleteBulkTrialPhases(ids);
         return ResponseEntity.ok().build();
     }
-=======
-    public ResponseEntity<List<TrialPhase>> getAllTrialPhases() {
-        return ResponseEntity.ok(trialPhaseService.getAllTrialPhases());
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<TrialPhase> updateTrialPhase(
-            @PathVariable Long id,
-            @Valid @RequestBody TrialPhaseRequest request) {
-        return ResponseEntity.ok(trialPhaseService.updateTrialPhase(id, request));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTrialPhase(@PathVariable Long id) {
-        trialPhaseService.deleteTrialPhase(id);
-        return ResponseEntity.ok().build();
-    }
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 } 
