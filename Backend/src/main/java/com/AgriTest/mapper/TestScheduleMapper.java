@@ -39,6 +39,8 @@ public class TestScheduleMapper {
             throw new IllegalArgumentException("TestScheduleRequest cannot be null");
         }
         
+        validateRequest(request);
+        
         TestSchedule testSchedule = new TestSchedule();
         testSchedule.setTestName(request.getTestName());
         testSchedule.setScheduleName(request.getScheduleName());
@@ -50,22 +52,27 @@ public class TestScheduleMapper {
         testSchedule.setNotificationPreference(request.getNotificationPreference());
         testSchedule.setNotes(request.getNotes());
         
-        // Handle frequency conversion
+        // Handle frequency conversion with better error message
         try {
             testSchedule.setFrequency(ScheduleFrequency.valueOf(request.getFrequency().toUpperCase()));
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid frequency value: " + request.getFrequency() +
-                ". Must be one of: " + String.join(", ", 
-                List.of(ScheduleFrequency.values()).stream()
+            throw new IllegalArgumentException(String.format(
+                "Invalid frequency '%s'. Valid values are: %s",
+                request.getFrequency(),
+                String.join(", ", List.of(ScheduleFrequency.values()).stream()
                     .map(Enum::name)
-                    .collect(Collectors.toList())));
+                    .collect(Collectors.toList()))
+            ));
         }
         
         testSchedule.setDayOfMonth(request.getDayOfMonth());
         testSchedule.setDayOfWeek(request.getDayOfWeek());
         
-        // Validate day of week/month based on frequency
+        // Validate schedule configuration
         validateScheduleConfiguration(testSchedule);
+        
+        // Validate dates
+        validateDates(request);
         
         testSchedule.setStartDate(request.getStartDate());
         testSchedule.setEndDate(request.getEndDate());
@@ -75,17 +82,56 @@ public class TestScheduleMapper {
         testSchedule.setStatus(request.getStatus());
         testSchedule.setCreatedBy(request.getCreatedBy());
 
-        // Handle test case relationship
+        // Handle test case relationship with better error handling
         if (request.getTestCaseId() != null) {
             TestCase testCase = testCaseRepository.findById(request.getTestCaseId())
-                .orElseThrow(() -> new EntityNotFoundException("TestCase not found with id: " + request.getTestCaseId()));
+                .orElseThrow(() -> new EntityNotFoundException(
+                    String.format("TestCase with ID %d not found", request.getTestCaseId())));
             testSchedule.setTestCase(testCase);
         }
 
-        // Calculate next execution date based on frequency
+        // Calculate next execution date
         calculateNextExecution(testSchedule);
         
         return testSchedule;
+    }
+
+    /**
+     * Validates the test schedule request
+     * @param request The request to validate
+     * @throws IllegalArgumentException if validation fails
+     */
+    private void validateRequest(TestScheduleRequest request) {
+        if (request.getTestName() == null || request.getTestName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Test name is required");
+        }
+        if (request.getScheduleName() == null || request.getScheduleName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Schedule name is required");
+        }
+        if (request.getFrequency() == null || request.getFrequency().trim().isEmpty()) {
+            throw new IllegalArgumentException("Frequency is required");
+        }
+    }
+
+    /**
+     * Validates the dates in the request
+     * @param request The request containing dates to validate
+     * @throws IllegalArgumentException if validation fails
+     */
+    private void validateDates(TestScheduleRequest request) {
+        if (request.getStartDate() == null) {
+            throw new IllegalArgumentException("Start date is required");
+        }
+        
+        if (request.getEndDate() != null && request.getEndDate().isBefore(request.getStartDate())) {
+            throw new IllegalArgumentException(
+                String.format("End date (%s) cannot be before start date (%s)",
+                    request.getEndDate(), request.getStartDate()));
+        }
+        
+        if (request.getStartDate().isBefore(LocalDate.now())) {
+            log.warn("Start date {} is in the past", request.getStartDate());
+        }
     }
 
     /**

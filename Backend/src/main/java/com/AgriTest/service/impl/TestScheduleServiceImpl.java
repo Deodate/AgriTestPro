@@ -7,11 +7,14 @@ import com.AgriTest.model.ScheduleFrequency;
 import com.AgriTest.repository.TestScheduleRepository;
 import com.AgriTest.service.TestScheduleService;
 import com.AgriTest.mapper.TestScheduleMapper;
+import com.AgriTest.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,80 +31,144 @@ public class TestScheduleServiceImpl implements TestScheduleService {
     @Override
     @Transactional
     public TestScheduleResponse createTestSchedule(TestScheduleRequest request) {
-        TestSchedule testSchedule = testScheduleMapper.toEntity(request);
-        testSchedule = testScheduleRepository.save(testSchedule);
-        return testScheduleMapper.toResponse(testSchedule);
+        try {
+            log.debug("Creating new test schedule with name: {}", request.getScheduleName());
+            TestSchedule testSchedule = testScheduleMapper.toEntity(request);
+            testSchedule = testScheduleRepository.save(testSchedule);
+            log.info("Created test schedule with ID: {}", testSchedule.getId());
+            return testScheduleMapper.toResponse(testSchedule);
+        } catch (DataIntegrityViolationException e) {
+            log.error("Failed to create test schedule due to data integrity violation", e);
+            throw new IllegalArgumentException("Invalid test schedule data: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Failed to create test schedule", e);
+            throw new RuntimeException("Failed to create test schedule: " + e.getMessage());
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<TestScheduleResponse> getAllTestSchedules() {
-        List<TestSchedule> schedules = testScheduleRepository.findAll();
-        return testScheduleMapper.toResponseList(schedules);
+        try {
+            log.debug("Fetching all test schedules");
+            List<TestSchedule> schedules = testScheduleRepository.findAll();
+            log.debug("Found {} test schedules", schedules.size());
+            return testScheduleMapper.toResponseList(schedules);
+        } catch (Exception e) {
+            log.error("Failed to fetch test schedules", e);
+            throw new RuntimeException("Failed to fetch test schedules: " + e.getMessage());
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
     public TestScheduleResponse getTestScheduleById(Long id) {
-        TestSchedule schedule = testScheduleRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Test Schedule not found with id: " + id));
-        return testScheduleMapper.toResponse(schedule);
+        try {
+            log.debug("Fetching test schedule with ID: {}", id);
+            TestSchedule schedule = testScheduleRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Test Schedule not found with id: " + id));
+            return testScheduleMapper.toResponse(schedule);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to fetch test schedule with ID: {}", id, e);
+            throw new RuntimeException("Failed to fetch test schedule: " + e.getMessage());
+        }
     }
 
     @Override
     @Transactional
     public TestScheduleResponse updateTestSchedule(Long id, TestScheduleRequest request) {
-        TestSchedule existingSchedule = testScheduleRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Test Schedule not found with id: " + id));
-        
-        // Use mapper to update the entity
-        TestSchedule updatedSchedule = testScheduleMapper.toEntity(request);
-        updatedSchedule.setId(id);
-        // Preserve creation timestamp
-        updatedSchedule.setCreatedAt(existingSchedule.getCreatedAt());
-        
-        updatedSchedule = testScheduleRepository.save(updatedSchedule);
-        return testScheduleMapper.toResponse(updatedSchedule);
+        try {
+            log.debug("Updating test schedule with ID: {}", id);
+            TestSchedule existingSchedule = testScheduleRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Test Schedule not found with id: " + id));
+            
+            TestSchedule updatedSchedule = testScheduleMapper.toEntity(request);
+            updatedSchedule.setId(id);
+            updatedSchedule.setCreatedAt(existingSchedule.getCreatedAt());
+            
+            updatedSchedule = testScheduleRepository.save(updatedSchedule);
+            log.info("Updated test schedule with ID: {}", id);
+            return testScheduleMapper.toResponse(updatedSchedule);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (DataIntegrityViolationException e) {
+            log.error("Failed to update test schedule due to data integrity violation", e);
+            throw new IllegalArgumentException("Invalid test schedule data: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Failed to update test schedule with ID: {}", id, e);
+            throw new RuntimeException("Failed to update test schedule: " + e.getMessage());
+        }
     }
 
     @Override
     @Transactional
     public void deleteTestSchedule(Long id) {
-        if (!testScheduleRepository.existsById(id)) {
-            throw new EntityNotFoundException("Test Schedule not found with id: " + id);
+        try {
+            log.debug("Deleting test schedule with ID: {}", id);
+            if (!testScheduleRepository.existsById(id)) {
+                throw new ResourceNotFoundException("Test Schedule not found with id: " + id);
+            }
+            testScheduleRepository.deleteById(id);
+            log.info("Deleted test schedule with ID: {}", id);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to delete test schedule with ID: {}", id, e);
+            throw new RuntimeException("Failed to delete test schedule: " + e.getMessage());
         }
-        testScheduleRepository.deleteById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<TestScheduleResponse> getTestSchedulesByIds(List<Long> scheduleIds) {
-        List<TestSchedule> schedules = testScheduleRepository.findAllById(scheduleIds);
-        return testScheduleMapper.toResponseList(schedules);
+        try {
+            if (CollectionUtils.isEmpty(scheduleIds)) {
+                return List.of();
+            }
+            log.debug("Fetching test schedules with IDs: {}", scheduleIds);
+            List<TestSchedule> schedules = testScheduleRepository.findAllById(scheduleIds);
+            
+            if (schedules.size() != scheduleIds.size()) {
+                log.warn("Some requested schedules were not found. Requested: {}, Found: {}", 
+                    scheduleIds.size(), schedules.size());
+            }
+            
+            return testScheduleMapper.toResponseList(schedules);
+        } catch (Exception e) {
+            log.error("Failed to fetch test schedules by IDs: {}", scheduleIds, e);
+            throw new RuntimeException("Failed to fetch test schedules: " + e.getMessage());
+        }
     }
 
     @Override
     @Transactional
     public void executeAllDueSchedules() {
-        LocalDate today = LocalDate.now();
-        List<TestSchedule> dueSchedules = testScheduleRepository.findAllByNextExecutionAndIsActiveTrue(today);
-        
-        for (TestSchedule schedule : dueSchedules) {
-            try {
-                executeSchedule(schedule);
-                updateNextExecutionDate(schedule);
-            } catch (Exception e) {
-                log.error("Failed to execute schedule {}: {}", schedule.getId(), e.getMessage(), e);
+        try {
+            LocalDate today = LocalDate.now();
+            log.debug("Executing all due schedules for date: {}", today);
+            List<TestSchedule> dueSchedules = testScheduleRepository.findAllByNextExecutionAndIsActiveTrue(today);
+            log.info("Found {} due schedules to execute", dueSchedules.size());
+            
+            for (TestSchedule schedule : dueSchedules) {
+                try {
+                    executeSchedule(schedule);
+                    updateNextExecutionDate(schedule);
+                    log.info("Successfully executed schedule: {}", schedule.getId());
+                } catch (Exception e) {
+                    log.error("Failed to execute schedule {}: {}", schedule.getId(), e.getMessage(), e);
+                }
             }
+        } catch (Exception e) {
+            log.error("Failed to execute due schedules", e);
+            throw new RuntimeException("Failed to execute due schedules: " + e.getMessage());
         }
     }
 
     private void executeSchedule(TestSchedule schedule) {
+        log.debug("Executing schedule: {}", schedule.getId());
         // TODO: Implement actual test execution logic
-        // This might involve:
-        // 1. Creating a new test run
-        // 2. Notifying assigned personnel
-        // 3. Updating status
         schedule.setStatus("IN_PROGRESS");
         testScheduleRepository.save(schedule);
     }
@@ -110,12 +177,13 @@ public class TestScheduleServiceImpl implements TestScheduleService {
         LocalDate nextExecution = calculateNextExecutionDate(schedule);
         schedule.setNextExecution(nextExecution);
         
-        // If end date is set and next execution would be after end date
         if (schedule.getEndDate() != null && nextExecution.isAfter(schedule.getEndDate())) {
+            log.info("Schedule {} has reached end date. Deactivating.", schedule.getId());
             schedule.setIsActive(false);
         }
         
         testScheduleRepository.save(schedule);
+        log.debug("Updated next execution date for schedule {}: {}", schedule.getId(), nextExecution);
     }
 
     private LocalDate calculateNextExecutionDate(TestSchedule schedule) {
