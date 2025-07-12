@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { API_CONFIG } from '../config';
-import { AUTH_SETTINGS } from '../config';
+import { API_CONFIG, AUTH_SETTINGS } from '../config';
 
 const API_URL = `${API_CONFIG.BASE_URL}/api/test-documentation`;
 
@@ -36,6 +35,7 @@ const testDocumentationService = {
             });
             return response.data;
         } catch (error) {
+            console.error('Error creating test documentation:', error);
             throw error.response?.data || error.message;
         }
     },
