@@ -111,6 +111,14 @@ public class TestScheduleMapper {
         if (request.getFrequency() == null || request.getFrequency().trim().isEmpty()) {
             throw new IllegalArgumentException("Frequency is required");
         }
+        if (request.getPriority() != null && 
+            !List.of("LOW", "MEDIUM", "HIGH", "CRITICAL").contains(request.getPriority().toUpperCase())) {
+            throw new IllegalArgumentException("Invalid priority value. Must be one of: LOW, MEDIUM, HIGH, CRITICAL");
+        }
+        if (request.getStatus() != null && 
+            !List.of("PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED").contains(request.getStatus().toUpperCase())) {
+            throw new IllegalArgumentException("Invalid status value. Must be one of: PENDING, IN_PROGRESS, COMPLETED, CANCELLED");
+        }
     }
 
     /**
@@ -175,12 +183,13 @@ public class TestScheduleMapper {
             .id(testSchedule.getId())
             .testCaseId(testSchedule.getTestCase() != null ? testSchedule.getTestCase().getId() : null)
             .testCaseTitle(testSchedule.getTestCase() != null ? testSchedule.getTestCase().getTestName() : null)
+            .testName(testSchedule.getTestName())
             .scheduleName(testSchedule.getScheduleName())
             .startDate(testSchedule.getStartDate())
             .trialPhase(testSchedule.getTrialPhase())
             .assignedPersonnel(testSchedule.getAssignedPersonnel())
             .endDate(testSchedule.getEndDate())
-            .frequency(testSchedule.getFrequency().name())
+            .frequency(testSchedule.getFrequency() != null ? testSchedule.getFrequency().name() : null)
             .location(testSchedule.getLocation())
             .testObjective(testSchedule.getTestObjective())
             .equipmentRequired(testSchedule.getEquipmentRequired())
@@ -193,6 +202,8 @@ public class TestScheduleMapper {
             .createdBy(testSchedule.getCreatedBy())
             .createdAt(testSchedule.getCreatedAt())
             .updatedAt(testSchedule.getUpdatedAt())
+            .priority(testSchedule.getPriority())
+            .status(testSchedule.getStatus())
             .build();
     }
 
@@ -230,44 +241,62 @@ public class TestScheduleMapper {
      */
     private void calculateNextExecution(TestSchedule testSchedule) {
         if (!testSchedule.isActive() || testSchedule.getStartDate() == null) {
+            testSchedule.setNextExecution(null);
             return;
         }
 
         LocalDate currentDate = LocalDate.now();
         LocalDate nextExecution = testSchedule.getStartDate();
 
-        if (nextExecution.isBefore(currentDate)) {
-            switch (testSchedule.getFrequency()) {
-                case DAILY:
-                    nextExecution = currentDate.plusDays(1);
-                    break;
-                case WEEKLY:
-                    if (testSchedule.getDayOfWeek() != null) {
-                        nextExecution = currentDate.plusDays(1);
-                        while (nextExecution.getDayOfWeek().getValue() != testSchedule.getDayOfWeek()) {
-                            nextExecution = nextExecution.plusDays(1);
-                        }
-                    } else {
-                        nextExecution = currentDate.plusWeeks(1);
+        // If start date is in the future, use it as next execution
+        if (nextExecution.isAfter(currentDate)) {
+            testSchedule.setNextExecution(nextExecution);
+            return;
+        }
+
+        // Calculate next execution based on frequency
+        switch (testSchedule.getFrequency()) {
+            case DAILY -> {
+                nextExecution = currentDate.plusDays(1);
+            }
+            case WEEKLY -> {
+                if (testSchedule.getDayOfWeek() != null) {
+                    nextExecution = currentDate;
+                    // Find next occurrence of the specified day of week
+                    while (nextExecution.getDayOfWeek().getValue() != testSchedule.getDayOfWeek() || 
+                           !nextExecution.isAfter(currentDate)) {
+                        nextExecution = nextExecution.plusDays(1);
                     }
-                    break;
-                case MONTHLY:
-                    if (testSchedule.getDayOfMonth() != null) {
-                        nextExecution = currentDate.plusMonths(1).withDayOfMonth(1);
-                        int maxDay = nextExecution.lengthOfMonth();
-                        nextExecution = nextExecution.withDayOfMonth(
-                            Math.min(testSchedule.getDayOfMonth(), maxDay));
-                    } else {
-                        nextExecution = currentDate.plusMonths(1);
+                } else {
+                    nextExecution = currentDate.plusWeeks(1);
+                }
+            }
+            case MONTHLY -> {
+                if (testSchedule.getDayOfMonth() != null) {
+                    // Start from next month
+                    nextExecution = currentDate.plusMonths(1).withDayOfMonth(1);
+                    // Adjust to specified day of month, considering month length
+                    int targetDay = Math.min(testSchedule.getDayOfMonth(), nextExecution.lengthOfMonth());
+                    nextExecution = nextExecution.withDayOfMonth(targetDay);
+                    
+                    // If the calculated date is not after current date, move to next month
+                    if (!nextExecution.isAfter(currentDate)) {
+                        nextExecution = nextExecution.plusMonths(1);
+                        targetDay = Math.min(testSchedule.getDayOfMonth(), nextExecution.lengthOfMonth());
+                        nextExecution = nextExecution.withDayOfMonth(targetDay);
                     }
-                    break;
+                } else {
+                    nextExecution = currentDate.plusMonths(1);
+                }
             }
         }
 
         // Check if next execution exceeds end date
-        if (testSchedule.getEndDate() != null && nextExecution.isAfter(testSchedule.getEndDate())) {
-            testSchedule.setIsActive(false);
-            nextExecution = testSchedule.getEndDate();
+        if (testSchedule.getEndDate() != null) {
+            if (nextExecution.isAfter(testSchedule.getEndDate())) {
+                testSchedule.setIsActive(false);
+                nextExecution = testSchedule.getEndDate();
+            }
         }
 
         testSchedule.setNextExecution(nextExecution);

@@ -158,6 +158,9 @@ public class TestScheduleServiceImpl implements TestScheduleService {
                     log.info("Successfully executed schedule: {}", schedule.getId());
                 } catch (Exception e) {
                     log.error("Failed to execute schedule {}: {}", schedule.getId(), e.getMessage(), e);
+                    // Mark schedule as failed but keep it active for retry
+                    schedule.setStatus("EXECUTION_FAILED");
+                    testScheduleRepository.save(schedule);
                 }
             }
         } catch (Exception e) {
@@ -168,9 +171,75 @@ public class TestScheduleServiceImpl implements TestScheduleService {
 
     private void executeSchedule(TestSchedule schedule) {
         log.debug("Executing schedule: {}", schedule.getId());
-        // TODO: Implement actual test execution logic
-        schedule.setStatus("IN_PROGRESS");
-        testScheduleRepository.save(schedule);
+        
+        int maxRetries = 3;
+        int currentTry = 0;
+        boolean success = false;
+        Exception lastException = null;
+
+        while (!success && currentTry < maxRetries) {
+            try {
+                currentTry++;
+                log.debug("Execution attempt {} for schedule {}", currentTry, schedule.getId());
+
+                // Update status to in progress
+                schedule.setStatus("IN_PROGRESS");
+                testScheduleRepository.save(schedule);
+
+                // Create test run
+                createTestRun(schedule);
+
+                // Send notifications
+                sendNotifications(schedule);
+
+                // Mark as completed
+                schedule.setStatus("COMPLETED");
+                testScheduleRepository.save(schedule);
+
+                success = true;
+                log.info("Schedule {} executed successfully on attempt {}", schedule.getId(), currentTry);
+            } catch (Exception e) {
+                lastException = e;
+                log.warn("Execution attempt {} failed for schedule {}: {}", 
+                    currentTry, schedule.getId(), e.getMessage());
+                
+                if (currentTry < maxRetries) {
+                    // Wait before retry (exponential backoff)
+                    try {
+                        Thread.sleep(1000L * currentTry * currentTry);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Execution interrupted", ie);
+                    }
+                }
+            }
+        }
+
+        if (!success) {
+            log.error("All execution attempts failed for schedule {}", schedule.getId());
+            throw new RuntimeException("Failed to execute schedule after " + maxRetries + " attempts", 
+                lastException);
+        }
+    }
+
+    private void createTestRun(TestSchedule schedule) {
+        log.debug("Creating test run for schedule: {}", schedule.getId());
+        // TODO: Implement test run creation
+        // This would typically:
+        // 1. Create a new test run record
+        // 2. Copy test parameters from the schedule
+        // 3. Set initial status
+        // 4. Link to the test case
+    }
+
+    private void sendNotifications(TestSchedule schedule) {
+        log.debug("Sending notifications for schedule: {}", schedule.getId());
+        // TODO: Implement notification sending
+        // This would typically:
+        // 1. Check notification preferences
+        // 2. Format notification message
+        // 3. Send to assigned personnel
+        // 4. Log notification status
     }
 
     private void updateNextExecutionDate(TestSchedule schedule) {
@@ -180,6 +249,7 @@ public class TestScheduleServiceImpl implements TestScheduleService {
         if (schedule.getEndDate() != null && nextExecution.isAfter(schedule.getEndDate())) {
             log.info("Schedule {} has reached end date. Deactivating.", schedule.getId());
             schedule.setIsActive(false);
+            schedule.setStatus("COMPLETED");
         }
         
         testScheduleRepository.save(schedule);
