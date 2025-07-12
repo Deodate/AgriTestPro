@@ -1,62 +1,62 @@
 .dashboard-container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .dashboard-content {
-    display: flex;
-    flex: 1;
-    background-color: #1976d2;
-    position: relative;
+  display: flex;
+  flex: 1;
+  background-color: #f5f5f5;
+  position: relative;
 }
 
 /* Sidebar styles */
 .dashboard-sidebar {
-    width: 250px;
-    background-color: #1e3a2f;
-    color: #f5f5f5;
-    height: calc(100vh - 60px);
-    overflow-y: auto;
-    border-right: 1px solid #2c5842;
-    transition: width 0.3s ease;
-    position: fixed;
-    top: 60px;
-    left: 0;
-    bottom: 0;
-    z-index: 50;
+  width: 250px;
+  background-color: #1e3a2f;
+  color: #f5f5f5;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  border-right: 1px solid #2c5842;
+  transition: width 0.3s ease;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  bottom: 0;
+  z-index: 50;
 }
 
 .dashboard-sidebar.collapsed {
-    width: 0;
-    overflow: hidden;
+  width: 0;
+  overflow: hidden;
 }
 
 .collapse-btn {
-    position: fixed;
-    left: 250px;
-    top: 80px;
-    width: 24px;
-    height: 24px;
-    background-color: #fff;
-    border: 1px solid #2c5842;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 60;
-    transition: left 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    color: #1e3a2f;
+  position: fixed;
+  left: 250px;
+  top: 80px;
+  width: 24px;
+  height: 24px;
+  background-color: #fff;
+  border: 1px solid #2c5842;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 60;
+  transition: left 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  color: #1e3a2f;
 }
 
 .dashboard-sidebar.collapsed + .collapse-btn {
-    left: 0;
+  left: 0;
 }
 
 .sidebar-section {
-    border-bottom: 1px solid #2c5842;
+  border-bottom: 1px solid #2c5842;
 }
 
 .sidebar-header {
@@ -192,26 +192,26 @@
     font-weight: 500;
 }
 
-/* Twilio-style header */
+/* Header styles */
 .twilio-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 15px;
-    height: 60px;
-    background-color: #1e3a2f;
-    border-bottom: 1px solid #2c5842;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+  height: 60px;
+  background-color: #1e3a2f;
+  border-bottom: 1px solid #2c5842;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  color: #fff;
 }
 
-.twilio-header .header-left,
-.twilio-header .header-right {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 .home-button {
@@ -378,43 +378,42 @@
 
 /* Notification Badge */
 .notification-badge {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background-color: #e53935;
-    color: white;
-    font-size: 0.7rem;
-    font-weight: bold;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #1e3a2f;
-    transform: translate(30%, -30%);
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #e53935;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #1e3a2f;
+  transform: translate(30%, -30%);
 }
 
 /* Main content styles */
 .dashboard-main {
-    flex: 1;
-    padding: 25px;
-    background-color: #1976d2;
-    margin-left: 250px;
-    transition: margin-left 0.3s ease;
-    min-height: calc(100vh - 60px);
+  flex: 1;
+  padding: 25px;
+  background-color: #f5f5f5;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+  min-height: calc(100vh - 60px);
 }
 
 .dashboard-sidebar.collapsed ~ .dashboard-main {
-    margin-left: 0;
+  margin-left: 0;
 }
 
-/* Renamed dashboard-header to dashboard-page-header to avoid conflicts */
 .dashboard-page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 .header-left h1 {
@@ -984,8 +983,6 @@
     overflow-x: auto;
 }
 
-<<<<<<< HEAD
-=======
 /* Table Styles */
 .data-table {
     width: 100%;
@@ -1005,7 +1002,6 @@
     font-size: 12px;
 }
 
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 /* Table styles */
 table {
     width: 100%;
@@ -1013,11 +1009,7 @@ table {
 }
 
 thead {
-<<<<<<< HEAD
-    background-color: #f7f9f8;
-=======
     background-color: #dbe9fd;
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 }
 
 th {
@@ -1098,8 +1090,6 @@ tbody tr:hover {
     color: #721c24;
 }
 
-<<<<<<< HEAD
-=======
 /* Styles for the 'Tested' column */
 .tested-no {
     color: #721c24; /* Dark red text */
@@ -1117,7 +1107,6 @@ tbody tr:hover {
     font-weight: bold;
 }
 
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 /* pH value indicators */
 .ph-value {
     display: inline-flex;
@@ -1307,11 +1296,7 @@ tbody tr:hover {
 }
 
 .table-search .search-input {
-<<<<<<< HEAD
   padding: 7px 30px 7px 10px;
-=======
-  padding: 7px 30px 7px 35px;
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
   border: 1px solid #ced4da;
   border-radius: 4px;
   font-size: 14px;
@@ -1326,21 +1311,11 @@ tbody tr:hover {
 }
 
 .table-search .search-icon {
-<<<<<<< HEAD
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6c757d;
-  font-size: 14px;
-  pointer-events: none;
-=======
   color: #888;
   position: absolute;
   left: 10px;
   top: 50%;
   transform: translateY(-50%);
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 }
 
 .table-search .clear-search {
@@ -1805,8 +1780,6 @@ tbody tr:hover {
 .dashboard-testcase-wrapper .test-case-form-container {
   padding: 0;
   box-shadow: none;
-<<<<<<< HEAD
-=======
 } 
 
 .centered-form-wrapper {
@@ -1884,5 +1857,4 @@ tbody tr:hover {
 
 .historical-list-button:hover {
     background-color: deepskyblue; /* Darker shade on hover */
->>>>>>> b4bf426c868bf8a31ce2bf61cb39fc9aed839589
 } 
