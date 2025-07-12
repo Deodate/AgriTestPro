@@ -1,0 +1,45 @@
+.evidence-list-table-container {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.evidence-list-table-container h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.evidence-list-table-container .data-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.evidence-list-table-container .data-table th,
+.evidence-list-table-container .data-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.evidence-list-table-container .data-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.evidence-list-table-container .data-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.evidence-list-table-container .error-message {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.evidence-list-table-container .table-search .search-input {
+    color: black;
+    padding-left: 10px;
+    text-align: center;
+} 

@@ -1,0 +1,357 @@
+/* Product Details Page Styles */
+.product-details-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  /* Navigation */
+  .product-details-nav {
+    margin-bottom: 20px;
+  }
+  
+  .back-to-products {
+    display: inline-flex;
+    align-items: center;
+    color: #555;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s;
+  }
+  
+  .back-to-products svg {
+    margin-right: 6px;
+  }
+  
+  .back-to-products:hover {
+    color: #2463eb;
+  }
+  
+  /* Loading state */
+  .loading-spinner {
+    text-align: center;
+    padding: 60px;
+    font-size: 1.1rem;
+    color: #666;
+  }
+  
+  /* Product not found */
+  .product-not-found {
+    text-align: center;
+    padding: 60px 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+  
+  .product-not-found h2 {
+    color: #333;
+    margin-bottom: 15px;
+  }
+  
+  .product-not-found p {
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  /* Product details content */
+  .product-details-content {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+    margin-bottom: 40px;
+  }
+  
+  /* Product image */
+  .product-image-container {
+    position: relative;
+  }
+  
+  .product-detail-image {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .product-badges {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .product-type-badge {
+    background-color: #2463eb;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  
+  .product-tested-badge {
+    background-color: #22c55e;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+  }
+  
+  .product-tested-badge svg {
+    margin-right: 5px;
+  }
+  
+  /* Product info */
+  .product-details-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .product-detail-name {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 5px;
+  }
+  
+  /* Meta information */
+  .product-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .meta-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  .meta-label {
+    font-weight: 600;
+    color: #555;
+    margin-right: 5px;
+  }
+  
+  .meta-value {
+    color: #666;
+  }
+  
+  .tested-yes {
+    color: #22c55e;
+    font-weight: 600;
+  }
+  
+  .tested-no {
+    color: #ef4444;
+    font-weight: 600;
+  }
+  
+  /* Description */
+  .product-description h2 {
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .product-description p {
+    color: #555;
+    line-height: 1.6;
+  }
+  
+  /* Details table */
+  .product-details-table {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .detail-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 12px;
+  }
+  
+  .detail-label {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .detail-value {
+    color: #555;
+  }
+  
+  .applications-list {
+    list-style-type: disc;
+    padding-left: 18px;
+    margin: 0;
+  }
+  
+  .applications-list li {
+    margin-bottom: 4px;
+  }
+  
+  /* Safety info */
+  .product-safety h2 {
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .safety-box {
+    background-color: #fff5f5;
+    border: 1px solid #fee2e2;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .safety-box svg {
+    flex-shrink: 0;
+    color: #ef4444;
+  }
+  
+  .safety-box p {
+    margin: 0;
+    color: #555;
+    line-height: 1.5;
+  }
+  
+  /* Product actions */
+  .product-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+  }
+  
+  .inquiry-button, .download-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .inquiry-button {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .inquiry-button:hover {
+    background-color: #388e3c;
+  }
+  
+  .download-button {
+    background-color: #f0f0f0;
+    color: #333;
+  }
+  
+  .download-button:hover {
+    background-color: #e0e0e0;
+  }
+  
+  /* Related products */
+  .related-products {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid #eee;
+  }
+  
+  .related-products h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .related-products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  
+  .related-product-card {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+  }
+  
+  .related-product-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .related-product-image {
+    height: 150px;
+    overflow: hidden;
+  }
+  
+  .related-product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .related-product-info {
+    padding: 15px;
+  }
+  
+  .related-product-info h3 {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 5px;
+  }
+  
+  .related-product-info p {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+  
+  .view-related-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: background-color 0.3s;
+  }
+  
+  .view-related-btn:hover {
+    background-color: #c8e6c9;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .product-details-content {
+      grid-template-columns: 1fr;
+    }
+    
+    .detail-row {
+      grid-template-columns: 1fr;
+      gap: 5px;
+    }
+    
+    .product-actions {
+      flex-direction: column;
+    }
+    
+    .related-products-grid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+  }

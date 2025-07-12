@@ -1,0 +1,500 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 140px); /* Adjust based on header/footer height */
+}
+
+.login-form-container {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-title h2 {
+  margin-top: 1rem;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.login-title-icon {
+  font-size: 2rem;
+  color: #666;
+}
+
+.input-container {
+  position: relative;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.input-container input {
+  width: 100%;
+  padding: 0.75rem 2.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  height: 45px;
+}
+
+.input-container input:focus {
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.remember-forgot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.remember-me input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+.forgot-password {
+  color: #666;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.forgot-password:hover {
+  color: #0066cc;
+}
+
+.login-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.login-button,
+.cancel-button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-button {
+  background: #0066cc;
+  color: white;
+}
+
+.login-button:hover {
+  background: #0055aa;
+}
+
+.cancel-button {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.cancel-button:hover {
+  background: #e5e5e5;
+}
+
+.login-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.divider span {
+  padding: 0 1rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.signup-section {
+  text-align: center;
+}
+
+.signup-link {
+  color: #0066cc;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.signup-link:hover {
+  text-decoration: underline;
+}
+
+.workshop-registration {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+}
+
+.workshop-form-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  width: 100%;
+}
+
+.workshop-form-wrapper {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+}
+
+.circle-title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.circle-title span {
+  background-color: #0066cc;
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.workshop-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #333;
+}
+
+.input-container input.error {
+  border-color: #d32f2f;
+  border-width: 2px;
+  background-color: #fff8f8;
+}
+
+.error-text {
+  color: #d32f2f;
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+  margin-bottom: 0.2rem;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.error-text::before {
+  content: "⚠️";
+  margin-right: 0.25rem;
+  font-size: 0.8rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.signup-link a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.signup-link a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .workshop-form-container {
+    padding: 1rem;
+  }
+  
+  .workshop-form-wrapper {
+    padding: 1.5rem;
+  }
+  
+  .button-group {
+    flex-direction: column;
+  }
+  
+  .login-button,
+  .cancel-button {
+    width: 100%;
+  }
+}
+
+.success-message {
+  background-color: rgba(0, 255, 0, 0.1);
+  color: #00aa00;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  border: 1px solid rgba(0, 255, 0, 0.2);
+}
+
+.error-message {
+  background-color: #fff0f0;
+  color: #d32f2f;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  border: 2px solid #ffcdd2;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+/* Remove shake animation */
+.input-container input.error:focus {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
+}
+
+.switch-form-button {
+  background: none;
+  border: none;
+  color: #0066cc;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.switch-form-button:hover {
+  color: #0055aa;
+}
+
+/* Animation for form switching */
+.login-form-container form {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.verification-form {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.verification-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  color: #666;
+}
+
+.info-icon {
+  font-size: 1.2rem;
+  color: #0066cc;
+}
+
+.verification-info span {
+  font-size: 0.95rem;
+}
+
+.verification-form .input-container input {
+  text-align: center;
+  letter-spacing: 2px;
+  font-size: 1.1rem;
+}
+
+/* Update existing animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Account suggestion styling */
+.account-suggestion {
+  display: flex;
+  align-items: center;
+  background-color: rgba(25, 118, 210, 0.08);
+  border: 1px solid rgba(25, 118, 210, 0.2);
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  color: #1976d2;
+  font-size: 0.9rem;
+}
+
+.suggestion-icon {
+  font-size: 1.2rem;
+  margin-right: 0.75rem;
+  color: #1976d2;
+}
+
+.account-suggestion p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.inline-button {
+  background: none;
+  border: none;
+  color: #0066cc;
+  font-weight: 600;
+  padding: 0 0.3rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.inline-button:hover {
+  color: #0055aa;
+}
+
+/* Development information styles */
+.dev-info {
+  margin-top: 5px;
+  padding: 5px;
+  background-color: #ffe6cc;
+  border: 1px dashed #ff9900;
+  color: #994d00;
+  font-size: 0.8rem;
+  border-radius: 4px;
+}
+
+.masked-phone {
+  margin-top: 5px;
+  font-size: 0.85rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* Back to login button */
+.back-to-login {
+  margin-bottom: 1rem;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: #0066cc;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.back-button:hover {
+  color: #0055aa;
+  text-decoration: underline;
+}
+
+/* Compact form styling for reset password */
+.compact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.compact-form .input-container {
+  margin-bottom: 0;
+}
+
+.compact-form input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  height: 45px;
+}
+
+.compact-form .login-button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.button-container {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.button-container button {
+  flex: 1;
+}

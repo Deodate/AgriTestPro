@@ -1,0 +1,148 @@
+.test-documentation-form-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align to the top */
+    padding: 20px;
+}
+
+.test-documentation-form {
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 20px auto;
+    font-family: Arial, sans-serif;
+}
+
+.test-documentation-form h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.test-documentation-form form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="email"],
+.form-group select,
+.form-group textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-group textarea {
+    resize: vertical; /* Allow vertical resizing */
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.form-buttons button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.form-buttons button[type="button"] { /* Cancel button */
+    background-color: #6c757d;
+    color: white;
+}
+
+.form-buttons button[type="button"]:hover {
+    background-color: #5a6268;
+}
+
+.form-buttons button[type="submit"] { /* Submit button */
+    background-color: #28a745;
+    color: white;
+}
+
+.form-buttons button[type="submit"]:hover {
+    background-color: #218838;
+}
+
+.form-buttons button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.error-message {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.test-documentation-form button[type="submit"] {
+    display: block;
+    width: 100%;
+    max-width: 100px; /* Limit the width of the submit button */
+    padding: 2px 8px; /* Reduced padding to decrease height and width */
+    background-color: #0882ec; /* Green color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.test-documentation-form button[type="submit"]:hover {
+    background-color: #218838; /* Darker green on hover */
+}
+
+.test-documentation-form .cancel-button {
+    display: block;
+    width: 100%;
+    max-width: 100px; /* Limit the width of the cancel button */
+    padding: 2px 8px; /* Reduced padding to decrease height and width */
+    background-color: #dc3545; /* Red color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.test-documentation-form .cancel-button:hover {
+    background-color: #c82333; /* Darker red on hover */
+} 

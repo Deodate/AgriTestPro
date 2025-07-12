@@ -1,0 +1,184 @@
+.product-registration-form-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align to the top */
+    padding: 20px;
+}
+
+.product-registration-form {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px; /* Limit form width */
+}
+
+.product-registration-form h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #333;
+}
+
+.form-row {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center; /* Vertically align label and input */
+    justify-content: center; /* Center the content horizontally */
+}
+
+.form-row label {
+    /* Removed margin-right: 0; */
+    /* Removed padding: 0; */
+    color: black; /* Set the color of the Batch Number label to black */
+}
+
+/* New flex container for Batch Number input and checkbox */
+.batch-number-control-group {
+    display: flex;
+    align-items: center; /* Align items vertically within the new group */
+    /* Removed flex-grow: 1 to prevent taking up all available space */
+    /* flex-grow: 1; Allow this group to grow within the form-row */
+    justify-content: center; /* Keep centering of items within this group */
+    gap: 10px; /* Add a small gap between the batch number and the checkbox */
+    margin-left: 5px; /* Add a small space to the left of the control group */
+}
+
+/* Adjust styling for inputs and selects */
+.form-row input[type="text"],
+.form-row input[type="date"],
+.form-row select,
+.form-row textarea {
+    flex-grow: 1; /* Allow input to take remaining space */
+    max-width: 400px; /* Limit the maximum width of the input */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.form-row textarea {
+    resize: vertical; /* Allow vertical resizing */
+    min-height: 100px;
+}
+
+/* Styles for validation feedback */
+.form-row input.is-invalid,
+.form-row textarea.is-invalid {
+    border-color: red; /* Red border for invalid input */
+}
+
+.form-row input.is-valid,
+.form-row textarea.is-valid {
+    border-color: green; /* Green border for valid input */
+}
+
+.error-message {
+    color: red;
+    font-size: 0.8rem;
+    margin-top: 5px;
+}
+
+.button-row {
+    display: flex;
+    justify-content: flex-start; /* Align buttons to the left */
+    gap: 10px; /* Add space between buttons */
+    margin-top: 25px; /* Add space above the buttons */
+}
+
+.button-row button[type="submit"] {
+    display: block;
+    width: 100%;
+    max-width: 100px; /* Reduce the width of the submit button */
+    padding: 10px 15px; /* Adjust padding */
+    background-color: #007bff; /* Blue color for submit */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button-row button[type="submit"]:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+.button-row button[type="button"] {
+    display: block;
+    width: 100%;
+    max-width: 100px; /* Limit the width of the cancel button */
+    padding: 10px 15px; /* Adjust padding */
+    background-color: #dc3545; /* Red color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button-row button[type="button"]:hover {
+    background-color: #c82333; /* Darker red on hover */
+}
+
+/* Style for the Batch Number input to reduce its width within the new group */
+.batch-number-control-group input[name='batchNumber'],
+.batch-number-display { /* Add rule for the new div */
+    /* Set initial size and prevent growing/shrinking */
+    /* Removed flex: 0 0 60%; to allow centering with justify-content */
+    /* Remove max-width if it conflicts with flex-basis */
+    max-width: none;
+    /* Add styles to make it look less like a standard input */
+    border: none; /* Remove the border */
+    background-color: transparent; /* Make the background transparent */
+    padding: 0; /* Remove padding */
+    box-shadow: none; /* Remove any box shadow */
+    outline: none; /* Remove outline on focus */
+    /* Ensure text does not overflow and is clearly visible */
+    white-space: nowrap; /* Prevent text wrapping */
+    overflow: hidden; /* Hide overflowing text */
+    text-overflow: ellipsis; /* Show ellipsis for overflowing text */
+    line-height: normal; /* Ensure normal line height */
+    /* Removed display: inline-block; to rely on parent flex */
+}
+
+/* Add some spacing between the input and the checkbox */
+.batch-number-none-checkbox {
+    /* Removed problematic nested comment */
+    /* Removed margin-left: 10px; as gap is used on the parent */
+    display: flex; /* Use flex to align checkbox and label if needed */
+    align-items: center;
+    gap: 5px; /* Add a small gap between the checkbox and the label */
+    /* Removed display: inline-block; to rely on parent flex */
+}
+
+.batch-number-none-checkbox input[type="checkbox"] {
+    border-color: green; /* Set the border color of the checkbox to green */
+}
+
+.batch-number-none-checkbox label {
+    position: relative;
+    top: 5px; /* Shift the label text 5px down */
+    color: black; /* Set the color of the 'None' label to black */
+}
+
+.product-registration-form .button-row button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-right: 10px;
+    height: calc(100% - 30px); /* Reduce height by 30px, assuming original height is context-dependent */
+    padding-bottom: 5px; /* Adjust padding to position text 5px from bottom */
+    display: flex;
+    align-items: flex-end;
+    justify-content: center; /* Center text horizontally */
+}
+
+.product-registration-form .button-row button:disabled {
+    /* Add styles for disabled button */
+} 
