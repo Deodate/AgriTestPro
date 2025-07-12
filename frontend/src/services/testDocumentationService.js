@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { API_BASE_URL } from '../config';
+import { API_CONFIG } from '../config';
 
-const API_URL = `${API_BASE_URL}/api/test-documentation`;
+const API_URL = `${API_CONFIG.BASE_URL}/api/test-documentation`;
 
 const testDocumentationService = {
     createTestDocumentation: async (data) => {
