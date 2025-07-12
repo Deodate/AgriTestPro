@@ -2,98 +2,93 @@
 package com.AgriTest.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Data
 @Entity
 @Table(name = "test_schedules")
+@NoArgsConstructor
+@AllArgsConstructor
 public class TestSchedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "test_name", nullable = false)
     private String testName;
 
-    @Column(nullable = false)
-    private String testType;
+    @Column(name = "schedule_name", nullable = false)
+    private String scheduleName;
 
-    @Column(nullable = false)
-    private LocalDateTime scheduledDate;
+    @Column(name = "trial_phase")
+    private String trialPhase;
 
-    @Column(nullable = false)
-    private String assignedTo;
+    @Column(name = "assigned_personnel")
+    private String assignedPersonnel;
 
-    @Column
-    private String priority;
+    @Column(name = "location")
+    private String location;
 
-    @Column
-    private String status;
+    @Column(name = "test_objective", columnDefinition = "TEXT")
+    private String testObjective;
 
-    @Column
+    @Column(name = "equipment_required", columnDefinition = "TEXT")
+    private String equipmentRequired;
+
+    @Column(name = "notification_preference")
+    private String notificationPreference;
+
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
+
+    @Column(name = "frequency", nullable = false)
+    private String frequency;
+
+    @Column(name = "day_of_month")
+    private Integer dayOfMonth;
+
+    @Column(name = "day_of_week")
+    private Integer dayOfWeek;
+
+    @Column(name = "start_date", nullable = false)
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    @Column(name = "next_execution")
+    private LocalDate nextExecution;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "test_case_id", nullable = false)
+    private TestCase testCase;
+
+    @Column(name = "description")
     private String description;
 
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+    @Column(name = "priority")
+    private String priority;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(name = "status")
+    private String status;
 
-    public String getTestName() {
-        return testName;
-    }
+    @Column(name = "created_by")
+    private Long createdBy;
 
-    public void setTestName(String testName) {
-        this.testName = testName;
-    }
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-    public String getTestType() {
-        return testType;
-    }
-
-    public void setTestType(String testType) {
-        this.testType = testType;
-    }
-
-    public LocalDateTime getScheduledDate() {
-        return scheduledDate;
-    }
-
-    public void setScheduledDate(LocalDateTime scheduledDate) {
-        this.scheduledDate = scheduledDate;
-    }
-
-    public String getAssignedTo() {
-        return assignedTo;
-    }
-
-    public void setAssignedTo(String assignedTo) {
-        this.assignedTo = assignedTo;
-    }
-
-    public String getPriority() {
-        return priority;
-    }
-
-    public void setPriority(String priority) {
-        this.priority = priority;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
