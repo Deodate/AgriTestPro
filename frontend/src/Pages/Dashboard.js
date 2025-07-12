@@ -594,17 +594,17 @@ const Dashboard = () => {
     const formParam = Object.fromEntries(queryParams)[Object.keys(Object.fromEntries(queryParams))[0]];
     const formType = Object.keys(Object.fromEntries(queryParams))[0];
 
+    if (formType === 'TestSchedulingForm' && formParam === 'create') {
+      setShowTestSchedulingForm(true);
+      setActiveTab('testschedulingform');
+      setActiveMenuItem('TestSchedulingForm');
+      return;
+    }
+
     if (formType === 'EvidenceUploadForm' && formParam === 'create') {
       setShowEvidenceUploadForm(true);
       setActiveTab('evidenceupload');
       setActiveMenuItem('EvidenceUploadForm');
-      return;
-    }
-
-    if (formType === 'BroadcastAnnouncementForm' && formParam === 'create') {
-      setShowBroadcastAnnouncementForm(true);
-      setActiveTab('broadcastannouncementform');
-      setActiveMenuItem('BroadcastAnnouncementForm');
       return;
     }
 
@@ -1003,6 +1003,37 @@ const Dashboard = () => {
                         navigate('/dashboard?EvidenceUploadForm=create', { replace: true });
                       }}>Evidence Upload</div>
                       <div className={`menu-item ${activeMenuItem === 'TestSchedulingForm' ? 'active' : ''}`} onClick={() => {
+                        // Reset all forms first
+                        const resetAllForms = () => {
+                          setShowComplianceForm(false);
+                          setShowTestCaseForm(false);
+                          setShowTrialPhaseForm(false);
+                          setShowTestDocumentationForm(false);
+                          setShowBroadcastAnnouncementForm(false);
+                          setShowProductRegistrationForm(false);
+                          setShowEvidenceUploadForm(false);
+                          setShowTestSchedulingForm(false);
+                          setShowHistoricalDataForm(false);
+                          setShowDataVisualizationForm(false);
+                          setShowResultsComparisonForm(false);
+                          setShowAddInventoryItemForm(false);
+                          setShowStockValuationForm(false);
+                          setShowExpiryAlertSetupForm(false);
+                          setShowCustomReportBuilderForm(false);
+                          setShowForecastingForm(false);
+                          setShowProtocolRegistrationForm(false);
+                          setShowAlertConfigurationForm(false);
+                          setShowFeedbackCollectionForm(false);
+                          setShowBroadcastMessageForm(false);
+                          setShowResourceAllocationForm(false);
+                          setShowTimeTrackingForm(false);
+                          setShowRealTimeStockTrackingForm(false);
+                        };
+
+                        // Reset all forms first
+                        resetAllForms();
+                        
+                        // Then show only the Test Scheduling form
                         setShowTestSchedulingForm(true);
                         setActiveTab('testschedulingform');
                         setActiveMenuItem('TestSchedulingForm');

@@ -114,7 +114,22 @@ const EvidenceUploadForm = ({ onUploadSuccess, onCancel }) => {
             );
 
             if (response.status === 200) {
-                toast.success('Evidence uploaded successfully!');
+                toast.success('Evidence Uploaded successful!', {
+                    position: "top-center",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: "colored",
+                    style: {
+                        background: "#4CAF50",
+                        color: "white",
+                        fontSize: "16px",
+                        textAlign: "center",
+                        fontWeight: "bold"
+                    }
+                });
                 // Optionally call a success handler passed from parent component
                 if (onUploadSuccess) {
                     onUploadSuccess();
