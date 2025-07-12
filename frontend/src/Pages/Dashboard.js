@@ -2377,12 +2377,6 @@ const Dashboard = () => {
             </div>
           )}
 
-            <div className="table-container">
-              <div className="dashboard-broadcastannouncementform-wrapper">
-                <BroadcastAnnouncementForm />
-              </div>
-            </div>
-          
           {activeTab === 'taskassignmentform' && showTaskAssignmentForm && (
             <div className="table-container">
               <div className="table-header-actions">
