@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import testDocumentationService from '../../services/testDocumentationService';
 import './TestDocumentationForm.css';
 
 const TestDocumentationForm = () => {
-    const [formData, setFormData] = useState({
+    const initialFormState = {
         testName: '',
         testType: '',
         description: '',
@@ -13,9 +13,21 @@ const TestDocumentationForm = () => {
         actualResults: '',
         testStatus: 'PENDING',
         attachments: null
-    });
+    };
 
+    const [formData, setFormData] = useState(initialFormState);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+
+    useEffect(() => {
+        let timer;
+        if (showSuccess) {
+            timer = setTimeout(() => {
+                setShowSuccess(false);
+            }, 5000);
+        }
+        return () => clearTimeout(timer);
+    }, [showSuccess]);
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
@@ -32,24 +44,24 @@ const TestDocumentationForm = () => {
         }
     };
 
+    const resetForm = () => {
+        setFormData(initialFormState);
+        // Reset file input
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) {
+            fileInput.value = '';
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
 
         try {
             await testDocumentationService.createTestDocumentation(formData);
+            setShowSuccess(true);
+            resetForm();
             toast.success('Test documentation created successfully!');
-            // Reset form
-            setFormData({
-                testName: '',
-                testType: '',
-                description: '',
-                testProcedure: '',
-                expectedResults: '',
-                actualResults: '',
-                testStatus: 'PENDING',
-                attachments: null
-            });
         } catch (error) {
             console.error('Error creating test documentation:', error);
             toast.error(error.message || 'Failed to create test documentation');
@@ -60,6 +72,11 @@ const TestDocumentationForm = () => {
 
     return (
         <div className="test-documentation-form">
+            {showSuccess && (
+                <div className="success-message">
+                    Test Submitted!
+                </div>
+            )}
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label htmlFor="testName">Test Name *</label>
