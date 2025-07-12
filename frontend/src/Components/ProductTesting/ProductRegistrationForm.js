@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './ProductRegistrationForm.css';
 import authService from '../../services/authService';
 import { API_CONFIG } from '../../config';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ProductRegistrationForm = () => {
     const [productName, setProductName] = useState('');
@@ -254,7 +255,7 @@ const ProductRegistrationForm = () => {
                 body: formData,
             });
 
-            if (response.ok) {
+                            if (response.ok) {
                 console.log('Product registration successful. Response received:', response);
                 const result = await response.json();
                 console.log('Product registered successfully:', result);
@@ -265,6 +266,14 @@ const ProductRegistrationForm = () => {
                     closeOnClick: true,
                     pauseOnHover: true,
                     draggable: true,
+                    theme: "colored",
+                    style: {
+                        background: "#4CAF50",
+                        color: "white",
+                        fontSize: "16px",
+                        textAlign: "center",
+                        fontWeight: "bold"
+                    }
                 });
                 resetForm(); // Reset the form after successful submission
                 // Fetch the next batch number after successful registration
@@ -294,6 +303,18 @@ const ProductRegistrationForm = () => {
 
     return (
         <div className="product-registration-form-container">
+            <ToastContainer
+                position="top-center"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+            />
             <form className="product-registration-form" onSubmit={handleSubmit}>
                 <div className="form-row">
                     <input
