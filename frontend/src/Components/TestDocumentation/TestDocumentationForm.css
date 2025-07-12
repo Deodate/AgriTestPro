@@ -6,13 +6,12 @@
 }
 
 .test-documentation-form {
-    padding: 20px;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     max-width: 800px;
-    margin: 20px auto;
-    font-family: Arial, sans-serif;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .test-documentation-form h2 {
@@ -24,125 +23,94 @@
 .test-documentation-form form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
+    gap: 8px;
 }
 
 .form-group label {
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #555;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
 }
 
-.form-group input[type="text"],
-.form-group input[type="number"],
-.form-group input[type="email"],
+.form-group input,
 .form-group select,
 .form-group textarea {
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
+    width: 100%;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    border-color: #2463eb;
+    box-shadow: 0 0 0 2px rgba(36, 99, 235, 0.1);
 }
 
 .form-group textarea {
-    resize: vertical; /* Allow vertical resizing */
+    resize: vertical;
+    min-height: 100px;
 }
 
-.form-buttons {
+.form-group input[type="file"] {
+    padding: 8px;
+    border: 1px dashed #ddd;
+    background-color: #f8f8f8;
+    cursor: pointer;
+    width: 300px;
+}
+
+.form-actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+    justify-content: center;
     margin-top: 20px;
 }
 
-.form-buttons button {
-    padding: 10px 20px;
+.submit-button {
+    background-color: #2463eb;
+    color: white;
+    padding: 12px 24px;
     border: none;
     border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.2s;
 }
 
-.form-buttons button[type="button"] { /* Cancel button */
-    background-color: #6c757d;
-    color: white;
+.submit-button:hover {
+    background-color: #1d4ed8;
 }
 
-.form-buttons button[type="button"]:hover {
-    background-color: #5a6268;
-}
-
-.form-buttons button[type="submit"] { /* Submit button */
-    background-color: #28a745;
-    color: white;
-}
-
-.form-buttons button[type="submit"]:hover {
-    background-color: #218838;
-}
-
-.form-buttons button:disabled {
-    background-color: #cccccc;
+.submit-button:disabled {
+    background-color: #93c5fd;
     cursor: not-allowed;
 }
 
-.error-message {
-    margin-top: 10px;
-    padding: 10px;
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-    border-radius: 4px;
-    text-align: center;
+/* Error state */
+.form-group.error input,
+.form-group.error select,
+.form-group.error textarea {
+    border-color: #dc2626;
 }
 
-.test-documentation-form button[type="submit"] {
-    display: block;
-    width: 100%;
-    max-width: 100px; /* Limit the width of the submit button */
-    padding: 2px 8px; /* Reduced padding to decrease height and width */
-    background-color: #0882ec; /* Green color */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+.form-group.error .error-message {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
 }
 
-.test-documentation-form button[type="submit"]:hover {
-    background-color: #218838; /* Darker green on hover */
-}
-
-.test-documentation-form .cancel-button {
-    display: block;
-    width: 100%;
-    max-width: 100px; /* Limit the width of the cancel button */
-    padding: 2px 8px; /* Reduced padding to decrease height and width */
-    background-color: #dc3545; /* Red color */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.test-documentation-form .cancel-button:hover {
-    background-color: #c82333; /* Darker red on hover */
+/* Required field indicator */
+.form-group label::after {
+    content: " *";
+    color: #dc2626;
 } 

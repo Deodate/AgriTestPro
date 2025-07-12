@@ -1,337 +1,172 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import { toast } from 'react-toastify';
-import { API_CONFIG, AUTH_SETTINGS } from '../../config';
+import testDocumentationService from '../../services/testDocumentationService';
 import './TestDocumentationForm.css';
 
-const TestDocumentationForm = ({ onBack, onSave, initialData }) => {
-    const apiBaseUrl = API_CONFIG.BASE_URL || 'http://localhost:8089';
-
+const TestDocumentationForm = () => {
     const [formData, setFormData] = useState({
-        testCaseId: '',
-        parameterName: '',
-        value: '',
-        unit: '',
-        notes: '',
-        mediaFiles: [],
-        productId: '',
-        trialPhase: '',
-        finalVerdict: '',
-        approvedBy: '',
-        dateOfApproval: '',
+        testName: '',
+        testType: '',
+        description: '',
+        testProcedure: '',
+        expectedResults: '',
+        actualResults: '',
+        testStatus: 'PENDING',
+        attachments: ''
     });
 
-    const [testCases, setTestCases] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        const fetchTestCases = async () => {
-            setIsLoading(true);
-            setError(null);
-            
-            const api = axios.create({
-                baseURL: apiBaseUrl,
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY)}`
-                }
-            });
-            
-            try {
-                const response = await api.get('/api/testcases');
-                setTestCases(response.data || []);
-            } catch (err) {
-                console.error('Error fetching test cases:', err);
-                setError('Failed to load test cases');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        
-        fetchTestCases();
-    }, [apiBaseUrl]);
-
-    useEffect(() => {
-        if (initialData) {
-            setFormData({
-                id: initialData.id || '',
-                testCaseId: initialData.testCaseId || '',
-                parameterName: initialData.parameterName || '',
-                value: initialData.value || '',
-                unit: initialData.unit || '',
-                notes: initialData.notes || '',
-                mediaFiles: [],
-                productId: initialData.productId || '',
-                trialPhase: initialData.trialPhase || '',
-                finalVerdict: initialData.finalVerdict || '',
-                approvedBy: initialData.approvedBy || '',
-                dateOfApproval: initialData.dateOfApproval || '',
-            });
-        }
-    }, [initialData]);
-
-    const handleInputChange = (e) => {
-        const { name, value, type, files } = e.target;
-        
-        if (type === 'file') {
-            setFormData(prev => ({
-                ...prev,
-                mediaFiles: Array.from(files)
-            }));
-        } else {
-            setFormData(prev => ({
-                ...prev,
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
             [name]: value
         }));
-        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Basic validation
-        if (!formData.testCaseId || !formData.parameterName || !formData.value || !formData.productId || !formData.trialPhase || !formData.finalVerdict || !formData.approvedBy || !formData.dateOfApproval) {
-            toast.error('Please fill out all required fields.');
-            return;
-        }
-
-        setIsLoading(true);
-        setError(null);
-
-        const formDataToSend = new FormData();
-
-        // Append non-file fields
-        Object.keys(formData).forEach(key => {
-            if (key !== 'mediaFiles') {
-                formDataToSend.append(key, formData[key]);
-            }
-        });
-
-        // Append file fields
-        formData.mediaFiles.forEach(file => {
-            formDataToSend.append('attachments', file); // Use 'attachments' to match backend DTO field name
-        });
-
-        const api = axios.create({
-            baseURL: apiBaseUrl,
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY)}`,
-            }
-        });
+        setIsSubmitting(true);
 
         try {
-            let response;
-            if (formData.id) {
-                response = await api.put(`/api/test-results/${formData.id}`, formDataToSend);
-                toast.success('Test Documentation updated successfully!');
-            } else {
-                response = await api.post('/api/test-results', formDataToSend);
-                toast.success('Test Documentation saved successfully!');
-            }
-            
-            if (onSave) {
-                onSave(response.data);
-            }
-            if (!formData.id) {
-                resetForm();
-            }
-
-        } catch (err) {
-            console.error('Error saving test documentation:', err);
-            setError('Failed to save test documentation');
-            toast.error('Failed to save test documentation');
+            await testDocumentationService.createTestDocumentation(formData);
+            toast.success('Test documentation created successfully!');
+            // Reset form
+            setFormData({
+                testName: '',
+                testType: '',
+                description: '',
+                testProcedure: '',
+                expectedResults: '',
+                actualResults: '',
+                testStatus: 'PENDING',
+                attachments: ''
+            });
+        } catch (error) {
+            toast.error(error.message || 'Failed to create test documentation');
         } finally {
-            setIsLoading(false);
+            setIsSubmitting(false);
         }
-    };
-
-    const handleCancel = () => {
-        if (onBack) {
-            onBack();
-        }
-    };
-
-    const resetForm = () => {
-        setFormData({
-            testCaseId: '',
-            parameterName: '',
-            value: '',
-            unit: '',
-            notes: '',
-            mediaFiles: [],
-            productId: '',
-            trialPhase: '',
-            finalVerdict: '',
-            approvedBy: '',
-            dateOfApproval: '',
-        });
     };
 
     return (
         <div className="test-documentation-form">
-            <h2>{formData.id ? 'Edit Test Documentation' : 'Create Test Documentation'}</h2>
-            {isLoading && <p>Loading...</p>}
-            {error && <div className="error-message">{error}</div>}
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
-                    <label htmlFor="testCaseId">Test Case</label>
-                    <select
-                        id="testCaseId"
-                        name="testCaseId"
-                        value={formData.testCaseId}
-                        onChange={handleInputChange}
+                    <label htmlFor="testName">Test Name *</label>
+                    <input
+                        type="text"
+                        id="testName"
+                        name="testName"
+                        value={formData.testName}
+                        onChange={handleChange}
                         required
-                        disabled={isLoading}
+                        placeholder="Enter test name"
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="testType">Test Type *</label>
+                    <select
+                        id="testType"
+                        name="testType"
+                        value={formData.testType}
+                        onChange={handleChange}
+                        required
                     >
-                        <option value="">Select Test Case</option>
-                        {testCases.map(testCase => (
-                            <option key={testCase.id} value={testCase.id}>
-                                {testCase.id} - {testCase.testName}
-                            </option>
-                        ))}
+                        <option value="">Select test type</option>
+                        <option value="UNIT_TEST">Unit Test</option>
+                        <option value="INTEGRATION_TEST">Integration Test</option>
+                        <option value="SYSTEM_TEST">System Test</option>
+                        <option value="ACCEPTANCE_TEST">Acceptance Test</option>
                     </select>
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="productId">Product ID</label>
-                    <input
-                        type="number"
-                        id="productId"
-                        name="productId"
-                        value={formData.productId}
-                        onChange={handleInputChange}
-                        required
-                        disabled={isLoading}
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="trialPhase">Trial Phase</label>
-                    <input
-                        type="text"
-                        id="trialPhase"
-                        name="trialPhase"
-                        value={formData.trialPhase}
-                        onChange={handleInputChange}
-                        required
-                        disabled={isLoading}
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="parameterName">Parameter Name</label>
-                    <input
-                        type="text"
-                        id="parameterName"
-                        name="parameterName"
-                        value={formData.parameterName}
-                        onChange={handleInputChange}
-                        placeholder="e.g., pH Level"
-                        required
-                        disabled={isLoading}
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="value">Value</label>
-                    <input
-                        type="text"
-                        id="value"
-                        name="value"
-                        value={formData.value}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 7.2"
-                        required
-                        disabled={isLoading}
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="unit">Unit</label>
-                    <input
-                        type="text"
-                        id="unit"
-                        name="unit"
-                        value={formData.unit}
-                        onChange={handleInputChange}
-                        placeholder="e.g., pH units, mg/L, etc."
-                        disabled={isLoading}
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="notes">Notes</label>
+                    <label htmlFor="description">Description</label>
                     <textarea
-                        id="notes"
-                        name="notes"
-                        value={formData.notes}
-                        onChange={handleInputChange}
-                        placeholder="Enter any relevant notes or observations"
+                        id="description"
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        placeholder="Enter test description"
                         rows="4"
-                        disabled={isLoading}
                     />
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="finalVerdict">Final Verdict</label>
-                    <select
-                        id="finalVerdict"
-                        name="finalVerdict"
-                        value={formData.finalVerdict}
-                        onChange={handleInputChange}
+                    <label htmlFor="testProcedure">Test Procedure *</label>
+                    <textarea
+                        id="testProcedure"
+                        name="testProcedure"
+                        value={formData.testProcedure}
+                        onChange={handleChange}
                         required
-                        disabled={isLoading}
+                        placeholder="Enter test procedure steps"
+                        rows="4"
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="expectedResults">Expected Results *</label>
+                    <textarea
+                        id="expectedResults"
+                        name="expectedResults"
+                        value={formData.expectedResults}
+                        onChange={handleChange}
+                        required
+                        placeholder="Enter expected results"
+                        rows="3"
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="actualResults">Actual Results</label>
+                    <textarea
+                        id="actualResults"
+                        name="actualResults"
+                        value={formData.actualResults}
+                        onChange={handleChange}
+                        placeholder="Enter actual results"
+                        rows="3"
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="testStatus">Test Status</label>
+                    <select
+                        id="testStatus"
+                        name="testStatus"
+                        value={formData.testStatus}
+                        onChange={handleChange}
                     >
-                        <option value="">Select Verdict</option>
-                        <option value="PASS">PASS</option>
-                        <option value="FAIL">FAIL</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="FAILED">Failed</option>
                     </select>
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="approvedBy">Approved By</label>
-                    <input
-                        type="text"
-                        id="approvedBy"
-                        name="approvedBy"
-                        value={formData.approvedBy}
-                        onChange={handleInputChange}
-                        required
-                        disabled={isLoading}
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="dateOfApproval">Date of Approval</label>
-                    <input
-                        type="datetime-local"
-                        id="dateOfApproval"
-                        name="dateOfApproval"
-                        value={formData.dateOfApproval}
-                        onChange={handleInputChange}
-                        required
-                        disabled={isLoading}
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="mediaFiles">Attach Files</label>
+                    <label htmlFor="attachments">Attachments</label>
                     <input
                         type="file"
-                        id="mediaFiles"
-                        name="mediaFiles"
-                        onChange={handleInputChange}
+                        id="attachments"
+                        name="attachments"
+                        onChange={handleChange}
                         multiple
-                        disabled={isLoading}
                     />
-                    {formData.mediaFiles.length > 0 && (
-                        <span>{formData.mediaFiles.length} file(s) selected</span>
-                    )}
                 </div>
 
-                <div className="form-buttons">
-                    <button type="button" onClick={handleCancel} disabled={isLoading}>Cancel</button>
-                    <button type="submit" disabled={isLoading}>{formData.id ? 'Update Documentation' : 'Save Documentation'}</button>
+                <div className="form-actions">
+                    <button 
+                        type="submit" 
+                        className="submit-button"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? 'Creating...' : 'Create Test Documentation'}
+                    </button>
                 </div>
             </form>
         </div>
