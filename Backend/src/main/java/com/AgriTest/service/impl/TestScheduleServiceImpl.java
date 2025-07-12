@@ -1,55 +1,58 @@
 package com.AgriTest.service.impl;
 
 import com.AgriTest.dto.TestScheduleRequest;
+import com.AgriTest.dto.TestScheduleResponse;
 import com.AgriTest.model.TestSchedule;
+import com.AgriTest.model.ScheduleFrequency;
 import com.AgriTest.repository.TestScheduleRepository;
 import com.AgriTest.service.TestScheduleService;
 import com.AgriTest.mapper.TestScheduleMapper;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class TestScheduleServiceImpl implements TestScheduleService {
 
     private final TestScheduleRepository testScheduleRepository;
     private final TestScheduleMapper testScheduleMapper;
 
-    @Autowired
-    public TestScheduleServiceImpl(TestScheduleRepository testScheduleRepository,
-                                 TestScheduleMapper testScheduleMapper) {
-        this.testScheduleRepository = testScheduleRepository;
-        this.testScheduleMapper = testScheduleMapper;
-    }
-
     @Override
     @Transactional
-    public TestSchedule createTestSchedule(TestScheduleRequest request) {
+    public TestScheduleResponse createTestSchedule(TestScheduleRequest request) {
         TestSchedule testSchedule = testScheduleMapper.toEntity(request);
-        return testScheduleRepository.save(testSchedule);
+        testSchedule = testScheduleRepository.save(testSchedule);
+        return testScheduleMapper.toResponse(testSchedule);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<TestSchedule> getAllTestSchedules() {
-        return testScheduleRepository.findAll();
+    public List<TestScheduleResponse> getAllTestSchedules() {
+        List<TestSchedule> schedules = testScheduleRepository.findAll();
+        return testScheduleMapper.toResponseList(schedules);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public TestSchedule getTestScheduleById(Long id) {
-        return testScheduleRepository.findById(id)
+    public TestScheduleResponse getTestScheduleById(Long id) {
+        TestSchedule schedule = testScheduleRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Test Schedule not found with id: " + id));
+        return testScheduleMapper.toResponse(schedule);
     }
 
     @Override
     @Transactional
-    public TestSchedule updateTestSchedule(Long id, TestScheduleRequest request) {
-        TestSchedule existingSchedule = getTestScheduleById(id);
+    public TestScheduleResponse updateTestSchedule(Long id, TestScheduleRequest request) {
+        TestSchedule existingSchedule = testScheduleRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Test Schedule not found with id: " + id));
         
         // Use mapper to update the entity
         TestSchedule updatedSchedule = testScheduleMapper.toEntity(request);
@@ -57,7 +60,8 @@ public class TestScheduleServiceImpl implements TestScheduleService {
         // Preserve creation timestamp
         updatedSchedule.setCreatedAt(existingSchedule.getCreatedAt());
         
-        return testScheduleRepository.save(updatedSchedule);
+        updatedSchedule = testScheduleRepository.save(updatedSchedule);
+        return testScheduleMapper.toResponse(updatedSchedule);
     }
 
     @Override
@@ -71,8 +75,9 @@ public class TestScheduleServiceImpl implements TestScheduleService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TestSchedule> getTestSchedulesByIds(List<Long> scheduleIds) {
-        return testScheduleRepository.findAllById(scheduleIds);
+    public List<TestScheduleResponse> getTestSchedulesByIds(List<Long> scheduleIds) {
+        List<TestSchedule> schedules = testScheduleRepository.findAllById(scheduleIds);
+        return testScheduleMapper.toResponseList(schedules);
     }
 
     @Override
@@ -86,9 +91,7 @@ public class TestScheduleServiceImpl implements TestScheduleService {
                 executeSchedule(schedule);
                 updateNextExecutionDate(schedule);
             } catch (Exception e) {
-                // Log error but continue with other schedules
-                // TODO: Add proper logging and error notification
-                e.printStackTrace();
+                log.error("Failed to execute schedule {}: {}", schedule.getId(), e.getMessage(), e);
             }
         }
     }
@@ -119,8 +122,8 @@ public class TestScheduleServiceImpl implements TestScheduleService {
         LocalDate currentDate = LocalDate.now();
         
         return switch (schedule.getFrequency()) {
-            case "DAILY" -> currentDate.plusDays(1);
-            case "WEEKLY" -> {
+            case DAILY -> currentDate.plusDays(1);
+            case WEEKLY -> {
                 if (schedule.getDayOfWeek() != null) {
                     LocalDate next = currentDate.plusDays(1);
                     while (next.getDayOfWeek().getValue() != schedule.getDayOfWeek()) {
@@ -130,7 +133,7 @@ public class TestScheduleServiceImpl implements TestScheduleService {
                 }
                 yield currentDate.plusWeeks(1);
             }
-            case "MONTHLY" -> {
+            case MONTHLY -> {
                 if (schedule.getDayOfMonth() != null) {
                     LocalDate next = currentDate.plusMonths(1).withDayOfMonth(1);
                     int targetDay = Math.min(schedule.getDayOfMonth(), next.lengthOfMonth());
@@ -138,7 +141,6 @@ public class TestScheduleServiceImpl implements TestScheduleService {
                 }
                 yield currentDate.plusMonths(1);
             }
-            default -> currentDate.plusDays(1);
         };
     }
 }

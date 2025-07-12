@@ -4,8 +4,8 @@ import com.AgriTest.dto.TestScheduleRequest;
 import com.AgriTest.dto.TestScheduleResponse;
 import com.AgriTest.model.TestSchedule;
 import com.AgriTest.model.TestCase;
+import com.AgriTest.model.ScheduleFrequency;
 import com.AgriTest.repository.TestCaseRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +32,7 @@ public class TestScheduleMapper {
      * @param request The DTO containing test schedule data
      * @return TestSchedule entity with populated data
      * @throws EntityNotFoundException if referenced TestCase is not found
+     * @throws IllegalArgumentException if request is null or contains invalid data
      */
     public TestSchedule toEntity(TestScheduleRequest request) {
         if (request == null) {
@@ -48,9 +49,24 @@ public class TestScheduleMapper {
         testSchedule.setEquipmentRequired(request.getEquipmentRequired());
         testSchedule.setNotificationPreference(request.getNotificationPreference());
         testSchedule.setNotes(request.getNotes());
-        testSchedule.setFrequency(request.getFrequency());
+        
+        // Handle frequency conversion
+        try {
+            testSchedule.setFrequency(ScheduleFrequency.valueOf(request.getFrequency().toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid frequency value: " + request.getFrequency() +
+                ". Must be one of: " + String.join(", ", 
+                List.of(ScheduleFrequency.values()).stream()
+                    .map(Enum::name)
+                    .collect(Collectors.toList())));
+        }
+        
         testSchedule.setDayOfMonth(request.getDayOfMonth());
         testSchedule.setDayOfWeek(request.getDayOfWeek());
+        
+        // Validate day of week/month based on frequency
+        validateScheduleConfiguration(testSchedule);
+        
         testSchedule.setStartDate(request.getStartDate());
         testSchedule.setEndDate(request.getEndDate());
         testSchedule.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
@@ -73,6 +89,33 @@ public class TestScheduleMapper {
     }
 
     /**
+     * Validates schedule configuration based on frequency.
+     * @param testSchedule The schedule to validate
+     * @throws IllegalArgumentException if configuration is invalid
+     */
+    private void validateScheduleConfiguration(TestSchedule testSchedule) {
+        switch (testSchedule.getFrequency()) {
+            case WEEKLY:
+                if (testSchedule.getDayOfWeek() != null && 
+                    (testSchedule.getDayOfWeek() < 1 || testSchedule.getDayOfWeek() > 7)) {
+                    throw new IllegalArgumentException(
+                        "Day of week must be between 1 (Monday) and 7 (Sunday)");
+                }
+                break;
+            case MONTHLY:
+                if (testSchedule.getDayOfMonth() != null && 
+                    (testSchedule.getDayOfMonth() < 1 || testSchedule.getDayOfMonth() > 31)) {
+                    throw new IllegalArgumentException(
+                        "Day of month must be between 1 and 31");
+                }
+                break;
+            default:
+                // No validation needed for DAILY frequency
+                break;
+        }
+    }
+
+    /**
      * Converts a TestSchedule entity to a TestScheduleResponse DTO.
      * @param testSchedule The entity to convert
      * @return TestScheduleResponse DTO with populated data
@@ -91,7 +134,7 @@ public class TestScheduleMapper {
             .trialPhase(testSchedule.getTrialPhase())
             .assignedPersonnel(testSchedule.getAssignedPersonnel())
             .endDate(testSchedule.getEndDate())
-            .frequency(testSchedule.getFrequency())
+            .frequency(testSchedule.getFrequency().name())
             .location(testSchedule.getLocation())
             .testObjective(testSchedule.getTestObjective())
             .equipmentRequired(testSchedule.getEquipmentRequired())
@@ -148,11 +191,11 @@ public class TestScheduleMapper {
         LocalDate nextExecution = testSchedule.getStartDate();
 
         if (nextExecution.isBefore(currentDate)) {
-            switch (testSchedule.getFrequency().toUpperCase()) {
-                case "DAILY":
+            switch (testSchedule.getFrequency()) {
+                case DAILY:
                     nextExecution = currentDate.plusDays(1);
                     break;
-                case "WEEKLY":
+                case WEEKLY:
                     if (testSchedule.getDayOfWeek() != null) {
                         nextExecution = currentDate.plusDays(1);
                         while (nextExecution.getDayOfWeek().getValue() != testSchedule.getDayOfWeek()) {
@@ -162,7 +205,7 @@ public class TestScheduleMapper {
                         nextExecution = currentDate.plusWeeks(1);
                     }
                     break;
-                case "MONTHLY":
+                case MONTHLY:
                     if (testSchedule.getDayOfMonth() != null) {
                         nextExecution = currentDate.plusMonths(1).withDayOfMonth(1);
                         int maxDay = nextExecution.lengthOfMonth();
@@ -172,10 +215,6 @@ public class TestScheduleMapper {
                         nextExecution = currentDate.plusMonths(1);
                     }
                     break;
-                default:
-                    log.warn("Unknown frequency: {}. Defaulting to daily schedule.", 
-                        testSchedule.getFrequency());
-                    nextExecution = currentDate.plusDays(1);
             }
         }
 

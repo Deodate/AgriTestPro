@@ -2,25 +2,26 @@ package com.AgriTest.service;
 
 import com.AgriTest.dto.TestCaseResponse;
 import com.AgriTest.dto.TestResultResponse;
+import com.AgriTest.dto.TestScheduleResponse;
 import com.AgriTest.exception.ExportException;
 import com.AgriTest.model.ExportFormat;
-import com.AgriTest.model.TestSchedule;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class ExportService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
-    @Autowired
-    private TestCaseService testCaseService;
-    
-    @Autowired
-    private TestScheduleService testScheduleService;
+    private final TestCaseService testCaseService;
+    private final TestScheduleService testScheduleService;
 
     /**
      * Export test cases to the specified format
@@ -48,7 +49,7 @@ public class ExportService {
      * Export test schedules to the specified format
      */
     public byte[] exportTestSchedules(ExportFormat format, List<Long> scheduleIds) {
-        List<TestSchedule> schedules;
+        List<TestScheduleResponse> schedules;
         
         if (scheduleIds != null && !scheduleIds.isEmpty()) {
             // Export specific schedules
@@ -98,26 +99,26 @@ public class ExportService {
             csv.append("\"").append(escapeCSV(testCase.getTestObjectives())).append("\",");
             csv.append("\"").append(escapeCSV(testCase.getProductType())).append("\",");
             csv.append("\"").append(escapeCSV(testCase.getProductBatchNumber())).append("\",");
-            csv.append(testCase.getStartDate()).append(",");
-            csv.append(testCase.getEndDate()).append(",");
-            csv.append(testCase.getStatus());
+            csv.append(testCase.getStartDate() != null ? testCase.getStartDate().format(DATE_FORMATTER) : "").append(",");
+            csv.append(testCase.getEndDate() != null ? testCase.getEndDate().format(DATE_FORMATTER) : "").append(",");
+            csv.append("\"").append(escapeCSV(testCase.getStatus())).append("\"");
             csv.append("\n");
         }
         
         return csv.toString().getBytes();
     }
     
-    private byte[] exportSchedulesToCsv(List<TestSchedule> schedules) {
+    private byte[] exportSchedulesToCsv(List<TestScheduleResponse> schedules) {
         StringBuilder csv = new StringBuilder();
         
         // Add header with updated fields
         csv.append("ID,Test Name,Schedule Name,Trial Phase,Assigned Personnel,Location,")
            .append("Test Objective,Equipment Required,Notification Preference,")
            .append("Frequency,Day of Month,Day of Week,Start Date,End Date,Next Execution,")
-           .append("Is Active,Test Case ID,Priority,Status,Notes,Created At,Updated At\n");
+           .append("Is Active,Test Case ID,Test Case Title,Priority,Status,Notes,Created At,Updated At\n");
         
         // Add data
-        for (TestSchedule schedule : schedules) {
+        for (TestScheduleResponse schedule : schedules) {
             csv.append(schedule.getId()).append(",");
             csv.append("\"").append(escapeCSV(schedule.getTestName())).append("\",");
             csv.append("\"").append(escapeCSV(schedule.getScheduleName())).append("\",");
@@ -134,12 +135,13 @@ public class ExportService {
             csv.append(schedule.getEndDate() != null ? schedule.getEndDate().format(DATE_FORMATTER) : "").append(",");
             csv.append(schedule.getNextExecution() != null ? schedule.getNextExecution().format(DATE_FORMATTER) : "").append(",");
             csv.append(schedule.getIsActive()).append(",");
-            csv.append(schedule.getTestCase() != null ? schedule.getTestCase().getId() : "").append(",");
+            csv.append(schedule.getTestCaseId() != null ? schedule.getTestCaseId() : "").append(",");
+            csv.append("\"").append(escapeCSV(schedule.getTestCaseTitle())).append("\",");
             csv.append("\"").append(escapeCSV(schedule.getPriority())).append("\",");
             csv.append("\"").append(escapeCSV(schedule.getStatus())).append("\",");
             csv.append("\"").append(escapeCSV(schedule.getNotes())).append("\",");
-            csv.append(schedule.getCreatedAt() != null ? schedule.getCreatedAt() : "").append(",");
-            csv.append(schedule.getUpdatedAt() != null ? schedule.getUpdatedAt() : "");
+            csv.append(schedule.getCreatedAt() != null ? schedule.getCreatedAt().format(DATETIME_FORMATTER) : "").append(",");
+            csv.append(schedule.getUpdatedAt() != null ? schedule.getUpdatedAt().format(DATETIME_FORMATTER) : "");
             csv.append("\n");
         }
         
@@ -157,11 +159,11 @@ public class ExportService {
             csv.append(result.getId()).append(",");
             csv.append(result.getTestPhaseId()).append(",");
             csv.append("\"").append(escapeCSV(result.getParameterName())).append("\",");
-            csv.append(result.getValue()).append(",");
+            csv.append("\"").append(escapeCSV(result.getValue())).append("\",");
             csv.append("\"").append(escapeCSV(result.getUnit())).append("\",");
             csv.append("\"").append(escapeCSV(result.getNotes())).append("\",");
-            csv.append(result.getRecordedAt()).append(",");
-            csv.append(result.getRecordedBy());
+            csv.append(result.getRecordedAt() != null ? result.getRecordedAt().format(DATETIME_FORMATTER) : "").append(",");
+            csv.append("\"").append(escapeCSV(result.getRecordedBy())).append("\"");
             csv.append("\n");
         }
         

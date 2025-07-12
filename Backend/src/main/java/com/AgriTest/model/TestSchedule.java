@@ -47,8 +47,9 @@ public class TestSchedule {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "frequency", nullable = false)
-    private String frequency;
+    private ScheduleFrequency frequency;
 
     @Column(name = "day_of_month")
     private Integer dayOfMonth;
