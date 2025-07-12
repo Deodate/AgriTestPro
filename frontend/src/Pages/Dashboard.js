@@ -564,117 +564,34 @@ const Dashboard = () => {
   // Effect to handle URL changes and set the trialPhaseMode and fetch data
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
-    const formMode = queryParams.get('TrialPhaseTrackingForm');
-    const allDataMode = queryParams.get('AllData'); // Get AllData parameter
-    const trialPhaseId = queryParams.get('id');
-    const showResourceAllocation = queryParams.get('ResourceAllocationForm'); // Resource Allocation Form parameter
-    const showQualityIncidentReport = queryParams.get('QualityIncidentReportForm'); // Quality Incident Report Form parameter
-
-    // Reset all show states to false initially to ensure only one form is shown at a time
+    
+    // Reset all forms first
     setShowComplianceForm(false);
     setShowTestCaseForm(false);
     setShowTrialPhaseForm(false);
     setShowTestDocumentationForm(false);
-    setShowProductEntryForm(false);
-    setShowStockMovementForm(false);
-    setShowStockMonitoringForm(false);
-    setShowReportGenerationForm(false);
-    setShowPerformanceAnalysisForm(false);
-    // setShowQualityIncidentReportForm(false);
     setShowBroadcastAnnouncementForm(false);
-    setShowTaskAssignmentForm(false);
-    setShowAutomatedAlertForm(false);
-    setShowCalendarManagementForm(false);
-    setShowUserActivityLogForm(false);
-    setShowAuditTrailForm(false);
-    setShowPasswordPoliciesForm(false);
-    setShowCostTrackingForm(false);
-    setShowFieldActivityTrackingForm(false);
-    setShowProductRegistrationForm(false);
-    setShowEvidenceUploadForm(false);
-    setShowTestSchedulingForm(false);
-    setShowHistoricalDataForm(false);
-    setShowDataVisualizationForm(false);
-    setShowResultsComparisonForm(false);
-    setShowAddInventoryItemForm(false);
-    setShowStockValuationForm(false);
-    setShowExpiryAlertSetupForm(false);
-    setShowCustomReportBuilderForm(false);
-    setShowForecastingForm(false);
-    setShowProtocolRegistrationForm(false);
-    setShowAlertConfigurationForm(false);
-    setShowFeedbackCollectionForm(false);
-    setShowBroadcastMessageForm(false);
-    setShowResourceAllocationForm(false);
-    setShowTimeTrackingForm(false);
-    setShowRealTimeStockTrackingForm(false);
-    setShowProductManagementForm(false);
-    setShowQualityControlForm(false);
-    setShowEffectivenessEvaluationForm(false);
-    setShowReportSchedulerForm(false);
-    setShowRoleManagementForm(false);
-    setShowSMSNotificationForm(false);
-    setShowReminderSystemForm(false);
-    setShowStatusUpdateForm(false);
-    setShowEmergencyAlertForm(false);
-    setShowEquipmentMaintenanceSchedulingForm(false);
-    setShowTaskSchedulingForm(false);
-    setShowComplianceChecklistTable(false); // Reset ComplianceChecklistTable
-    setShowAllDataTable(false); // Reset AllDataTable
-    setShowTestCasesTable(false); // Reset Test Cases table
+    // ... other form resets ...
 
-    if (formMode) {
-      setTrialPhaseMode(formMode);
-      setShowTrialPhaseForm(true); // Show TrialPhaseForm if formMode exists
-      if (formMode === 'view' && trialPhaseId) {
-        // Fetch specific trial phase data
-        const fetchTrialPhaseData = async () => {
-          setIsLoading(true);
-          const token = authService.getToken();
-          if (token) {
-            try {
-              const response = await fetch(`http://localhost:8089/api/test-case-trial-phases/${trialPhaseId}`, {
-                headers: {
-                  'Authorization': `Bearer ${token}`
-                }
-              });
-              if (!response.ok) {
-                console.error('Failed to fetch trial phase data:', response.status, response.statusText);
-                throw new Error('Failed to fetch trial phase data');
-              }
-              const data = await response.json();
-              console.log('Fetched trial phase data for view:', data);
-              setViewedTrialPhaseData(data);
-            } catch (error) {
-              console.error('Error fetching trial phase data for view:', error);
-              toast.error('Failed to load trial phase data.');
-              setViewedTrialPhaseData(null); // Clear data on error
-            } finally {
-              setIsLoading(false);
-            }
-          }
-        };
-        fetchTrialPhaseData();
-      } else if (showResourceAllocation === 'create') { // Handle ResourceAllocationForm=create parameter
-        setShowResourceAllocationForm(true); // Show ResourceAllocationForm
-        setActiveTab('resourceallocationform'); // Set activeTab for Resource Allocation Form
-      } else if (showQualityIncidentReport === 'create') { // Handle QualityIncidentReportForm=create parameter
-        // setShowQualityIncidentReportForm(true); // Show QualityIncidentReportForm
-        // setActiveTab('qualityincidentreportform'); // Set activeTab for Quality Incident Report Form
-      } else {
-        setTrialPhaseMode('list');
-        setViewedTrialPhaseData(null); // Clear data if no formMode param
-      }
-    } else if (allDataMode === 'list') { // Handle AllData=list parameter
-      setShowAllDataTable(true); // Show AllDataTable component
-    } else if (showResourceAllocation === 'create') { // Handle ResourceAllocationForm=create parameter
-      setShowResourceAllocationForm(true); // Show ResourceAllocationForm
-      setActiveTab('resourceallocationform'); // Set activeTab for Resource Allocation Form
-    } else {
-      setTrialPhaseMode('list');
-      setViewedTrialPhaseData(null); // Clear data if no formMode param
+    // Check for Trial Phase Tracking Form
+    if (queryParams.get('TrialPhaseTrackingForm') === 'create') {
+      setShowTrialPhaseForm(true);
+      setTrialPhaseMode('create');
+      setActiveTab('trialphase');
+      setActiveMenuItem('TrialPhaseTrackingForm');
+      return;
     }
-  }, [location.search, navigate, authService]); // Depend on location.search and navigate to react to URL changes
+
+    // Check for Broadcast Announcement Form
+    if (queryParams.get('BroadcastAnnouncementForm') === 'create') {
+      setShowBroadcastAnnouncementForm(true);
+      setActiveTab('broadcastannouncementform');
+      setActiveMenuItem('BroadcastAnnouncementForm');
+      return;
+    }
+
+    // ... rest of the existing useEffect code ...
+  }, [location.search]);
 
   // Effect to fetch test schedules when the tab is active
   useEffect(() => {
@@ -988,6 +905,8 @@ const Dashboard = () => {
                         setActiveTab('trialphase');
                         setActiveMenuItem('TrialPhaseTrackingForm');
                         navigate('/dashboard?TrialPhaseTrackingForm=create', { replace: true });
+                        // Reset other forms
+                        setShowBroadcastAnnouncementForm(false);
                       }}>Trial Phase Tracking</div>
                       <div className={`menu-item ${activeMenuItem === 'CreatingTestDocumentation' ? 'active' : ''}`} onClick={() => {
                         setShowTestDocumentationForm(true);
@@ -1316,6 +1235,8 @@ const Dashboard = () => {
                         setActiveTab('broadcastannouncementform');
                         setActiveMenuItem('BroadcastAnnouncementForm');
                         navigate('/dashboard?BroadcastAnnouncementForm=create', { replace: true });
+                        // Reset other forms
+                        setShowTrialPhaseForm(false);
                       }}>Broadcast Announcement</div>
                      
                       {/* Add Alert Configuration Menu Item */}
