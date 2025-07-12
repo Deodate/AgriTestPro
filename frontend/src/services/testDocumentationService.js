@@ -1,7 +1,13 @@
 import axios from 'axios';
 import { API_CONFIG } from '../config';
+import { AUTH_SETTINGS } from '../config';
 
 const API_URL = `${API_CONFIG.BASE_URL}/api/test-documentation`;
+
+// Helper function to get the auth token
+const getAuthToken = () => {
+    return localStorage.getItem(AUTH_SETTINGS.TOKEN_KEY);
+};
 
 const testDocumentationService = {
     createTestDocumentation: async (data) => {
@@ -25,6 +31,7 @@ const testDocumentationService = {
             const response = await axios.post(API_URL, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${getAuthToken()}`
                 }
             });
             return response.data;
@@ -35,7 +42,11 @@ const testDocumentationService = {
 
     updateTestDocumentation: async (id, data) => {
         try {
-            const response = await axios.put(`${API_URL}/${id}`, data);
+            const response = await axios.put(`${API_URL}/${id}`, data, {
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`
+                }
+            });
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
@@ -44,7 +55,11 @@ const testDocumentationService = {
 
     getTestDocumentation: async (id) => {
         try {
-            const response = await axios.get(`${API_URL}/${id}`);
+            const response = await axios.get(`${API_URL}/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`
+                }
+            });
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
@@ -53,7 +68,11 @@ const testDocumentationService = {
 
     getAllTestDocumentations: async () => {
         try {
-            const response = await axios.get(API_URL);
+            const response = await axios.get(API_URL, {
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`
+                }
+            });
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
@@ -62,7 +81,11 @@ const testDocumentationService = {
 
     deleteTestDocumentation: async (id) => {
         try {
-            const response = await axios.delete(`${API_URL}/${id}`);
+            const response = await axios.delete(`${API_URL}/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`
+                }
+            });
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
