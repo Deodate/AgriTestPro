@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './BroadcastAnnouncementForm.css';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -17,6 +17,22 @@ const BroadcastAnnouncementForm = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
+
+    // Add useEffect to hide success message after 1 minute
+    useEffect(() => {
+        let timeoutId;
+        if (isSubmitted) {
+            timeoutId = setTimeout(() => {
+                setIsSubmitted(false);
+            }, 60000); // 60000 milliseconds = 1 minute
+        }
+        // Cleanup function to clear timeout if component unmounts or isSubmitted changes
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
+    }, [isSubmitted]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -168,14 +184,16 @@ const BroadcastAnnouncementForm = () => {
 
                 <div className="form-group">
                     <label htmlFor="attachments">Attachments</label>
-                    <input 
-                        type="file" 
-                        id="attachments" 
-                        name="attachments" 
-                        onChange={handleFileChange}
-                        multiple
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                    />
+                    <div className="file-input-container">
+                        <input 
+                            type="file" 
+                            id="attachments" 
+                            name="attachments" 
+                            onChange={handleFileChange}
+                            multiple
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        />
+                    </div>
                     <small>Supported file types: PDF, DOC, DOCX, JPG, JPEG, PNG</small>
                 </div>
 
@@ -184,7 +202,7 @@ const BroadcastAnnouncementForm = () => {
                         type="submit" 
                         disabled={isSubmitting}
                     >
-                        {isSubmitting ? 'Creating...' : 'Create Announcement'}
+                        {isSubmitting ? 'Creating...' : 'Create'}
                     </button>
                     <button 
                         type="button" 
