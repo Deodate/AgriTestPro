@@ -590,11 +590,21 @@ const Dashboard = () => {
     setShowTimeTrackingForm(false);
     setShowRealTimeStockTrackingForm(false);
 
-    // Check for Evidence Upload Form
-    if (queryParams.get('EvidenceUploadForm') === 'create') {
+    // Handle form visibility based on URL parameters
+    const formParam = Object.fromEntries(queryParams)[Object.keys(Object.fromEntries(queryParams))[0]];
+    const formType = Object.keys(Object.fromEntries(queryParams))[0];
+
+    if (formType === 'EvidenceUploadForm' && formParam === 'create') {
       setShowEvidenceUploadForm(true);
       setActiveTab('evidenceupload');
       setActiveMenuItem('EvidenceUploadForm');
+      return;
+    }
+
+    if (formType === 'BroadcastAnnouncementForm' && formParam === 'create') {
+      setShowBroadcastAnnouncementForm(true);
+      setActiveTab('broadcastannouncementform');
+      setActiveMenuItem('BroadcastAnnouncementForm');
       return;
     }
 
@@ -956,32 +966,37 @@ const Dashboard = () => {
                         navigate('/dashboard?ProductRegistrationForm=create', { replace: true });
                       }}>Product Registration</div>
                       <div className={`menu-item ${activeMenuItem === 'EvidenceUploadForm' ? 'active' : ''}`} onClick={() => {
-                        // Reset all form states
-                        setShowComplianceForm(false);
-                        setShowTestCaseForm(false);
-                        setShowTrialPhaseForm(false);
-                        setShowTestDocumentationForm(false);
-                        setShowBroadcastAnnouncementForm(false);
-                        setShowProductRegistrationForm(false);
-                        setShowEvidenceUploadForm(false);
-                        setShowTestSchedulingForm(false);
-                        setShowHistoricalDataForm(false);
-                        setShowDataVisualizationForm(false);
-                        setShowResultsComparisonForm(false);
-                        setShowAddInventoryItemForm(false);
-                        setShowStockValuationForm(false);
-                        setShowExpiryAlertSetupForm(false);
-                        setShowCustomReportBuilderForm(false);
-                        setShowForecastingForm(false);
-                        setShowProtocolRegistrationForm(false);
-                        setShowAlertConfigurationForm(false);
-                        setShowFeedbackCollectionForm(false);
-                        setShowBroadcastMessageForm(false);
-                        setShowResourceAllocationForm(false);
-                        setShowTimeTrackingForm(false);
-                        setShowRealTimeStockTrackingForm(false);
+                        // Reset all form states first
+                        const resetAllForms = () => {
+                          setShowComplianceForm(false);
+                          setShowTestCaseForm(false);
+                          setShowTrialPhaseForm(false);
+                          setShowTestDocumentationForm(false);
+                          setShowBroadcastAnnouncementForm(false);
+                          setShowProductRegistrationForm(false);
+                          setShowEvidenceUploadForm(false);
+                          setShowTestSchedulingForm(false);
+                          setShowHistoricalDataForm(false);
+                          setShowDataVisualizationForm(false);
+                          setShowResultsComparisonForm(false);
+                          setShowAddInventoryItemForm(false);
+                          setShowStockValuationForm(false);
+                          setShowExpiryAlertSetupForm(false);
+                          setShowCustomReportBuilderForm(false);
+                          setShowForecastingForm(false);
+                          setShowProtocolRegistrationForm(false);
+                          setShowAlertConfigurationForm(false);
+                          setShowFeedbackCollectionForm(false);
+                          setShowBroadcastMessageForm(false);
+                          setShowResourceAllocationForm(false);
+                          setShowTimeTrackingForm(false);
+                          setShowRealTimeStockTrackingForm(false);
+                        };
+
+                        // Reset all forms first
+                        resetAllForms();
                         
-                        // Set Evidence Upload form state
+                        // Then show only the Evidence Upload form
                         setShowEvidenceUploadForm(true);
                         setActiveTab('evidenceupload');
                         setActiveMenuItem('EvidenceUploadForm');
