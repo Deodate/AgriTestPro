@@ -573,7 +573,30 @@ const Dashboard = () => {
     setShowBroadcastAnnouncementForm(false);
     setShowProductRegistrationForm(false);
     setShowEvidenceUploadForm(false);
-    // ... other form resets ...
+    setShowTestSchedulingForm(false);
+    setShowHistoricalDataForm(false);
+    setShowDataVisualizationForm(false);
+    setShowResultsComparisonForm(false);
+    setShowAddInventoryItemForm(false);
+    setShowStockValuationForm(false);
+    setShowExpiryAlertSetupForm(false);
+    setShowCustomReportBuilderForm(false);
+    setShowForecastingForm(false);
+    setShowProtocolRegistrationForm(false);
+    setShowAlertConfigurationForm(false);
+    setShowFeedbackCollectionForm(false);
+    setShowBroadcastMessageForm(false);
+    setShowResourceAllocationForm(false);
+    setShowTimeTrackingForm(false);
+    setShowRealTimeStockTrackingForm(false);
+
+    // Check for Evidence Upload Form
+    if (queryParams.get('EvidenceUploadForm') === 'create') {
+      setShowEvidenceUploadForm(true);
+      setActiveTab('evidenceupload');
+      setActiveMenuItem('EvidenceUploadForm');
+      return;
+    }
 
     // Check for Trial Phase Tracking Form
     if (queryParams.get('TrialPhaseTrackingForm') === 'create') {
@@ -599,30 +622,6 @@ const Dashboard = () => {
       setActiveTab('productregistration');
       setActiveMenuItem('ProductRegistrationForm');
       setShowBroadcastAnnouncementForm(false); // Explicitly hide Broadcast Announcement form
-      return;
-    }
-
-    // Check for Evidence Upload Form
-    if (queryParams.get('EvidenceUploadForm') === 'create') {
-      // Reset all form states
-      setShowComplianceForm(false);
-      setShowTestCaseForm(false);
-      setShowTrialPhaseForm(false);
-      setShowTestDocumentationForm(false);
-      setShowBroadcastAnnouncementForm(false);
-      setShowProductRegistrationForm(false);
-      // Set Evidence Upload form state
-      setShowEvidenceUploadForm(true);
-      setActiveTab('evidenceupload');
-      setActiveMenuItem('EvidenceUploadForm');
-      return;
-    }
-
-    // Check for Broadcast Announcement Form
-    if (queryParams.get('BroadcastAnnouncementForm') === 'create') {
-      setShowBroadcastAnnouncementForm(true);
-      setActiveTab('broadcastannouncementform');
-      setActiveMenuItem('BroadcastAnnouncementForm');
       return;
     }
 
@@ -964,6 +963,24 @@ const Dashboard = () => {
                         setShowTestDocumentationForm(false);
                         setShowBroadcastAnnouncementForm(false);
                         setShowProductRegistrationForm(false);
+                        setShowEvidenceUploadForm(false);
+                        setShowTestSchedulingForm(false);
+                        setShowHistoricalDataForm(false);
+                        setShowDataVisualizationForm(false);
+                        setShowResultsComparisonForm(false);
+                        setShowAddInventoryItemForm(false);
+                        setShowStockValuationForm(false);
+                        setShowExpiryAlertSetupForm(false);
+                        setShowCustomReportBuilderForm(false);
+                        setShowForecastingForm(false);
+                        setShowProtocolRegistrationForm(false);
+                        setShowAlertConfigurationForm(false);
+                        setShowFeedbackCollectionForm(false);
+                        setShowBroadcastMessageForm(false);
+                        setShowResourceAllocationForm(false);
+                        setShowTimeTrackingForm(false);
+                        setShowRealTimeStockTrackingForm(false);
+                        
                         // Set Evidence Upload form state
                         setShowEvidenceUploadForm(true);
                         setActiveTab('evidenceupload');
